@@ -52,6 +52,12 @@ dependencies {
 
 	// p6spy
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+
+	// Password Encoder
+	implementation 'at.favre.lib:bcrypt:0.10.2'
+
+	// Spring security
+	implementation "org.springframework.boot:spring-boot-starter-security"
 }
 
 tasks.named('test') {
