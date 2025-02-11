@@ -17,7 +17,7 @@ public class Cart extends TimestampedEntity {
     @Column(name = "cart_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
