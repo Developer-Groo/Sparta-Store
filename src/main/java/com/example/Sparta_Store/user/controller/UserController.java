@@ -5,7 +5,6 @@ import com.example.Sparta_Store.user.dto.UserRequestDto;
 import com.example.Sparta_Store.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,18 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
-    private UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final UserService userService;
 
     @PostMapping("/signUp")
-    public ResponseEntity<CreateUserResponseDto> createUser(
-            @Valid
-            @RequestBody UserRequestDto requestDto
-            ){
+    public ResponseEntity<CreateUserResponseDto> createUser(@Valid @RequestBody UserRequestDto requestDto){
         CreateUserResponseDto userResponseDto =
                 userService.signUp(
                         requestDto.email(),
