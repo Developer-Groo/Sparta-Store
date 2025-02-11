@@ -31,7 +31,6 @@ public class OrderController {
         orderService.checkoutCart(userId);
         return ResponseEntity.status(HttpServletResponse.SC_CREATED).body(Map.of("message", "상품 주문이 완료되었습니다."));
     }
-    ;
 
     /**
      * 주문 상태 변경 API
