@@ -1,13 +1,17 @@
 package com.example.Sparta_Store.orders.controller;
 
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
+import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.service.OrderService;
+import com.example.Sparta_Store.util.PageQuery;
+import com.example.Sparta_Store.util.PageResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,6 +58,12 @@ public class OrderController {
     /**
      * 주문 리스트 조회 API
      */
+    @GetMapping()
+    public ResponseEntity<PageResult<OrderResponseDto>> getOrders(PageQuery pageQuery) {
+
+        Long userId = 1L;
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.getOrders(userId, pageQuery));
+    }
 
     /**
      * 주문 내역 상세 조회 API
