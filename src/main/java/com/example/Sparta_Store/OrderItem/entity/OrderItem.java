@@ -39,7 +39,12 @@ public class OrderItem extends TimestampedEntity {
     @Column(name = "quantity")
     private Integer quantity;
 
-    public OrderItem(Orders order, Item item, Integer orderPrice, Integer quantity) {
+    public OrderItem(
+        Orders order,
+        Item item,
+        Integer orderPrice,
+        Integer quantity
+    ) {
         this.orders = order;
         this.item = item;
         this.orderPrice = orderPrice;

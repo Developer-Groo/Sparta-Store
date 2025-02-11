@@ -18,16 +18,21 @@ public class OrderItemService {
     private final OrdersRepository ordersRepository;
 
     @Transactional
-    public void createOrderItem(Long orderId, List<CartItem> cartItemList){
+    public void createOrderItem(Long orderId, List<CartItem> cartItemList) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
         int totalPrice = 0;
 
-        for(CartItem cartItem:cartItemList){
-            int orderPrice = (cartItem.getItem().getPrice())*(cartItem.getQuantity());
-            totalPrice+=orderPrice;
-            OrderItem savedOrderItem = new OrderItem(order, cartItem.getItem(), orderPrice, cartItem.getQuantity());
+        for (CartItem cartItem : cartItemList) {
+            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
+            totalPrice += orderPrice;
+            OrderItem savedOrderItem = new OrderItem(
+                order,
+                cartItem.getItem(),
+                orderPrice,
+                cartItem.getQuantity()
+            );
             orderItemRepository.save(savedOrderItem);
         }
         order.setTotalPrice(totalPrice);
