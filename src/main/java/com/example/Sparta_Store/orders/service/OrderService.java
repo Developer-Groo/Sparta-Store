@@ -1,5 +1,13 @@
 package com.example.Sparta_Store.orders.service;
 
+import static com.example.Sparta_Store.orders.OrderStatus.교환요청;
+import static com.example.Sparta_Store.orders.OrderStatus.반품요청;
+import static com.example.Sparta_Store.orders.OrderStatus.배송완료;
+import static com.example.Sparta_Store.orders.OrderStatus.배송준비중;
+import static com.example.Sparta_Store.orders.OrderStatus.배송중;
+import static com.example.Sparta_Store.orders.OrderStatus.주문완료;
+import static com.example.Sparta_Store.orders.OrderStatus.주문취소요청;
+
 import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.OrderItem.service.OrderItemService;
 import com.example.Sparta_Store.cart.entity.Cart;
@@ -8,6 +16,7 @@ import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.cartItem.service.CartItemService;
 import com.example.Sparta_Store.orders.OrderStatus;
+import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.User;
@@ -68,10 +77,79 @@ public class OrderService {
             () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
 
-        Orders savedOrder = new Orders(user, OrderStatus.주문완료);
+        Orders savedOrder = new Orders(user, 주문완료);
         ordersRepository.save(savedOrder);
         // orderId 반환
         return savedOrder.getId();
     }
+
+    /**
+     * 주문 상태 변경
+     * - 주문취소는 주문완료 상태에서만 가능
+     */
+    @Transactional
+    public void updateOrderStatus(Long orderId, UpdateOrderStatusDto requestDto) {
+        Orders order = ordersRepository.findById(orderId).orElseThrow(
+            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+        );
+
+        OrderStatus originStatus = order.getOrderStatus();
+
+        OrderStatus requestStatus = OrderStatus.of(requestDto.orderStatus());
+
+        isStatusUpdatable(originStatus, requestStatus); // 주문상태 변경 가능 여부
+
+        order.updateOrderStatus(requestStatus);
+        log.info("주문상태 변경 완료 >> {}", requestDto.orderStatus());
+
+    }
+
+    // 주문상태 변경 가능 여부
+    public void isStatusUpdatable(OrderStatus originStatus, OrderStatus requestStatus) {
+        switch (requestStatus){
+            case 주문완료 -> throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
+            case 주문취소요청 -> {
+                if (!originStatus.equals(주문완료)) {
+                    throw new IllegalArgumentException("주문취소요청 주문완료 상태에서만 가능합니다.");
+                }
+            }
+            case 배송준비중 -> {
+                if (!originStatus.equals(주문완료)) {
+                    throw new IllegalArgumentException("배송준비중은 주문완료 상태에서만 가능합니다.");
+                }
+            }
+            case 배송중 -> {
+                if (!originStatus.equals(배송준비중)) {
+                    throw new IllegalArgumentException("배송중은 배송준비중 상태에서만 가능합니다.");
+                }
+            }
+            case 배송완료 -> {
+                if (!originStatus.equals(배송중)) {
+                    throw new IllegalArgumentException("배송완료는 배송중 상태에서만 가능합니다.");
+                }
+            }
+            case 취소완료 -> {
+                if (!originStatus.equals(주문취소요청)) {
+                    throw new IllegalArgumentException("취소완료는 주문취소요청 상태에서만 가능합니다.");
+                }
+            }
+            case 반품요청, 교환요청, 구매확정 -> {
+                if (!originStatus.equals(배송완료)) {
+                    throw new IllegalArgumentException("반품요청, 교환요청, 구매확정은 배송완료 상태에서만 가능합니다.");
+                }
+            }
+            case 반품완료 -> {
+                if (!originStatus.equals(반품요청)) {
+                    throw new IllegalArgumentException("반품완료는 반품요청 상태에서만 가능합니다.");
+                }
+            }
+            case 교환완료 -> {
+                if (!originStatus.equals(교환요청)) {
+                    throw new IllegalArgumentException("교환완료는 교환요청 상태에서만 가능합니다.");
+                }
+            }
+        }
+    }
+
 
 }

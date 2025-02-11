@@ -46,4 +46,8 @@ public class Orders extends TimestampedEntity {
         this.totalPrice = totalPrice;
     }
 
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
+
 }
