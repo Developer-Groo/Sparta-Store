@@ -46,4 +46,11 @@ public class User extends TimestampedEntity {
         this.name = name;
         this.address = address;
     }
+
+    public User(String email, String password ,String name, Address address){
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.address = address;
+    }
 }
