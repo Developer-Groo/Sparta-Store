@@ -15,10 +15,8 @@ public class CartItemService {
     // 카트 초기화
     public void deleteCartItem(List<CartItem> cartItemList) {
 
-        for(CartItem cartItem:cartItemList){
-            cartItemRepository.delete(cartItem);
-        }
-
+        cartItemList.stream()
+            .forEach(cartItem -> cartItemRepository.delete(cartItem));
     }
 
 }
