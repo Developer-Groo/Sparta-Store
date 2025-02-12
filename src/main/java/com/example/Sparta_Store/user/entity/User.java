@@ -35,4 +35,18 @@ public class User extends TimestampedEntity {
 
     @Column(nullable = false)
     private boolean isDeleted;
+
+    public void updateUserInfo(String name, Address address) {
+        this.name = name;
+        this.address = address;
+    }
+
+    public void markAsDeleted() {
+        this.isDeleted = true;
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
+
 }
