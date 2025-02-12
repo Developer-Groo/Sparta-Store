@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.orders;
 
 import java.util.Arrays;
+import java.util.Map;
 
 public enum OrderStatus {
     ORDER_COMPLETED, // 주문완료
@@ -21,4 +22,18 @@ public enum OrderStatus {
             .findFirst()
             .orElseThrow(()-> new IllegalArgumentException("등록되지 않은 주문상태 값입니다."));
     }
+
+    public static Map<OrderStatus, OrderStatus> statusUpdatable = Map.of(
+        ORDER_CANCEL_REQUEST, ORDER_COMPLETED,
+        PREPARING_SHIPMENT, ORDER_COMPLETED,
+        SHIPPING, PREPARING_SHIPMENT,
+        DELIVERED, SHIPPING,
+        CANCELED, ORDER_CANCEL_REQUEST,
+        RETURN_REQUESTED, DELIVERED,
+        EXCHANGE_REQUESTED, DELIVERED,
+        CONFIRMED, DELIVERED,
+        RETURNED, RETURN_REQUESTED,
+        EXCHANGED, EXCHANGE_REQUESTED
+    );
+
 }

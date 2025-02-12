@@ -1,12 +1,7 @@
 package com.example.Sparta_Store.orders.service;
 
-import static com.example.Sparta_Store.orders.OrderStatus.EXCHANGE_REQUESTED;
-import static com.example.Sparta_Store.orders.OrderStatus.RETURN_REQUESTED;
-import static com.example.Sparta_Store.orders.OrderStatus.DELIVERED;
-import static com.example.Sparta_Store.orders.OrderStatus.PREPARING_SHIPMENT;
-import static com.example.Sparta_Store.orders.OrderStatus.SHIPPING;
 import static com.example.Sparta_Store.orders.OrderStatus.ORDER_COMPLETED;
-import static com.example.Sparta_Store.orders.OrderStatus.ORDER_CANCEL_REQUEST;
+import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.OrderItem.service.OrderItemService;
@@ -112,43 +107,14 @@ public class OrderService {
 
     // 주문상태 변경 가능 여부
     public void isStatusUpdatable(OrderStatus originStatus, OrderStatus requestStatus) {
-        switch (requestStatus){
-            case ORDER_COMPLETED -> throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
-            case ORDER_CANCEL_REQUEST, PREPARING_SHIPMENT -> {
-                if (!originStatus.equals(ORDER_COMPLETED)) {
-                    throw new IllegalArgumentException("주문완료 상태에서만 가능합니다.");
-                }
-            }
-            case SHIPPING -> {
-                if (!originStatus.equals(PREPARING_SHIPMENT)) {
-                    throw new IllegalArgumentException("배송중은 배송준비중 상태에서만 가능합니다.");
-                }
-            }
-            case DELIVERED -> {
-                if (!originStatus.equals(SHIPPING)) {
-                    throw new IllegalArgumentException("배송완료는 배송중 상태에서만 가능합니다.");
-                }
-            }
-            case CANCELED -> {
-                if (!originStatus.equals(ORDER_CANCEL_REQUEST)) {
-                    throw new IllegalArgumentException("취소완료는 주문취소요청 상태에서만 가능합니다.");
-                }
-            }
-            case RETURN_REQUESTED, EXCHANGE_REQUESTED, CONFIRMED -> {
-                if (!originStatus.equals(DELIVERED)) {
-                    throw new IllegalArgumentException("반품요청, 교환요청, 구매확정은 배송완료 상태에서만 가능합니다.");
-                }
-            }
-            case RETURNED -> {
-                if (!originStatus.equals(RETURN_REQUESTED)) {
-                    throw new IllegalArgumentException("반품완료는 반품요청 상태에서만 가능합니다.");
-                }
-            }
-            case EXCHANGED -> {
-                if (!originStatus.equals(EXCHANGE_REQUESTED)) {
-                    throw new IllegalArgumentException("교환완료는 교환요청 상태에서만 가능합니다.");
-                }
-            }
+        if(requestStatus == OrderStatus.CONFIRMED) {
+            throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
+        }
+
+        if (!statusUpdatable.get(requestStatus).equals(originStatus)) {
+            throw new IllegalArgumentException(
+                String.format("'%s' 상태에서는 '%s' 상태로 변경할 수 없습니다.", originStatus, requestStatus)
+            );
         }
     }
 
