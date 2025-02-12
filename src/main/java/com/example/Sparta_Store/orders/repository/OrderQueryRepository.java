@@ -26,7 +26,7 @@ public class OrderQueryRepository {
 
     // userId로 주문 검색
     private BooleanExpression userIdEquals(Long userId) {
-        return userId != null ? orders.id.eq(userId) : null;
+        return userId != null ? orders.user.id.eq(userId) : null;
     }
 
 }
