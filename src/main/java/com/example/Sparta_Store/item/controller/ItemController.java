@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.item.controller;
 
+import com.example.Sparta_Store.item.dto.request.ItemSearchRequestDto;
 import com.example.Sparta_Store.item.dto.response.ItemResponseDto;
 import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.util.PageQuery;
@@ -25,8 +26,8 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<PageResult<ItemResponseDto>> getSearchItems(String keyword, PageQuery pageQuery) {
+    public ResponseEntity<PageResult<ItemResponseDto>> getSearchItems(ItemSearchRequestDto dto, PageQuery pageQuery) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(itemService.getSearchItems(keyword, pageQuery));
+                .body(itemService.getSearchItems(dto.keyword(), pageQuery));
     }
 }
