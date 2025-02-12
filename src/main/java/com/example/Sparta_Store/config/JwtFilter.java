@@ -1,26 +1,23 @@
 package com.example.Sparta_Store.config;
 
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Slf4j(topic = "JwtFilter")
 @RequiredArgsConstructor
-public class JwtFilter implements Filter {
+public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         String requestURI = httpRequest.getRequestURI();
@@ -31,7 +28,7 @@ public class JwtFilter implements Filter {
 
         // 회원가입 및 로그인시 토큰없어도 실행 가능
         if(requestURI.equals("/login") || requestURI.equals("/users/signUp")) {
-            chain.doFilter(request,response);
+            filterChain.doFilter(request,response);
             return;
         }
 
@@ -58,15 +55,13 @@ public class JwtFilter implements Filter {
 
             // JWT에 관리자 권한이 있는지 확인
             if(jwtUtil.hasRole(jwt,"ADMIN")) {
-                chain.doFilter(request, response);
+                filterChain.doFilter(request, response);
             } else {
                 httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다.");
             }
             return;
         }
 
-        chain.doFilter(request, response);
-
-
+        filterChain.doFilter(request, response);
     }
 }
