@@ -1,12 +1,7 @@
 package com.example.Sparta_Store.orders.service;
 
-import static com.example.Sparta_Store.orders.OrderStatus.교환요청;
-import static com.example.Sparta_Store.orders.OrderStatus.반품요청;
-import static com.example.Sparta_Store.orders.OrderStatus.배송완료;
-import static com.example.Sparta_Store.orders.OrderStatus.배송준비중;
-import static com.example.Sparta_Store.orders.OrderStatus.배송중;
-import static com.example.Sparta_Store.orders.OrderStatus.주문완료;
-import static com.example.Sparta_Store.orders.OrderStatus.주문취소요청;
+import static com.example.Sparta_Store.orders.OrderStatus.ORDER_COMPLETED;
+import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.OrderItem.service.OrderItemService;
@@ -17,14 +12,19 @@ import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.cartItem.service.CartItemService;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
+import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
+import com.example.Sparta_Store.orders.repository.OrderQueryRepository;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
+import com.example.Sparta_Store.util.PageQuery;
+import com.example.Sparta_Store.util.PageResult;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -39,6 +39,7 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final OrderItemService orderItemService;
     private final CartItemService cartItemService;
+    private final OrderQueryRepository orderQueryRepository;
 
     /**
      * 주문 생성
@@ -77,7 +78,7 @@ public class OrderService {
             () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
 
-        Orders savedOrder = new Orders(user, 주문완료);
+        Orders savedOrder = new Orders(user, ORDER_COMPLETED);
         ordersRepository.save(savedOrder);
         // orderId 반환
         return savedOrder.getId();
@@ -106,50 +107,25 @@ public class OrderService {
 
     // 주문상태 변경 가능 여부
     public void isStatusUpdatable(OrderStatus originStatus, OrderStatus requestStatus) {
-        switch (requestStatus){
-            case 주문완료 -> throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
-            case 주문취소요청 -> {
-                if (!originStatus.equals(주문완료)) {
-                    throw new IllegalArgumentException("주문취소요청 주문완료 상태에서만 가능합니다.");
-                }
-            }
-            case 배송준비중 -> {
-                if (!originStatus.equals(주문완료)) {
-                    throw new IllegalArgumentException("배송준비중은 주문완료 상태에서만 가능합니다.");
-                }
-            }
-            case 배송중 -> {
-                if (!originStatus.equals(배송준비중)) {
-                    throw new IllegalArgumentException("배송중은 배송준비중 상태에서만 가능합니다.");
-                }
-            }
-            case 배송완료 -> {
-                if (!originStatus.equals(배송중)) {
-                    throw new IllegalArgumentException("배송완료는 배송중 상태에서만 가능합니다.");
-                }
-            }
-            case 취소완료 -> {
-                if (!originStatus.equals(주문취소요청)) {
-                    throw new IllegalArgumentException("취소완료는 주문취소요청 상태에서만 가능합니다.");
-                }
-            }
-            case 반품요청, 교환요청, 구매확정 -> {
-                if (!originStatus.equals(배송완료)) {
-                    throw new IllegalArgumentException("반품요청, 교환요청, 구매확정은 배송완료 상태에서만 가능합니다.");
-                }
-            }
-            case 반품완료 -> {
-                if (!originStatus.equals(반품요청)) {
-                    throw new IllegalArgumentException("반품완료는 반품요청 상태에서만 가능합니다.");
-                }
-            }
-            case 교환완료 -> {
-                if (!originStatus.equals(교환요청)) {
-                    throw new IllegalArgumentException("교환완료는 교환요청 상태에서만 가능합니다.");
-                }
-            }
+        if(requestStatus == OrderStatus.CONFIRMED) {
+            throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
+        }
+
+        if (!statusUpdatable.get(requestStatus).equals(originStatus)) {
+            throw new IllegalArgumentException(
+                String.format("'%s' 상태에서는 '%s' 상태로 변경할 수 없습니다.", originStatus, requestStatus)
+            );
         }
     }
 
+    /**
+     * 주문 리스트 조회
+     */
+    public PageResult<OrderResponseDto> getOrders(Long userId, PageQuery pageQuery) {
+        Page<OrderResponseDto> orderList = orderQueryRepository.findByUserId(userId, pageQuery.toPageable())
+            .map(OrderResponseDto::toDto);
+
+        return PageResult.from(orderList);
+    }
 
 }
