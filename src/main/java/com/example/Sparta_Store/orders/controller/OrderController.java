@@ -65,8 +65,4 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(orderService.getOrders(userId, pageQuery));
     }
 
-    /**
-     * 주문 내역 상세 조회 API
-     */
-
 }
