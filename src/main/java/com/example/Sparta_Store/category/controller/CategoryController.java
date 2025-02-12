@@ -10,12 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -23,7 +25,7 @@ public class CategoryController {
     /**
      * 전체 카테고리 조회
      */
-    @GetMapping("/categories")
+    @GetMapping
     public ResponseEntity<List<CategoryResponseDto>> getCategories() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(categoryService.getCategoryTree());
@@ -32,7 +34,7 @@ public class CategoryController {
     /**
      * 특정 카테고리의 상품 조회
      */
-    @GetMapping("/categories/{categoryId}/items")
+    @GetMapping("/{categoryId}/items")
     public ResponseEntity<PageResult<ItemResponseDto>> getItemsByCategory(@PathVariable("categoryId") Long categoryId, PageQuery pageQuery) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(categoryService.getItemsByCategory(categoryId, pageQuery.toPageable()));
