@@ -19,13 +19,13 @@ public class OrderQueryRepository {
     private final JPAQueryFactory queryFactory;
 
     public Page<Orders> findByUserId(Long userId, Pageable pageable) {
-        JPAQuery<Orders> result = queryFactory.selectFrom(orders).where(userIdEqual(userId));
+        JPAQuery<Orders> result = queryFactory.selectFrom(orders).where(userIdEquals(userId));
 
         return QuerydslUtil.fetchPage(result, orders, pageable);
     }
 
     // userId로 주문 검색
-    private BooleanExpression userIdEqual(Long userId) {
+    private BooleanExpression userIdEquals(Long userId) {
         return userId != null ? orders.id.eq(userId) : null;
     }
 
