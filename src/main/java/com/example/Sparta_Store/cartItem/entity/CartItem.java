@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 public class CartItem extends TimestampedEntity{
 
     @Id

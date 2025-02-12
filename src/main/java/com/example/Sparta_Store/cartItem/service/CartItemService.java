@@ -4,6 +4,7 @@ import com.example.Sparta_Store.cartItem.dto.request.CartItemUpdateRequestDto;
 import com.example.Sparta_Store.cartItem.dto.response.CartItemResponseDto;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,4 +46,11 @@ public class CartItemService {
 
         return new CartItemResponseDto(cartItem);
     }
+    // 카트 초기화
+    public void deleteCartItem(List<CartItem> cartItemList) {
+
+        cartItemList.stream()
+            .forEach(cartItem -> cartItemRepository.delete(cartItem));
+    }
+
 }
