@@ -1,11 +1,8 @@
 package com.example.Sparta_Store.item.entity;
 
+import com.example.Sparta_Store.category.entity.Category;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,4 +31,8 @@ public class Item extends TimestampedEntity {
 
     @Column(nullable = false)
     private int stockQuantity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 }
