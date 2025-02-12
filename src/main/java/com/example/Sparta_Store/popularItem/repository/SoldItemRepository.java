@@ -9,18 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SoldItemRepository extends JpaRepository<SoldItem, Long> {
-//    // 최근 N일 동안 판매된 상품 조회
-//    @Query("SELECT s.item.id, SUM(s.soldQuantity) as total_sold " + // s.item.id 판매된 상품 id 선택 > SUM(s.soldQuantity) as total_sold 판매된 총 개수 계산
-//            "FROM SoldItem s " + //SoldItem 테이블을 s 라는 별칭으로 명명
-//            "WHERE s.soldAt >= :startDate " + // startDate를 정하고 이후 날짜인 SoldItem.soldAt 부터 조회하겠다.
-//            "GROUP BY s.item.id " + // 같은 상품에 대한 데이터를 하나로 묶음 ex) 위에서 정한 날짜 내에 같은 아이템이 다른 날짜에 여러번 팔린 걸 한번에 팔렸다고 생각하겠단 뜻
-//            "ORDER BY total_sold DESC") // 많이 판매된 순으로 조회
-//    List<Object[]> findMostPopularSoldItems(@Param("startDate") LocalDate startDate); // startDate로 날짜를 정하고 인기상품조회 starDate = 현재 날짜
-
-    @Query("SELECT i FROM Item i " +
-            "JOIN SoldItem s ON i.id = s.item.id " +
-            "WHERE s.soldAt >= :startDate " +
-            "GROUP BY i " +
-            "ORDER BY SUM(s.soldQuantity) DESC") // 판매량 내림차순 정렬 유지
-    List<Item> findMostPopularItems(@Param("startDate") LocalDate startDate);
+    @Query("SELECT i FROM Item i " + // 아이템 엔티티를 그대로 조회하는 쿼리 위 코드에선 id만 조회 지금은 item 자체를 반환
+            "JOIN SoldItem s ON i.id = s.item.id " + // item 과 sold item 조인 >> 두개를 함께 조회 가능
+            "WHERE s.soldAt >= :startDate " + // startDate 기준으로 이후에 판매된 데이터만 조회
+            "GROUP BY i " + //같은 상품에 대한 데이터를 하나로 묶음 ex) 위에서 정한 날짜 내에 같은 아이템이 다른 날짜에 여러번 팔린 걸 한번에 팔렸다고 생각하겠단 뜻
+            "ORDER BY SUM(s.soldQuantity) DESC") // 총 판매량을 합치고 계산한 뒤 내림차순으로 정렬 // 패치 조인을 통해 데이터가 많아질 경우 성능 저하 방지
+    List<Item> findMostPopularSoldItems(@Param("startDate") LocalDate startDate);
 }

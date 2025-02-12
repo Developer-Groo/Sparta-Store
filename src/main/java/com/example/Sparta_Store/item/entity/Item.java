@@ -23,8 +23,8 @@ public class Item extends TimestampedEntity {
     @Column(nullable = false)
     private String name;
 
-//    @Column(nullable = false)
-//    private String imgUrl;
+    @Column(nullable = false)
+    private String imgUrl;
 
     @Column(nullable = false)
     private int price;
