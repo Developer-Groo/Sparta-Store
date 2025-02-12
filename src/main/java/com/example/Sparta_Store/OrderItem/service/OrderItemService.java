@@ -1,13 +1,18 @@
 package com.example.Sparta_Store.OrderItem.service;
 
+import com.example.Sparta_Store.OrderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.OrderItem.entity.OrderItem;
+import com.example.Sparta_Store.OrderItem.repository.OrderItemQueryRepository;
 import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
+import com.example.Sparta_Store.util.PageQuery;
+import com.example.Sparta_Store.util.PageResult;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +21,9 @@ public class OrderItemService {
 
     private final OrderItemRepository orderItemRepository;
     private final OrdersRepository ordersRepository;
+    private final OrderItemQueryRepository orderItemQueryRepository;
 
+    // orderItem 생성
     @Transactional
     public void createOrderItem(Long orderId, List<CartItem> cartItemList) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
@@ -37,6 +44,14 @@ public class OrderItemService {
         }
         order.setTotalPrice(totalPrice);
         ordersRepository.save(order);
+    }
+
+    // orderItem 조회
+    public PageResult<OrderItemResponseDto> getOrderItems(Long orderId, PageQuery pageQuery) {
+        Page<OrderItemResponseDto> orderItemList = orderItemQueryRepository.findByOrderId(orderId, pageQuery.toPageable())
+            .map(OrderItemResponseDto::toDto);
+
+        return PageResult.from(orderItemList);
     }
 
 }
