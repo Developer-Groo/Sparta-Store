@@ -5,7 +5,7 @@ import com.example.Sparta_Store.item.entity.Item;
 public record ItemResponseDto(
         Long id,
         String name,
-        String url,
+//        String url,
         int price,
         String description
 ) {
@@ -14,7 +14,7 @@ public record ItemResponseDto(
         return new ItemResponseDto(
                 item.getId(),
                 item.getName(),
-                item.getImgUrl(),
+//                item.getImgUrl(),
                 item.getPrice(),
                 item.getDescription()
         );
