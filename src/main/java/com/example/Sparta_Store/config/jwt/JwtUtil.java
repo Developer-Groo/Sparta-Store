@@ -33,6 +33,8 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
+        token = token.replace("Bearer ", ""); // 앞에 붙는 'Bearer ' 제거
+
         return Jwts.parser()
             .setSigningKey(key) // 비밀 키를 사용하여 서명 검증
             .parseClaimsJws(token)
