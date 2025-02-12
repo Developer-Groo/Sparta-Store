@@ -8,7 +8,7 @@ public record CreateUserResponseDto(
     String name,
     Address address
 ) {
-    public static CreateUserResponseDto createDto(User user) {
+    public static CreateUserResponseDto toDto(User user) {
         return new CreateUserResponseDto(
             user.getEmail(),
             user.getName(),

@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.login.service;
 
-import com.example.Sparta_Store.config.JwtUtil;
+import com.example.Sparta_Store.config.jwt.JwtUtil;
 import com.example.Sparta_Store.config.PasswordEncoder;
 import com.example.Sparta_Store.login.dto.LoginRequest;
 import com.example.Sparta_Store.login.repository.LoginRepository;

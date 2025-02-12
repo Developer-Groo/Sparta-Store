@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.config;
+package com.example.Sparta_Store.config.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -59,6 +59,10 @@ public class JwtUtil {
 
     public String extractRoles(String token) {
         return extractAllClaims(token).get("auth", String.class);
+    }
+
+    public Long extractId(String token) {
+        return extractAllClaims(token).get("id", Long.class);
     }
 
     public boolean hasRole(String token, String role) {

@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.config;
+package com.example.Sparta_Store.config.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,10 +18,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        HttpServletRequest httpRequest = request;
+        HttpServletResponse httpResponse = response;
         String requestURI = httpRequest.getRequestURI();
-        String name = null;
         String jwt = null;
 
         String authorizationHeader = httpRequest.getHeader("Authorization");
@@ -47,9 +46,6 @@ public class JwtFilter extends OncePerRequestFilter {
             httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
             httpResponse.getWriter().write("{\"error\": \"Unauthorized\"}");
         }
-
-        // JWT 사용자의 이름 체크
-        name = jwtUtil.extractUsername(jwt);
 
         if(requestURI.startsWith("/api/admin")) {
 

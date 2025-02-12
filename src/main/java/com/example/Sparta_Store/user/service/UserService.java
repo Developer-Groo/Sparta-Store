@@ -35,7 +35,7 @@ public class UserService {
 
         User saveUser = userRepository.save(user);
 
-        return CreateUserResponseDto.createDto(saveUser);
+        return CreateUserResponseDto.toDto(saveUser);
 
     }
 }
