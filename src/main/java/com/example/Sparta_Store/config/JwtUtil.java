@@ -33,6 +33,8 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
+        token = token.replace("Bearer ", ""); // 앞에 붙는 'Bearer ' 제거
+
         return Jwts.parser()
             .setSigningKey(key) // 비밀 키를 사용하여 서명 검증
             .parseClaimsJws(token)
@@ -55,6 +57,10 @@ public class JwtUtil {
                 .setIssuedAt(date) // 발급 시간 설정
                 .signWith(key, signatureAlgorithm) // 비밀 키와 알고리즘으로 서명
                 .compact(); // JWT 토큰 생성
+    }
+
+    public Long extractId(String token) {
+        return extractAllClaims(token).get("id", Long.class);
     }
 
     public String extractRoles(String token) {
