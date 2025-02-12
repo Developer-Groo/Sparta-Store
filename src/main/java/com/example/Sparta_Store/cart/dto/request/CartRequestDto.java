@@ -1,12 +1,5 @@
 package com.example.Sparta_Store.cart.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+public record CartRequestDto(Long itemId,Integer quantity) {
 
-@Getter
-@AllArgsConstructor
-public class CartRequestDto {
-
-    private final Long itemId;
-    private final Integer quantity;
 }

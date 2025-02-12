@@ -18,24 +18,21 @@ public class CartItemController {
 
     /**
      * 장바구니 상품 삭제
-     * @param requestDto
-     * @return
      */
     @PostMapping("/remove")
     public ResponseEntity<String> cartItemRemove(@RequestBody CartItemRemoveRequestDto requestDto) {
-        cartItemService.cartItemRemove(requestDto.getCartItemId());
+        cartItemService.cartItemRemove(requestDto.cartItemId());
         return ResponseEntity.status(HttpStatus.OK)
                 .body("장바구니에 상품이 삭제 되었습니다.");
     }
 
     /**
      * 장바구니 상품 수량 변경
-     * @param requestDto
-     * @return
      */
     @PatchMapping("/update")
     public ResponseEntity<CartItemResponseDto> cartItemUpdate(@RequestBody CartItemUpdateRequestDto requestDto) {
         CartItemResponseDto updateCart = cartItemService.cartItemUpdate(requestDto);
-        return ResponseEntity.ok(updateCart);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(updateCart);
     }
 }

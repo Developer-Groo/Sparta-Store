@@ -18,7 +18,6 @@ public class CartItemService {
 
     /**
      * 장바구니 상품 삭제
-     * @param cartItemId
      */
     @Transactional
     public void cartItemRemove(Long cartItemId) {
@@ -30,23 +29,23 @@ public class CartItemService {
 
     /**
      * 장바구니 상품 수량 변경
-     * @param requestDto
-     * @return
      */
     @Transactional
     public CartItemResponseDto cartItemUpdate(CartItemUpdateRequestDto requestDto) {
 
-        CartItem cartItem = cartItemRepository.findById(requestDto.getCartItemId()).orElseThrow(()-> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
+        CartItem cartItem = cartItemRepository.findById(requestDto.cartItemId()).orElseThrow(()-> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
 
-        if(requestDto.getQuantity() < 1) {
+        if(requestDto.quantity() < 1) {
             throw new IllegalArgumentException("상품 수량은 1 이상이어야 합니다.");
         }
 
-        cartItem.updateQuantity(requestDto.getQuantity());
+        cartItem.updateQuantity(requestDto.quantity());
 
         return new CartItemResponseDto(cartItem);
     }
+
     // 카트 초기화
+    @Transactional
     public void deleteCartItem(List<CartItem> cartItemList) {
 
         cartItemList.stream()

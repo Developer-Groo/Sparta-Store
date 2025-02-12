@@ -2,30 +2,31 @@ package com.example.Sparta_Store.cart.dto.response;
 
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cartItem.dto.response.CartItemResponseDto;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import com.example.Sparta_Store.cartItem.entity.CartItem;
+import org.springframework.data.domain.Page;
 
 
-@Getter
-@RequiredArgsConstructor
-public class CartResponseDto {
+public record CartResponseDto(
+        Long cartId,
+        Long userId,
+        Page<CartItemResponseDto> cartItems
+) {
+    // 장바구니 조회 시 사용
+    public static CartResponseDto toDto(Cart cart, Page<CartItem> cartItems) {
+        return new CartResponseDto(
+                cart.getId(),
+                cart.getUser().getId(),
+                cartItems.map(CartItemResponseDto::new)
+        );
+    }
 
-    private final Long cartId;
-    private final Long userId;
-    private final List<CartItemResponseDto> cartItems;
-
+    // 장바구니 생성 시 사용
     public static CartResponseDto toDto(Cart cart) {
         return new CartResponseDto(
                 cart.getId(),
                 cart.getUser().getId(),
-                cart.getCartItems().stream()
-                        .map(CartItemResponseDto::new)
-                        .collect(Collectors.toList())
+                Page.empty()
         );
-
     }
 
 }
