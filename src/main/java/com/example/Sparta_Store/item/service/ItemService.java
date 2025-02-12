@@ -1,7 +1,6 @@
 package com.example.Sparta_Store.item.service;
 
 import com.example.Sparta_Store.item.dto.response.ItemResponseDto;
-import com.example.Sparta_Store.item.repository.ItemQueryRepository;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-    private final ItemQueryRepository queryRepository;
 
     public PageResult<ItemResponseDto> getItems(PageQuery pageQuery) {
         Page<ItemResponseDto> itemList = itemRepository.findAll(pageQuery.toPageable())
@@ -26,7 +24,7 @@ public class ItemService {
     }
 
     public PageResult<ItemResponseDto> getSearchItems(String keyword, PageQuery pageQuery) {
-        Page<ItemResponseDto> itemList = queryRepository.findByName(keyword, pageQuery.toPageable())
+        Page<ItemResponseDto> itemList = itemRepository.findByName(keyword, pageQuery.toPageable())
                 .map(ItemResponseDto::toDto);
 
         return PageResult.from(itemList);
