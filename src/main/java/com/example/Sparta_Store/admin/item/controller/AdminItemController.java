@@ -1,15 +1,14 @@
 package com.example.Sparta_Store.admin.item.controller;
 
 import com.example.Sparta_Store.admin.item.dto.requestDto.ItemRegisterRequestDto;
+import com.example.Sparta_Store.admin.item.dto.requestDto.ItemUpdateRequestDto;
 import com.example.Sparta_Store.admin.item.dto.responseDto.ItemRegisterResponseDto;
+import com.example.Sparta_Store.admin.item.dto.responseDto.ItemUpdateResponseDto;
 import com.example.Sparta_Store.admin.item.service.AdminItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/item")
@@ -30,5 +29,13 @@ public class AdminItemController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(itemRegisterResponseDto);
+    }
+
+    @PatchMapping("/updateItem/{id}")
+    public ResponseEntity<ItemUpdateResponseDto> updateItem(@PathVariable Long id, @RequestBody ItemUpdateRequestDto requestDto) {
+        ItemUpdateResponseDto updateResponseDto = adminItemService.updateItem(id,requestDto);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(updateResponseDto);
     }
 }
