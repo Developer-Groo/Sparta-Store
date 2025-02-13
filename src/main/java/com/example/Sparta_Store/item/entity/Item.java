@@ -34,4 +34,11 @@ public class Item extends TimestampedEntity {
 
     @Column(nullable = false)
     private int stockQuantity;
+
+    public void decreaseStock(int quantity) {
+        if (this.stockQuantity < quantity) {
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+        this.stockQuantity -= quantity;
+    }
 }
