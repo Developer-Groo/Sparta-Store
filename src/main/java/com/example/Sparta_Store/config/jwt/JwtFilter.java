@@ -47,10 +47,10 @@ public class JwtFilter extends OncePerRequestFilter {
             httpResponse.getWriter().write("{\"error\": \"Unauthorized\"}");
         }
 
-        if(requestURI.startsWith("/api/admin")) {
+        if(requestURI.startsWith("/admin")) {
 
             // JWT에 관리자 권한이 있는지 확인
-            if(jwtUtil.hasRole(jwt,"ADMIN")) {
+            if(jwtUtil.hasName(jwt,"ADMIN")) {
                 filterChain.doFilter(request, response);
             } else {
                 httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다.");
