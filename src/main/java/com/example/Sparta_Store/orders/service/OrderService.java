@@ -89,10 +89,14 @@ public class OrderService {
      * - 주문취소는 주문완료 상태에서만 가능
      */
     @Transactional
-    public void updateOrderStatus(Long orderId, UpdateOrderStatusDto requestDto) {
+    public void updateOrderStatus(Long userId, Long orderId, UpdateOrderStatusDto requestDto) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
+
+        if(!order.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("주문자와 유저 정보가 일치하지 않습니다.");
+        }
 
         OrderStatus originStatus = order.getOrderStatus();
 

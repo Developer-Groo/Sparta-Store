@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.orders.controller;
 
+import com.example.Sparta_Store.config.JwtUtil;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.service.OrderService;
@@ -25,18 +26,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
 
     private final OrderService orderService;
+    private final JwtUtil jwtUtil;
 
     /**
      * 주문 생성 API
      * - 장바구니에서 '결제하기'를 누르면 동작
      */
     @PostMapping("/checkout")
-    public ResponseEntity<Map<String,String>> createOrder(
-        HttpServletRequest request
-    ){
-//        String token = request.getHeader("Authorization");
+    public ResponseEntity<Map<String,String>> createOrder(HttpServletRequest request) {
+        Long userId = getUserId(request);
 
-        Long userId = 1L;
         orderService.checkoutCart(userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 주문이 완료되었습니다."));
     }
@@ -49,9 +48,10 @@ public class OrderController {
         HttpServletRequest request,
         @PathVariable("orderId") Long orderId,
         @Valid @RequestBody UpdateOrderStatusDto requestDto
-
     ) {
-        orderService.updateOrderStatus(orderId, requestDto);
+        Long userId = getUserId(request);
+
+        orderService.updateOrderStatus(userId, orderId, requestDto);
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "주문상태 변경이 완료되었습니다."));
     }
 
@@ -59,10 +59,16 @@ public class OrderController {
      * 주문 리스트 조회 API
      */
     @GetMapping()
-    public ResponseEntity<PageResult<OrderResponseDto>> getOrders(PageQuery pageQuery) {
+    public ResponseEntity<PageResult<OrderResponseDto>> getOrders(HttpServletRequest request, PageQuery pageQuery) {
+        Long userId = getUserId(request);
 
-        Long userId = 1L;
         return ResponseEntity.status(HttpStatus.OK).body(orderService.getOrders(userId, pageQuery));
+    }
+
+    // jwt에 저장되어 있는 userId 추출 메서드
+    private Long getUserId(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        return jwtUtil.extractId(token);
     }
 
 }
