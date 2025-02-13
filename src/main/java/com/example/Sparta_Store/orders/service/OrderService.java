@@ -7,6 +7,7 @@ import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.OrderItem.service.OrderItemService;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.repository.CartRepository;
+import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.cartItem.service.CartItemService;
@@ -38,7 +39,7 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderItemService orderItemService;
-    private final CartItemService cartItemService;
+    private final CartService cartService;
     private final OrderQueryRepository orderQueryRepository;
 
     /**
@@ -67,7 +68,7 @@ public class OrderService {
         orderItemService.createOrderItem(orderId, cartItemList);
         log.info("OrderItem 생성 완료");
         // CartItem 초기화
-        cartItemService.deleteCartItem(cartItemList);
+        cartService.deleteCartItem(cartItemList);
         log.info("CartItem 초기화 완료");
 
     }
