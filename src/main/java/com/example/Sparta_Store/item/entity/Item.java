@@ -1,6 +1,5 @@
 package com.example.Sparta_Store.item.entity;
 
-import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
