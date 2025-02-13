@@ -28,6 +28,7 @@ public class UserController {
                         requestDto.address()
                 );
 
-        return new ResponseEntity<>(userResponseDto, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userResponseDto);
     }
 }

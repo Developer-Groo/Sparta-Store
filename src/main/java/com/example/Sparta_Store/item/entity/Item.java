@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.item.entity;
 
+import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -46,5 +47,12 @@ public class Item extends TimestampedEntity {
         this.price = price;
         this.description = description;
         this.stockQuantity = stockQuantity;
+    }
+
+    public void decreaseStock(int quantity) {
+        if (this.stockQuantity < quantity) {
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+        this.stockQuantity -= quantity;
     }
 }

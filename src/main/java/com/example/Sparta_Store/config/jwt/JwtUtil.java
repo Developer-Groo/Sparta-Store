@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.config;
+package com.example.Sparta_Store.config.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -44,7 +44,7 @@ public class JwtUtil {
     public String generateToken(String email,String name,Long id) {
         Date date = new Date();
 
-        if (id >= 1 && id <= 5) {
+        if (id == 1) {
             name = "ADMIN"; // 관리자 이름으로 설정
         }
 
@@ -59,17 +59,17 @@ public class JwtUtil {
                 .compact(); // JWT 토큰 생성
     }
 
+    public String extractNames(String token) {
+        return extractAllClaims(token).get("name", String.class);
+    }
+
     public Long extractId(String token) {
         return extractAllClaims(token).get("id", Long.class);
     }
 
-    public String extractRoles(String token) {
-        return extractAllClaims(token).get("auth", String.class);
-    }
-
-    public boolean hasRole(String token, String role) {
-        String roles = extractRoles(token);
-        return roles.contains(role);
+    public boolean hasName(String token, String name) {
+        String names = extractNames(token);
+        return names.contains(name);
     }
 
     public boolean validateToken(String token) {
