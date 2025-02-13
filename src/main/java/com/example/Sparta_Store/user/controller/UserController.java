@@ -5,6 +5,7 @@ import com.example.Sparta_Store.user.dto.DeleteUserRequestDto;
 import com.example.Sparta_Store.user.dto.UpdateInfoRequestDto;
 import com.example.Sparta_Store.user.dto.UpdatePasswordRequestDto;
 import com.example.Sparta_Store.user.dto.UserRequestDto;
+import com.example.Sparta_Store.user.dto.UserResponseDto;
 import com.example.Sparta_Store.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,31 +38,34 @@ public class UserController {
     }
 
     @PatchMapping("/password") // localhost:8080/users/delete?id=1 로 사용
-    public ResponseEntity<String> updateUserPassword(@RequestParam Long id, @RequestBody UpdatePasswordRequestDto dto) { // securityConfig를 사용안하기 위해 param id 로 대체 json으로 oldPassword와 newPassword 를 받고 string을 반환하겠다
+    public ResponseEntity<UserResponseDto> updateUserPassword(@RequestParam Long id, UpdatePasswordRequestDto dto) { // securityConfig를 사용안하기 위해 param id 로 대체 json으로 oldPassword와 newPassword 를 받고 string을 반환하겠다
 
-        userService.updatePassword(
+        UserResponseDto response = userService.updatePassword(
                 id,
                 dto.oldPassword(),
                 dto.newPassword()  // updatePassword 매소드에 3가지 를 받는다.
         );
 
-        return ResponseEntity.status(HttpStatus.OK).body("비밀번호 수정이 완료되었습니다.");  // 적어놓은 메세지 반환
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);  // 적어놓은 메세지 반환
     }
 
     @PatchMapping("/info") // localhost:8080/users/info?id=1 사용 파람을 사용햇기에 ?id=1 이 추가댐
-    public ResponseEntity<String> updateUserInfo(@RequestParam Long id , @RequestBody UpdateInfoRequestDto dto) { // 위와 같음
+    public ResponseEntity<UserResponseDto> updateUserInfo(@RequestParam Long id , UpdateInfoRequestDto dto) { // 위와 같음
 
-        userService.updateInfo(id, dto.name(), dto.address());
+        UserResponseDto response = userService.updateInfo(id, dto.name(), dto.address().toEntity());
 
-        return ResponseEntity.status(HttpStatus.OK).body("회원 정보 수정이 완료되었습니다.");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
 
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteUserId(@RequestParam Long id, @RequestBody DeleteUserRequestDto dto) {
+    public ResponseEntity<UserResponseDto> deleteUserId(@RequestParam Long id, DeleteUserRequestDto dto) {
 
-        userService.deleteUser(id, dto.password());
+        UserResponseDto response = userService.deleteUser(id, dto.password());
 
-        return ResponseEntity.status(HttpStatus.OK).body("회원탈퇴가 왼료되었습니다.");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 }

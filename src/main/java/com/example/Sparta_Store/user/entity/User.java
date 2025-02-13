@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.boot.autoconfigure.amqp.RabbitConnectionDetails;
 
 @Getter
 @Entity
@@ -49,7 +48,7 @@ public class User extends TimestampedEntity {
         this.address = address;
     }
 
-    public void markAsDeleted() {
+    public void disableUser() {
         this.isDeleted = true;
     }
 
