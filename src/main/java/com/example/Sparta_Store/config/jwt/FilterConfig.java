@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.config;
+package com.example.Sparta_Store.config.jwt;
 
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
