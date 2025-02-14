@@ -6,6 +6,7 @@ import com.example.Sparta_Store.review.service.ReviewService;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,24 +24,24 @@ public class ReviewController {
                 .body(reviewService.getReviews(itemId, pageQuery));
     }
 
-    /**
-     * Todo: userId 필요
-     */
     @PostMapping
-    public ResponseEntity<ReviewResponseDto> createReview(@PathVariable("itemId") Long itemId, ReviewRequestDto dto) {
+    public ResponseEntity<ReviewResponseDto> createReview(@PathVariable("itemId") Long itemId, ReviewRequestDto dto, HttpRequest request) {
+        Long userId = (Long) request.getAttributes().get("id");
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(reviewService.createReview(itemId, dto.content()));
+                .body(reviewService.createReview(userId, itemId, dto.content()));
     }
 
     @PatchMapping("/{reviewId}")
-    public ResponseEntity<ReviewResponseDto> updateReview(@PathVariable("reviewId") Long reviewId, ReviewResponseDto dto) {
+    public ResponseEntity<ReviewResponseDto> updateReview(@PathVariable("reviewId") Long reviewId, ReviewResponseDto dto, HttpRequest request) {
+        Long userId = (Long) request.getAttributes().get("id");
         return ResponseEntity.status(HttpStatus.OK)
-                .body(reviewService.updateReview(reviewId, dto.content()));
+                .body(reviewService.updateReview(userId, reviewId, dto.content()));
     }
 
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<Void> deleteReview(@PathVariable("reviewId") Long reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ResponseEntity<Void> deleteReview(@PathVariable("reviewId") Long reviewId, HttpRequest request) {
+        Long userId = (Long) request.getAttributes().get("id");
+        reviewService.deleteReview(userId, reviewId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
     }

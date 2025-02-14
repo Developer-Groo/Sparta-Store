@@ -14,8 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,16 +30,13 @@ public class ReviewService {
         return PageResult.from(reviewList);
     }
 
-    /**
-     * Todo: userId 필요
-     */
     @Transactional
-    public ReviewResponseDto createReview(Long itemId, String content) {
+    public ReviewResponseDto createReview(Long userId, Long itemId, String content) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
 
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         Review savedReview = reviewRepository.save(new Review(user, item, content));
 
@@ -49,9 +44,13 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDto updateReview(Long reviewId, String content) {
+    public ReviewResponseDto updateReview(Long requestUserId, Long reviewId, String content) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
+
+        if (!review.getUser().getId().equals(requestUserId)) {
+            throw new IllegalArgumentException("리뷰를 수정할 권한이 없습니다.");
+        }
 
         Review updatedReview = review.updateReview(content);
 
@@ -59,9 +58,13 @@ public class ReviewService {
     }
 
     @Transactional
-    public void deleteReview(Long reviewId) {
+    public void deleteReview(Long requestUserId, Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
+
+        if (!review.getUser().getId().equals(requestUserId)) {
+            throw new IllegalArgumentException("리뷰를 삭제할 권한이 없습니다.");
+        }
 
         reviewRepository.delete(review);
     }
