@@ -55,4 +55,28 @@ public class Item extends TimestampedEntity {
         }
         this.stockQuantity -= quantity;
     }
+
+    public void updateItem(
+            String name,
+            String imgUrl,
+            Integer price,
+            String description,
+            Integer stockQuantity
+    ){
+        if (name != null && !name.isEmpty()){
+            this.name = name;
+        }
+        if (imgUrl != null && !imgUrl.isEmpty()){
+            this.imgUrl = imgUrl;
+        }
+        if (price != null){
+            this.price = price;
+        }
+        if (description != null && !description.isEmpty()){
+            this.description = description;
+        }
+        if (stockQuantity != null){
+            this.stockQuantity = stockQuantity;
+        }
+    }
 }
