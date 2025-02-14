@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.user.service;
 
 import com.example.Sparta_Store.address.entity.Address;
+import com.example.Sparta_Store.address.entity.AddressDto;
 import com.example.Sparta_Store.config.PasswordEncoder;
 import com.example.Sparta_Store.user.dto.CreateUserResponseDto;
 import com.example.Sparta_Store.user.dto.UserResponseDto;
@@ -46,15 +47,19 @@ public class UserService {
     public UserResponseDto updateInfo(
             Long userId,
             String name,
-            Address address
+            AddressDto address
     ) { // 유저 아이디, 네임 , 주소를 인자로 받음
 
         User user = userRepository.findById(userId) // 아이디를 조회
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다.")); // 없으면 예외처리
 
-        user.updateUserInfo(name, address); // 있으면 이름과 주소 변경
+        Address newAddress = (address != null)
+                ? new Address(address.city(), address.street(), address.zipcode())
+                : null;
 
-        return toUpdateInfoDto();
+        user.updateUserInfo(name, newAddress != null ? newAddress : user.getAddress());; // 있으면 이름과 주소 변경
+
+        return UserResponseDto.updateInfoSuccess();
     }
 
     // 비밀번호 변경 (현재 비밀번호 검증 후 변경)
@@ -74,7 +79,7 @@ public class UserService {
 
         user.updatePassword(passwordEncoder.encode(newPassword)); // 일치하면 새 비밀번호로 바꾸고 암호화까지 진행
 
-        return toUpdatePasswordDto();
+        return UserResponseDto.updatePasswordSuccess();
     }
 
     // 회원 탈퇴 (비밀번호 검증 후 isDeleted 변경)
@@ -89,19 +94,9 @@ public class UserService {
 
         user.disableUser(); // 삭제
 
-        return toDeleteUserDto();
+        return UserResponseDto.deleteUserSuccess();
     }
 
-    private UserResponseDto toUpdateInfoDto() {
-        return new UserResponseDto("회원 정보 수정이 완료되었습니다.");
-    }
 
-    private UserResponseDto toUpdatePasswordDto() {
-        return new UserResponseDto("비밀번호 변경이 완료되었습니다.");
-    }
-
-    private UserResponseDto toDeleteUserDto() {
-        return new UserResponseDto("회원 탈퇴가 완료되었습니다.");
-    }
 
 }

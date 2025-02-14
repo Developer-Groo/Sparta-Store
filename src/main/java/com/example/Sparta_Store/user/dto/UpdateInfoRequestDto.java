@@ -1,5 +1,5 @@
 package com.example.Sparta_Store.user.dto;
-import com.example.Sparta_Store.address.entity.Address;
+
 import com.example.Sparta_Store.address.entity.AddressDto;
 
 public record UpdateInfoRequestDto(String name, AddressDto address) {
