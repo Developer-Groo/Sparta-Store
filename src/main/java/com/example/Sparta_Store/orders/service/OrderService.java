@@ -5,7 +5,6 @@ import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.OrderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.OrderItem.entity.OrderItem;
-import com.example.Sparta_Store.OrderItem.repository.OrderItemQueryRepository;
 import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.repository.CartRepository;
@@ -17,7 +16,6 @@ import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
-import com.example.Sparta_Store.orders.repository.OrderQueryRepository;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
@@ -41,9 +39,7 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final CartService cartService;
-    private final OrderQueryRepository orderQueryRepository;
     private final ItemService itemService;
-    private final OrderItemQueryRepository orderItemQueryRepository;
 
     /**
      * 주문 생성
@@ -158,7 +154,7 @@ public class OrderService {
      * - orders 조회
      */
     public PageResult<OrderResponseDto> getOrders(Long userId, PageQuery pageQuery) {
-        Page<OrderResponseDto> orderList = orderQueryRepository.findByUserId(userId, pageQuery.toPageable())
+        Page<OrderResponseDto> orderList = ordersRepository.findByUserId(userId, pageQuery.toPageable())
             .map(OrderResponseDto::toDto);
 
         return PageResult.from(orderList);
@@ -181,7 +177,7 @@ public class OrderService {
             throw new IllegalArgumentException("주문자와 유저 정보가 일치하지 않습니다.");
         }
 
-        Page<OrderItemResponseDto> orderItemList = orderItemQueryRepository.findByOrderId(orderId, pageQuery.toPageable())
+        Page<OrderItemResponseDto> orderItemList = orderItemRepository.findByOrderId(orderId, pageQuery.toPageable())
             .map(OrderItemResponseDto::toDto);
 
         return PageResult.from(orderItemList);
