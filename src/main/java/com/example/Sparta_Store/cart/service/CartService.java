@@ -3,11 +3,13 @@ package com.example.Sparta_Store.cart.service;
 import com.example.Sparta_Store.cart.dto.request.CartRequestDto;
 import com.example.Sparta_Store.cart.dto.response.CartResponseDto;
 import com.example.Sparta_Store.cart.entity.Cart;
+import com.example.Sparta_Store.cart.exception.CartErrorCode;
 import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cartItem.dto.request.CartItemUpdateRequestDto;
 import com.example.Sparta_Store.cartItem.dto.response.CartItemResponseDto;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
+import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.user.entity.User;
@@ -38,7 +40,7 @@ public class CartService {
         //TODO userId값 임시고정 추후 삭제예정!!
         Long userId = 1L;
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
 
         Item item = itemRepository.findById(responseDto.itemId()).orElseThrow(() -> new IllegalArgumentException("해당 상품이 없습니다."));
 
