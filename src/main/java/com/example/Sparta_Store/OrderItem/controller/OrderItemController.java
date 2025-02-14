@@ -2,7 +2,7 @@ package com.example.Sparta_Store.OrderItem.controller;
 
 import com.example.Sparta_Store.OrderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.OrderItem.service.OrderItemService;
-import com.example.Sparta_Store.config.JwtUtil;
+import com.example.Sparta_Store.config.jwt.JwtUtil;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import jakarta.servlet.http.HttpServletRequest;

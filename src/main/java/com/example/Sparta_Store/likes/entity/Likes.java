@@ -1,38 +1,33 @@
-package com.example.Sparta_Store.cart.entity;
+package com.example.Sparta_Store.likes.entity;
 
-import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
+import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Cart extends TimestampedEntity {
+public class Likes extends TimestampedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "cart_id")
+    @Column(name = "likes_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> cartItems = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id")
+    private Item item;
 
-    public Cart(User user) {
+    public Likes(User user, Item item) {
         this.user = user;
+        this.item = item;
     }
-
-
-
 }
