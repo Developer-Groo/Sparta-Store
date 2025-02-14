@@ -15,6 +15,7 @@ public record UserRequestDto(
         message = "영문 대소문자, 숫자, 특수문자를 각각 최소 1글자씩 포함해야 합니다.")
         String password,
         @NotBlank
+        @Pattern(regexp = "^(?!ADMIN$).*$", message = "이름에 'ADMIN' 을 사용할 수 없습니다.")
         String name,
         Address address
 ) {

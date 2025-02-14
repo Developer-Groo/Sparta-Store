@@ -10,6 +10,7 @@ import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.cartItem.service.CartItemService;
+import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
@@ -27,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+@Slf4j(topic = "OrderService")
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -40,10 +41,11 @@ public class OrderService {
     private final OrderItemService orderItemService;
     private final CartItemService cartItemService;
     private final OrderQueryRepository orderQueryRepository;
+    private final ItemService itemService;
 
     /**
      * 주문 생성
-     * - Cart 조회 -> CartItem 조회 -> Orders 생성 -> OrderItem 생성 -> CartItem 삭제
+     * - Cart 조회 -> CartItem 조회 -> 재고 감소 -> Orders 생성 -> OrderItem 생성 -> CartItem 삭제
      */
 
     public void checkoutCart(Long userId){
@@ -60,6 +62,9 @@ public class OrderService {
             .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
         );
 
+        // 재고 감소
+        itemService.decreaseStock(cartItemList);
+        log.info("주문한 상품 수량만큼 재고를 감소하였습니다.");
         // Orders 엔티티 생성
         Long orderId = createOrder(userId);
         log.info("Orders 생성 완료");
@@ -89,10 +94,14 @@ public class OrderService {
      * - 주문취소는 주문완료 상태에서만 가능
      */
     @Transactional
-    public void updateOrderStatus(Long orderId, UpdateOrderStatusDto requestDto) {
+    public void updateOrderStatus(Long userId, Long orderId, UpdateOrderStatusDto requestDto) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
+
+        if(!order.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("주문자와 유저 정보가 일치하지 않습니다.");
+        }
 
         OrderStatus originStatus = order.getOrderStatus();
 

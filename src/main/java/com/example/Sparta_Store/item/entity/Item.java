@@ -35,4 +35,25 @@ public class Item extends TimestampedEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    public Item(
+            String name,
+            String imgUrl,
+            int price,
+            String description,
+            int stockQuantity
+    ){
+        this.name = name;
+        this.imgUrl = imgUrl;
+        this.price = price;
+        this.description = description;
+        this.stockQuantity = stockQuantity;
+    }
+
+    public void decreaseStock(int quantity) {
+        if (this.stockQuantity < quantity) {
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+        this.stockQuantity -= quantity;
+    }
 }
