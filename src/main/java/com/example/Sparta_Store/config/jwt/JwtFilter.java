@@ -26,12 +26,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        HttpServletRequest httpRequest = request;
-        HttpServletResponse httpResponse = response;
-        String requestURI = httpRequest.getRequestURI();
+        String requestURI = request.getRequestURI();
         String jwt = null;
 
-        String authorizationHeader = httpRequest.getHeader("Authorization");
+        String authorizationHeader = request.getHeader("Authorization");
 
         // 회원가입 및 로그인시 토큰없어도 실행 가능
         if(requestURI.equals("/login") || requestURI.equals("/users/signUp")) {
@@ -43,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.info("JWT 토큰이 필요 합니다.");
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 토큰이 필요 합니다.");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 토큰이 필요 합니다.");
             return;
         }
 
@@ -51,8 +49,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // Secret Key 는 내가 만든게 맞는지 검증 만료 기간 지났는지 검증
         if (!jwtUtil.validateToken(jwt)) {
-            httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            httpResponse.getWriter().write("{\"error\": \"Unauthorized\"}");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("{\"error\": \"Unauthorized\"}");
         }
 
         String auth = jwtUtil.extractNames(jwt);

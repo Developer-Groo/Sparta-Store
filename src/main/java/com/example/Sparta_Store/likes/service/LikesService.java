@@ -1,9 +1,11 @@
 package com.example.Sparta_Store.likes.service;
 
+import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.likes.dto.response.LikeResponseDto;
 import com.example.Sparta_Store.likes.entity.Likes;
+import com.example.Sparta_Store.likes.exception.LikesErrorCode;
 import com.example.Sparta_Store.likes.repository.LikesRepository;
 import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
@@ -22,11 +24,11 @@ public class LikesService {
     private final ItemRepository itemRepository;
 
     public void addLike(Long itemId, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
-        Item item = itemRepository.findById(itemId).orElseThrow(()-> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
+        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+        Item item = itemRepository.findById(itemId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
 
         if(likesRepository.findByUserAndItem(user, item).isPresent()) {
-            throw new IllegalArgumentException("이미 찜한 상품 입니다.");
+            throw new CustomException(LikesErrorCode.PRODUCT_ALREADY_WISHLIST);
         }
 
         likesRepository.save(new Likes(user, item));
@@ -35,7 +37,7 @@ public class LikesService {
     // 찜 목록
     public List<LikeResponseDto> getLikeList(Long userId) {
 
-        User user = userRepository.findById(userId).orElseThrow(()-> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
 
         List<Likes> likeList = likesRepository.findAllByUser(user);
 
@@ -46,9 +48,9 @@ public class LikesService {
 
     // 찜 취소
     public void removeLike(Long itemId, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
-        Item item = itemRepository.findById(itemId).orElseThrow(()-> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
-        Likes likes = likesRepository.findByUserAndItem(user, item).orElseThrow(()-> new IllegalArgumentException("해당 상품을 찜하지 않았습니다."));
+        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+        Item item = itemRepository.findById(itemId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
+        Likes likes = likesRepository.findByUserAndItem(user, item).orElseThrow(()-> new CustomException(LikesErrorCode.PRODUCT_NOT_WISHLIST));
 
         likesRepository.delete(likes);
     }
