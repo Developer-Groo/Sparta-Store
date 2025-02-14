@@ -2,7 +2,6 @@ package com.example.Sparta_Store.likes.controller;
 
 import com.example.Sparta_Store.likes.dto.request.LikesRequestDto;
 import com.example.Sparta_Store.likes.dto.response.LikeResponseDto;
-import com.example.Sparta_Store.likes.entity.Likes;
 import com.example.Sparta_Store.likes.service.LikesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/likes")
@@ -28,12 +26,7 @@ public class LikesController {
 
     @GetMapping
     public ResponseEntity<List<LikeResponseDto>> getLikeList(@RequestParam Long userId) {
-        List<Likes> likeList = likesService.getLikeList(userId);
-
-        List<LikeResponseDto> response = likeList.stream()
-                .map(LikeResponseDto::toDto)
-                .collect(Collectors.toList());
-
+        List<LikeResponseDto> response = likesService.getLikeList(userId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

@@ -2,6 +2,7 @@ package com.example.Sparta_Store.likes.service;
 
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
+import com.example.Sparta_Store.likes.dto.response.LikeResponseDto;
 import com.example.Sparta_Store.likes.entity.Likes;
 import com.example.Sparta_Store.likes.repository.LikesRepository;
 import com.example.Sparta_Store.user.entity.User;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,11 +33,15 @@ public class LikesService {
     }
 
     // 찜 목록
-    public List<Likes> getLikeList(Long userId) {
+    public List<LikeResponseDto> getLikeList(Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(()-> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
-        return likesRepository.findAllByUser(user);
+        List<Likes> likeList = likesRepository.findAllByUser(user);
+
+        return likeList.stream()
+                .map(LikeResponseDto::toDto)
+                .collect(Collectors.toList());
     }
 
     // 찜 취소

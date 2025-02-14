@@ -6,9 +6,9 @@ public record LikeResponseDto(
         Long likeId,
         Long itemId,
         String itemName
-        ) {
+) {
 
-    public static LikeResponseDto toDto(Likes likes){
+    public static LikeResponseDto toDto(Likes likes) {
         return new LikeResponseDto(
                 likes.getId(),
                 likes.getItem().getId(),

@@ -40,31 +40,30 @@ public class CartService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
-        Item item = itemRepository.findById(responseDto.itemId()).orElseThrow(()-> new IllegalArgumentException("해당 상품이 없습니다."));
+        Item item = itemRepository.findById(responseDto.itemId()).orElseThrow(() -> new IllegalArgumentException("해당 상품이 없습니다."));
 
-        Cart cart = cartRepository.findById(user.getId()).orElseGet(()-> cartRepository.save(new Cart(user)));
+        Cart cart = cartRepository.findById(user.getId()).orElseGet(() -> cartRepository.save(new Cart(user)));
 
         // 상품 있는지 확인 (중복방지)
         List<CartItem> cartItems = cartItemRepository.findByCartAndItem(cart, item);
 
         CartItem cartItem;
 
-        if(!cartItems.isEmpty()) {
+        if (!cartItems.isEmpty()) {
             cartItem = cartItems.get(0);
             // 기존 상품이 있으면 수량만 증가
             cartItem.updateQuantity(cartItem.getQuantity() + responseDto.quantity());
 
-            if(cartItems.size() > 1){
+            if (cartItems.size() > 1) {
                 cartItemRepository.deleteAll(cartItems.subList(1, cartItems.size()));
             }
-
-        }else {
+        } else {
             // 상품 추가
             cartItem = new CartItem(cart, item, responseDto.quantity());
             cartItemRepository.save(cartItem);
         }
 
-       List<CartItem> updateCartItems = cartItemRepository.findByCart(cart, Pageable.unpaged()).getContent();
+        List<CartItem> updateCartItems = cartItemRepository.findByCart(cart, Pageable.unpaged()).getContent();
 
         return CartResponseDto.toDto(cart, updateCartItems);
 
@@ -91,7 +90,7 @@ public class CartService {
     @Transactional
     public void cartItemRemove(Long cartItemId) {
 
-        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(()-> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
 
         cartItemRepository.delete(cartItem);
     }
@@ -102,9 +101,9 @@ public class CartService {
     @Transactional
     public CartItemResponseDto cartItemUpdate(Long cartItemId, CartItemUpdateRequestDto requestDto) {
 
-        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(()-> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
 
-        if(requestDto.quantity() < 1) {
+        if (requestDto.quantity() < 1) {
             throw new IllegalArgumentException("상품 수량은 1 이상이어야 합니다.");
         }
 
