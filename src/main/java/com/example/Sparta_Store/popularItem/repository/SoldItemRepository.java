@@ -8,18 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SoldItemRepository extends JpaRepository<SoldItem, Long> {
-//    @Query("SELECT i FROM Item i " + // 아이템 엔티티를 그대로 조회하는 쿼리 위 코드에선 id만 조회 지금은 item 자체를 반환
-//            "JOIN SoldItem s ON i.id = s.item.id " + // item 과 sold item 조인 >> 두개를 함께 조회 가능
-//            "WHERE s.soldAt >= :startDate " + // startDate 기준으로 이후에 판매된 데이터만 조회
-//            "GROUP BY i " + //같은 상품에 대한 데이터를 하나로 묶음 ex) 위에서 정한 날짜 내에 같은 아이템이 다른 날짜에 여러번 팔린 걸 한번에 팔렸다고 생각하겠단 뜻
-//            "ORDER BY SUM(s.soldQuantity) DESC") // 총 판매량을 합치고 계산한 뒤 내림차순으로 정렬 // 패치 조인을 통해 데이터가 많아질 경우 성능 저하 방지
-//    List<Object[]> findMostPopularSoldItems(@Param("startDate") LocalDate startDate);
-@Query("SELECT i.id, SUM(s.soldQuantity) " +
-        "FROM Item i " +
-        "JOIN SoldItem s ON i.id = s.item.id " +
-        "WHERE s.soldAt >= :startDate " +
-        "GROUP BY i.id " +
-        "ORDER BY SUM(s.soldQuantity) DESC")
+
+@Query("SELECT i.id, SUM(s.soldQuantity) " + // id 와 수량의합만 가져옴
+        "FROM Item i " + // item 엔티티를 기준으로 조회
+        "JOIN SoldItem s ON i.id = s.item.id " + // item 테이블 과 join테이블 조인 > solditem의 item id 와 item 의 id가 같은 데이터 조회 / 한 번도 판매되지 않은 상품은 결과에서 제외
+        "WHERE s.soldAt >= :startDate " + // 특정 날짜(startDate) 이후에 판매된 상품만 조회
+        "GROUP BY i.id " + //같은 Item이 여러 개의 SoldItem 레코드로 저장되어 있을 경우, 하나의 그룹으로 묶고 이 그룹을 기준으로 SUM(s.soldQuantity)를 계산
+        "ORDER BY SUM(s.soldQuantity) DESC") // 많이 팔린 순으로 정렬
 List<Object[]> findMostPopularSoldItems(@Param("startDate") LocalDate startDate);
 
 }

@@ -16,15 +16,15 @@ public class PopularItemController {
 
     private final PopularItemService popularItemService;
 
-    // 판매량 기준 인기 상품 조회 (최근 30일)
+    // 판매량 기준 인기 상품 조회 (최근 7일)
     @GetMapping("/sold")
     public List<PopularItemDto> getPopularItemBySales(
-            @RequestParam(defaultValue = "30") int days) { // 클라이언트가 값을 입력 안하면 30일로
+            @RequestParam(defaultValue = "7") int days) { // 클라이언트가 값을 입력 안하면 7일로
         return popularItemService.getMostPopularSoldItems(days);
     }
 
     @GetMapping("/liked")
-    public List<PopularItemDto> getPopularProductsByLikes() { // 입력 없을 시 디폴트 30일
+    public List<PopularItemDto> getPopularProductsByLikes() {
         return popularItemService.getMostPopularLikedItems();
     }
 }
