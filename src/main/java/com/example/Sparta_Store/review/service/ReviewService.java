@@ -31,30 +31,37 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponseDto createReview(Long userId, Long itemId, String content) {
+    public ReviewResponseDto createReview(
+            Long userId,
+            Long itemId,
+            String content,
+            String imgUrl
+    ) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
-        Review savedReview = reviewRepository.save(new Review(user, item, content));
-
+        Review savedReview = reviewRepository.save(Review.toEntity(user, item, content, imgUrl));
         return ReviewResponseDto.toDto(savedReview);
     }
 
     @Transactional
-    public ReviewResponseDto updateReview(Long requestUserId, Long reviewId, String content) {
+    public ReviewResponseDto updateReview(
+            Long requestUserId,
+            Long reviewId,
+            String content,
+            String imgUrl
+    ) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
 
-        if (!review.getUser().getId().equals(requestUserId)) {
-            throw new IllegalArgumentException("리뷰를 수정할 권한이 없습니다.");
-        }
+        review.checkOwnership(requestUserId);
 
-        Review updatedReview = review.updateReview(content);
-
-        return ReviewResponseDto.toDto(updatedReview);
+        review.updateReview(content);
+        review.updateImageUrl(imgUrl);
+        return ReviewResponseDto.toDto(review);
     }
 
     @Transactional
@@ -62,10 +69,7 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
 
-        if (!review.getUser().getId().equals(requestUserId)) {
-            throw new IllegalArgumentException("리뷰를 삭제할 권한이 없습니다.");
-        }
-
+        review.checkOwnership(requestUserId);
         reviewRepository.delete(review);
     }
 }

@@ -28,14 +28,14 @@ public class ReviewController {
     public ResponseEntity<ReviewResponseDto> createReview(@PathVariable("itemId") Long itemId, ReviewRequestDto dto, HttpRequest request) {
         Long userId = (Long) request.getAttributes().get("id");
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(reviewService.createReview(userId, itemId, dto.content()));
+                .body(reviewService.createReview(userId, itemId, dto.content(), dto.imgUrl()));
     }
 
     @PatchMapping("/{reviewId}")
     public ResponseEntity<ReviewResponseDto> updateReview(@PathVariable("reviewId") Long reviewId, ReviewResponseDto dto, HttpRequest request) {
         Long userId = (Long) request.getAttributes().get("id");
         return ResponseEntity.status(HttpStatus.OK)
-                .body(reviewService.updateReview(userId, reviewId, dto.content()));
+                .body(reviewService.updateReview(userId, reviewId, dto.content(), dto.imgUrl()));
     }
 
     @DeleteMapping("/{reviewId}")

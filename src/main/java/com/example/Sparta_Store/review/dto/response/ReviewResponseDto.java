@@ -9,6 +9,7 @@ public record ReviewResponseDto(
         Long userId,
         String userName,
         String content,
+        String imgUrl,
         LocalDateTime createdAt
 ) {
 
@@ -18,6 +19,7 @@ public record ReviewResponseDto(
                 review.getUser().getId(),
                 review.getUser().getName(),
                 review.getContent(),
+                review.getImgUrl(),
                 review.getCreatedAt()
         );
     }
