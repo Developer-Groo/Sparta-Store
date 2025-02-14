@@ -42,7 +42,7 @@ public class CartService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
 
-        Item item = itemRepository.findById(responseDto.itemId()).orElseThrow(() -> new IllegalArgumentException("해당 상품이 없습니다."));
+        Item item = itemRepository.findById(responseDto.itemId()).orElseThrow(() -> new CustomException(CartErrorCode.PRODUCT_NOT_FOUND));
 
         Cart cart = cartRepository.findById(user.getId()).orElseGet(() -> cartRepository.save(new Cart(user)));
 
@@ -77,7 +77,7 @@ public class CartService {
     @Transactional(readOnly = true)
     public CartResponseDto getCart(Long userId, Pageable pageQuery) {
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
 
         Cart cart = cartRepository.findByUser(user).orElse(new Cart(user));
 
@@ -92,7 +92,7 @@ public class CartService {
     @Transactional
     public void cartItemRemove(Long cartItemId) {
 
-        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT));
 
         cartItemRepository.delete(cartItem);
     }
@@ -103,10 +103,10 @@ public class CartService {
     @Transactional
     public CartItemResponseDto cartItemUpdate(Long cartItemId, CartItemUpdateRequestDto requestDto) {
 
-        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new IllegalArgumentException("해당 장바구니 상품이 존재하지 않습니다."));
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT));
 
         if (requestDto.quantity() < 1) {
-            throw new IllegalArgumentException("상품 수량은 1 이상이어야 합니다.");
+            throw new CustomException(CartErrorCode.PRODUCT_QUANTITY_TOO_LOW);
         }
 
         cartItem.updateQuantity(requestDto.quantity());
