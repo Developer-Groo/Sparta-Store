@@ -1,10 +1,15 @@
 package com.example.Sparta_Store.popularItem.entity;
 
+import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,8 +25,14 @@ public class LikedItem {
     @Column(name = "likedItem_id")
     private Long id;
 
-    private int soldQuantity;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
+    private Item item;
 
-    private LocalDate likedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // 좋아요 누른 사람
+
+    private LocalDate likedAt; // 좋아요 누른 날짜
 
 }
