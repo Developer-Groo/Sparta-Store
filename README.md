@@ -80,25 +80,28 @@ erDiagram
     Item {
         Long id PK
         String name
+        String img_url
         Integer price
         String description
         Integer stockQuantity
+        Category category
         LocalDateTime created_at
         LocalDateTime updated_at
     }
 
     Orders {
         Long id PK
-        User user FK
+        User user_id FK
         OrderStatus status
+        Integer totalPrice
         LocalDateTime created_at
         LocalDateTime updated_at
     }
 
     OrderItem {
         Long id PK
-        Orders order FK 
-        Item item FK
+        Orders order_id FK 
+        Item item_id FK
         Integer orderPrice
         Integer quantity
         LocalDateTime created_at
@@ -113,8 +116,8 @@ erDiagram
     
     CartItem {
 		    Long id PK
-        Cart cart FK
-        Item item FK
+        Cart cart_id FK
+        Item item_id FK
         Integer quantity
         LocalDateTime created_at
         LocalDateTime updated_at
@@ -122,9 +125,42 @@ erDiagram
     
     Cart {
         Long id PK
-        User user FK
+        User user_id FK
         LocalDateTime created_at
         LocalDateTime updated_at
+    }
+    
+    REVIEW {
+        Long id PK
+        User user_id FK
+        Item item_id FK
+        String content
+        String img_url
+        int rating
+        LocalDateTime created_at
+        LocalDateTime updated_at
+    }
+    
+    Category {
+		    Long category_id PK
+        String name 
+        Category parent_id FK "Parent Category"
+    }
+    
+    Likes {
+	    Long id PK
+	    User user_id FK
+	    Item item_id FK
+	    LocalDateTime created_at
+      LocalDateTime updated_at
+    }
+    
+    SalesSummary {
+	    Long id pk
+	    Item item_id FK
+	    int totalSales
+	    LocalDateTime created_at
+      LocalDateTime updated_at
     }
 
     User ||--o{ Orders : "has many"
@@ -134,6 +170,14 @@ erDiagram
     Orders ||--o{ OrderItem : "has many"
     Item ||--o{ OrderItem : "has many"
     User }|..|{ Address : "embedded"
+    REVIEW }o--|| User : "has many"
+    REVIEW }o--|| Item : "has many"
+    Category ||--o| Category : "parent"
+    Category ||--|{ Category : "children"
+    Category ||--|{ Item : "has"
+    User ||--o{ Likes : "likes"
+    Item ||--o{ Likes : "liked by"
+    SalesSummary ||--|| Item : "has one" 
 ~~~
 
 <br>
