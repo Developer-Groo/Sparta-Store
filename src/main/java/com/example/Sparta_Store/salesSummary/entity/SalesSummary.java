@@ -28,7 +28,7 @@ public class SalesSummary extends TimestampedEntity {
         this.totalSales = totalSales;
     }
 
-    public static SalesSummary createSummary(Item item, int totalSales) {
+    public static SalesSummary toEntity(Item item, int totalSales) {
         return new SalesSummary(item, totalSales);
     }
 

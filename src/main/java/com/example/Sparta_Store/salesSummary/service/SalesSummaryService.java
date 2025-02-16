@@ -20,7 +20,7 @@ public class SalesSummaryService {
                     existingSummary.incrementSales(quantity);
                     return existingSummary;
                 })
-                .orElseGet(() -> SalesSummary.createSummary(item, quantity));
+                .orElseGet(() -> SalesSummary.toEntity(item, quantity));
 
         repository.save(summary);
     }
