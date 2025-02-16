@@ -23,7 +23,7 @@
 
 ## 🤔 Notion Document
 
-- [Team Notion 보러가기 👉](https://teamsparta.notion.site/6-1962dc3ef51480cb9e89f20d215f802c?pvs=25)
+- Team Notion 보러가기 👉 [Team Notion](https://teamsparta.notion.site/6-1962dc3ef51480cb9e89f20d215f802c?pvs=25)
 
 <br>
 
