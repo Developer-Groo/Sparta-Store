@@ -3,6 +3,7 @@
 
 ## ☑️ Index
 - [🏁 Team](#-Team)
+- [🤔 Notion Document](#-Notion-Document)
 - [📑 Commit Convention](#-Commit-Convention)
 - [🛠 Technology](#-Technology)
 - [🎯 Features](#-Features)
@@ -19,6 +20,10 @@
 |[GitHub](https://github.com/Developer-Groo)|[GitHub]()|[GitHub]()|[GitHub]()|[GitHub]()|
 
 <br>
+
+## 🤔 Notion Document
+
+- [Team Notion 보러가기 👉](https://teamsparta.notion.site/6-1962dc3ef51480cb9e89f20d215f802c?pvs=25)
 
 ## 📑 Commit Convention
 
