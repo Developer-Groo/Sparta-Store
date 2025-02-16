@@ -21,6 +21,30 @@
 
 <br>
 
+🔹 Leader: 김우현    
+	• Spring Boot, JPA 기반으로 상품 및 리뷰 관리, 카테고리 기능 개발    
+	• 품절 상품 재입고 시 알림 기능 구현    
+	• Redis Distributed Lock을 활용해 동시성 이슈 해결 및 데이터 정합성 유지    
+	• GitHub Actions를 활용해 자동화된 빌드, 테스트, 배포 파이프라인 구축    
+	• Docker Compose로 일관된 개발 환경 제공 및 배포 효율성 향상    
+	• Grafana & Prometheus를 사용해 서버 상태 및 응답 시간 실시간 모니터링    
+	• ELK Stack (Elasticsearch, Logstash, Kibana) 기반 로그 수집 및 시각화    
+	• Prometheus AlertManager를 통해 서버 오류 및 응답 시간 초과 시 Slack 알림 전송    
+
+🔹 Sub-Leader: 주영
+	• 장바구니, 찜 기능 개발
+
+🔹 Member: 수연
+	• 주문 및 결제 기능 개발
+
+🔹 Member: 진홍
+	• 회원가입, 로그인, 권한 관리 기능 개발
+
+🔹 Member: 현우
+	• 사용자 관리 및 기준별 인기 상품 조회 기능 개발
+
+<br>
+
 ## 🤔 Notion Document
 
 - Team Notion 보러가기 👉 [Team Notion](https://teamsparta.notion.site/6-1962dc3ef51480cb9e89f20d215f802c?pvs=25)
