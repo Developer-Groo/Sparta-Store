@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import static com.example.Sparta_Store.item.entity.QItem.item;
+import static com.example.Sparta_Store.salesSummary.entity.QSalesSummary.salesSummary;
 
 @RequiredArgsConstructor
 public class ItemQueryRepositoryImpl implements ItemQueryRepository {
@@ -20,6 +21,8 @@ public class ItemQueryRepositoryImpl implements ItemQueryRepository {
     public Page<Item> findByNameAndStockCondition(boolean inStock, String keyword, Pageable pageable) {
         JPAQuery<Item> query = queryFactory
                 .selectFrom(item)
+                .leftJoin(item.salesSummary, salesSummary)
+                .fetchJoin()
                 .where(
                         itemNameLike(keyword),
                         itemGtZero(inStock)
@@ -32,6 +35,8 @@ public class ItemQueryRepositoryImpl implements ItemQueryRepository {
     public Page<Item> findAllByStockCondition(boolean inStock, Pageable pageable) {
         JPAQuery<Item> query = queryFactory
                 .selectFrom(item)
+                .leftJoin(item.salesSummary, salesSummary)
+                .fetchJoin()
                 .where(itemGtZero(inStock));
 
         return QuerydslUtil.fetchPage(query, item, pageable);
@@ -41,6 +46,8 @@ public class ItemQueryRepositoryImpl implements ItemQueryRepository {
     public Page<Item> findByCategoryId(Long categoryId, boolean inStock, Pageable pageable) {
         JPAQuery<Item> query = queryFactory
                 .selectFrom(item)
+                .leftJoin(item.salesSummary, salesSummary)
+                .fetchJoin()
                 .where(
                         item.category.id.eq(categoryId),
                         itemGtZero(inStock)

@@ -26,7 +26,7 @@ public class AdminItemService {
             String description,
             int stockQuantity
     ) {
-        Item item = new Item(
+        Item item = Item.toEntity(
                 name,
                 imageUrl,
                 price,
