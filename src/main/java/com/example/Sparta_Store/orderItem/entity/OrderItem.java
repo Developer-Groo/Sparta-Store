@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.OrderItem.entity;
+package com.example.Sparta_Store.orderItem.entity;
 
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.item.entity.Item;

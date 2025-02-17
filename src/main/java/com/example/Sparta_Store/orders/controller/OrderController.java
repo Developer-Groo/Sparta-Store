@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.orders.controller;
 
-import com.example.Sparta_Store.OrderItem.dto.response.OrderItemResponseDto;
+import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.service.OrderService;

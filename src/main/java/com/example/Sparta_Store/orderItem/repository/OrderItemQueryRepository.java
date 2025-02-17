@@ -1,6 +1,6 @@
-package com.example.Sparta_Store.OrderItem.repository;
+package com.example.Sparta_Store.orderItem.repository;
 
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

@@ -1,6 +1,6 @@
-package com.example.Sparta_Store.OrderItem.dto.response;
+package com.example.Sparta_Store.orderItem.dto.response;
 
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import java.time.LocalDateTime;
 
 public record OrderItemResponseDto(

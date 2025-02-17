@@ -1,8 +1,8 @@
-package com.example.Sparta_Store.OrderItem.repository;
+package com.example.Sparta_Store.orderItem.repository;
 
-import static com.example.Sparta_Store.OrderItem.entity.QOrderItem.orderItem;
+import static com.example.Sparta_Store.orderItem.entity.QOrderItem.orderItem;
 
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.util.QuerydslUtil;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
