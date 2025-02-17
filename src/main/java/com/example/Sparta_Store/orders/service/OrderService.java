@@ -21,7 +21,7 @@ import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 @Slf4j(topic = "OrderService")
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class OrderService {
 
     private final OrdersRepository ordersRepository;
@@ -45,7 +46,6 @@ public class OrderService {
      * 주문 생성
      * - Cart 조회 -> CartItem 조회 -> 재고 감소 -> Orders 생성 -> OrderItem 생성 -> CartItem 삭제
      */
-
     public void checkoutCart(Long userId){
 
         // 카트 조회
