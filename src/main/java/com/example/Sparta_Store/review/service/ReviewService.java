@@ -35,7 +35,8 @@ public class ReviewService {
             Long userId,
             Long itemId,
             String content,
-            String imgUrl
+            String imgUrl,
+            int rating
     ) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
@@ -43,7 +44,15 @@ public class ReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
-        Review savedReview = reviewRepository.save(Review.toEntity(user, item, content, imgUrl));
+        Review savedReview = reviewRepository.save(
+                Review.toEntity(
+                        user,
+                        item,
+                        content,
+                        imgUrl,
+                        rating
+                )
+        );
         return ReviewResponseDto.toDto(savedReview);
     }
 
@@ -52,15 +61,14 @@ public class ReviewService {
             Long requestUserId,
             Long reviewId,
             String content,
-            String imgUrl
+            String imgUrl,
+            int rating
     ) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
 
         review.checkOwnership(requestUserId);
-
-        review.updateReview(content);
-        review.updateImageUrl(imgUrl);
+        review.updateReview(content, imgUrl, rating);
         return ReviewResponseDto.toDto(review);
     }
 

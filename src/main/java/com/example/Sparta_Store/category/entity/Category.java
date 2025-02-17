@@ -26,4 +26,13 @@ public class Category {
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<Category> children = new ArrayList<>();
+
+    public Category(String name, Category parent) {
+        this.name = name;
+        this.parent = parent;
+    }
+
+    public void addChildren(Category... childrenCategories) {
+        children.addAll(List.of(childrenCategories));
+    }
 }
