@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.admin.item.dto.responseDto;
 
+import com.example.Sparta_Store.category.entity.Category;
 import com.example.Sparta_Store.item.entity.Item;
 
 public record ItemRegisterResponseDto(
@@ -7,7 +8,8 @@ public record ItemRegisterResponseDto(
         String imageUrl,
         int price,
         String description,
-        int stockQuantity
+        int stockQuantity,
+        Category category
 ) {
     public static ItemRegisterResponseDto toDto(Item item) {
         return new ItemRegisterResponseDto(
@@ -15,7 +17,8 @@ public record ItemRegisterResponseDto(
                 item.getImgUrl(),
                 item.getPrice(),
                 item.getDescription(),
-                item.getStockQuantity()
+                item.getStockQuantity(),
+                item.getCategory()
         );
     }
 }

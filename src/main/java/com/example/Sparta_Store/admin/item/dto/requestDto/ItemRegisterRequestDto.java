@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.admin.item.dto.requestDto;
 
+import com.example.Sparta_Store.category.entity.Category;
 import jakarta.validation.constraints.NotBlank;
 
 public record ItemRegisterRequestDto(
@@ -12,6 +13,7 @@ public record ItemRegisterRequestDto(
         @NotBlank
         String description,
         @NotBlank
-        int stockQuantity
+        int stockQuantity,
+        Category category
 ) {
 }

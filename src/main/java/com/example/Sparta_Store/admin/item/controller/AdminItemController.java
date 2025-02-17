@@ -24,7 +24,8 @@ public class AdminItemController {
                 requestDto.imgUrl(),
                 requestDto.price(),
                 requestDto.description(),
-                requestDto.stockQuantity()
+                requestDto.stockQuantity(),
+                requestDto.category()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)

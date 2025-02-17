@@ -1,10 +1,13 @@
 package com.example.Sparta_Store.admin.item.dto.requestDto;
 
+import com.example.Sparta_Store.category.entity.Category;
+
 public record ItemUpdateRequestDto(
         String name,
         String imgUrl,
         Integer price,
         String description,
-        Integer stockQuantity
+        Integer stockQuantity,
+        Category category
 ) {
 }

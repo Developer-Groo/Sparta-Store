@@ -5,6 +5,6 @@ public record ItemUpdateResponseDto(
         String imgUrl,
         Integer price,
         String description,
-        Integer stockQuantity
-) {
+        Integer stockQuantity,
+        com.example.Sparta_Store.category.entity.Category category) {
 }
