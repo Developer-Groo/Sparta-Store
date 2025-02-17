@@ -38,4 +38,11 @@ public class AdminItemController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(updateResponseDto);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteItem(@PathVariable("id") Long id) {
+        adminItemService.deleteItem(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .build();
+    }
 }

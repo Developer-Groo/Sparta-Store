@@ -7,7 +7,8 @@ public record ItemResponseDto(
         String name,
         String url,
         int price,
-        String description
+        String description,
+        int totalSales
 ) {
 
     public static ItemResponseDto toDto(Item item) {
@@ -16,7 +17,8 @@ public record ItemResponseDto(
                 item.getName(),
                 item.getImgUrl(),
                 item.getPrice(),
-                item.getDescription()
+                item.getDescription(),
+                item.getTotalSales()
         );
     }
 }

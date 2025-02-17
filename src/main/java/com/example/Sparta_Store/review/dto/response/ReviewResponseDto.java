@@ -10,6 +10,7 @@ public record ReviewResponseDto(
         String userName,
         String content,
         String imgUrl,
+        int rating,
         LocalDateTime createdAt
 ) {
 
@@ -20,6 +21,7 @@ public record ReviewResponseDto(
                 review.getUser().getName(),
                 review.getContent(),
                 review.getImgUrl(),
+                review.getRating(),
                 review.getCreatedAt()
         );
     }

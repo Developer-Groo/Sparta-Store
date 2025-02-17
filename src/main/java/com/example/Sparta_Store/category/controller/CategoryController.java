@@ -8,10 +8,7 @@ import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -35,8 +32,12 @@ public class CategoryController {
      * 특정 카테고리의 상품 조회
      */
     @GetMapping("/{categoryId}/items")
-    public ResponseEntity<PageResult<ItemResponseDto>> getItemsByCategory(@PathVariable("categoryId") Long categoryId, PageQuery pageQuery) {
+    public ResponseEntity<PageResult<ItemResponseDto>> getItemsByCategory(
+            @PathVariable("categoryId") Long categoryId,
+            @RequestParam(value = "inStock", required = false, defaultValue = "false") boolean inStock,
+            PageQuery pageQuery
+    ) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(categoryService.getItemsByCategory(categoryId, pageQuery.toPageable()));
+                .body(categoryService.getItemsByCategory(categoryId, inStock, pageQuery.toPageable()));
     }
 }
