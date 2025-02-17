@@ -36,10 +36,16 @@ public class JwtFilter extends OncePerRequestFilter {
         String authorizationHeader = request.getHeader("Authorization");
 
         // 회원가입 및 로그인시 토큰없어도 실행 가능
-        if(requestURI.equals("/login") || requestURI.equals("/users/signUp")) {
+        if(requestURI.equals("/users/login") || requestURI.equals("/users/signUp")) {
             filterChain.doFilter(request,response);
             return;
         }
+
+        if(requestURI.contains("items") && request.getMethod().equals("GET")) {
+            filterChain.doFilter(request,response);
+            return;
+        }
+
 
         // JWT 토큰 검증
 
