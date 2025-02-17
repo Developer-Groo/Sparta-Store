@@ -1,5 +1,8 @@
 package com.example.Sparta_Store.popularItem.repository.sold;
 
+import static com.example.Sparta_Store.popularItem.service.PopularItemService.SoldItemToDto;
+
+
 import com.example.Sparta_Store.item.entity.QItem;
 import com.example.Sparta_Store.popularItem.dto.PopularItemRankValueDto;
 import com.example.Sparta_Store.popularItem.entity.QSoldItem;
@@ -7,7 +10,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -33,18 +35,10 @@ public class SoldItemRepositoryImpl implements SoldItemRepositoryCustom {
                 .orderBy(soldItem.soldQuantity.sum().desc()) // 많이 팔린 순으로 내림차순 정렬
                 .fetch(); //쿼리 실행시 List<Tuple> 리스트 형태로 결과를 반환 > List<Tuple> 이 튜플에는 상품id와 판매량이 들어있음
 
-        return toDto(idAndSoldNums); // dto로 변환하는 메서드 실행
+        return SoldItemToDto(idAndSoldNums); // dto로 변환하는 메서드 실행
 
     }
 
-    // DTO 변환을 별도로 처리하는 메서드
-    private List<PopularItemRankValueDto> toDto(List<Tuple> idAndSoldNums) {
-        return idAndSoldNums.stream()
-                .map(tuple -> new PopularItemRankValueDto(
-                        tuple.get(QItem.item.id),
-                        tuple.get(QSoldItem.soldItem.soldQuantity.sum()).intValue()
-                ))
-                .collect(Collectors.toList());
-    }
 
+ // 서비스로 옮기기
 }

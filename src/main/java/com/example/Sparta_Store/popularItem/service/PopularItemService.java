@@ -1,11 +1,15 @@
 package com.example.Sparta_Store.popularItem.service;
 
 import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.item.entity.QItem;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.popularItem.dto.PopularItemDto;
 import com.example.Sparta_Store.popularItem.dto.PopularItemRankValueDto;
+import com.example.Sparta_Store.popularItem.entity.QLikedItem;
+import com.example.Sparta_Store.popularItem.entity.QSoldItem;
 import com.example.Sparta_Store.popularItem.repository.liked.LikedItemRepository;
 import com.example.Sparta_Store.popularItem.repository.sold.SoldItemRepository;
+import com.querydsl.core.Tuple;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +76,25 @@ public class PopularItemService {
 
     }
 
+    // DTO 변환하는 메서드(판매량순)
+    public static List<PopularItemRankValueDto> SoldItemToDto(List<Tuple> idAndSoldNums) {
+        return idAndSoldNums.stream()
+                .map(tuple -> new PopularItemRankValueDto(
+                        tuple.get(QItem.item.id),
+                        tuple.get(QSoldItem.soldItem.soldQuantity.sum()).intValue() // IdAndSoldNum 객체 에서 item.id와 좋아요 갯수를 추출하고 PopularItemRankValueDto 타입의 dto로 변환
+                ))
+                .collect(Collectors.toList()); // List<PopularItemRankValueDto> 로 변환
+    }
+
+    // DTO 변환하는 메서드(찜순)
+    public static List<PopularItemRankValueDto> LikedItemToDto(List<Tuple> idAndLikedNums) {
+        return idAndLikedNums.stream()
+                .map(tuple -> new PopularItemRankValueDto(
+                        tuple.get(QLikedItem.likedItem.item.id),
+                        tuple.get(QLikedItem.likedItem.count()).intValue() // IdAndLikedNum 객체 에서 item.id와 좋아요 갯수를 추출하고 PopularItemRankValueDto 타입의 dto로 변환
+                ))
+                .collect(Collectors.toList()); // 위에 변환한 dto를 List<PopularItemRankValueDto> 로 변환
+    }
 
 
 }

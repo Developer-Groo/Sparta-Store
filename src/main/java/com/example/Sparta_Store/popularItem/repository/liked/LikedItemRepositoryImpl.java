@@ -1,5 +1,7 @@
 package com.example.Sparta_Store.popularItem.repository.liked;
 
+import static com.example.Sparta_Store.popularItem.service.PopularItemService.LikedItemToDto;
+
 import com.example.Sparta_Store.popularItem.dto.PopularItemRankValueDto;
 import com.example.Sparta_Store.popularItem.entity.QLikedItem;
 import com.querydsl.core.Tuple;
@@ -29,19 +31,11 @@ public class LikedItemRepositoryImpl implements LikedItemRepositoryCustom {
                 .fetch(); // 쿼리 실행시 List<Tuple> 리스트 형태로 결과를 반환 > List<Tuple> 이 튜플에는 상품id와 좋아요 갯수가 들어있음
 
         // 별도의 메서드를 호출하여 DTO 변환
-        return toDto(idAndLikedNums);  // dto로 변환하는 메서드 실행
+        return LikedItemToDto(idAndLikedNums);  // dto로 변환하는 메서드 실행
 
     }
 
-    // DTO 변환하는 메서드
-    private List<PopularItemRankValueDto> toDto(List<Tuple> idAndLikedNums) {
-        return idAndLikedNums.stream()
-                .map(tuple -> new PopularItemRankValueDto(
-                        tuple.get(QLikedItem.likedItem.item.id),
-                        tuple.get(QLikedItem.likedItem.count()).intValue() // IdAndLikedNum 객체 에서 item.id와 좋아요 갯수를 추출하고 PopularItemRankValueDto 타입의 dto로 변환
-                ))
-                .collect(Collectors.toList()); // 위에 변환한 dto를 List<PopularItemRankValueDto> 로 변환
-    }
+
 
 }
 
