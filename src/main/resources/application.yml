@@ -8,7 +8,7 @@ spring:
         format_sql: true
 
   datasource:
-    url: jdbc:mysql://localhost:3306/SpartaStore
+    url: jdbc:mysql://localhost:3306/spartastore
     username: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: ${DB_PASSWORD}
