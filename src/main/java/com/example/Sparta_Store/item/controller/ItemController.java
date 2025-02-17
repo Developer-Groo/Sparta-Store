@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -20,14 +21,20 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public ResponseEntity<PageResult<ItemResponseDto>> getItems(PageQuery pageQuery) {
+    public ResponseEntity<PageResult<ItemResponseDto>> getItems(
+            @RequestParam(value = "inStock", required = false, defaultValue = "false") boolean inStock,
+            PageQuery pageQuery
+    ) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(itemService.getItems(pageQuery));
+                .body(itemService.getItems(inStock, pageQuery));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<PageResult<ItemResponseDto>> getSearchItems(ItemSearchRequestDto dto, PageQuery pageQuery) {
+    public ResponseEntity<PageResult<ItemResponseDto>> getSearchItems(
+            @RequestParam(value = "inStock", required = false, defaultValue = "false") boolean inStock,
+            ItemSearchRequestDto dto, PageQuery pageQuery
+    ) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(itemService.getSearchItems(dto.keyword(), pageQuery));
+                .body(itemService.getSearchItems(inStock, dto.keyword(), pageQuery));
     }
 }
