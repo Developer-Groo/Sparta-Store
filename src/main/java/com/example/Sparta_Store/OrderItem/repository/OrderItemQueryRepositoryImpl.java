@@ -1,7 +1,5 @@
 package com.example.Sparta_Store.OrderItem.repository;
 
-import static com.example.Sparta_Store.OrderItem.entity.QOrderItem.orderItem;
-
 import com.example.Sparta_Store.OrderItem.entity.OrderItem;
 import com.example.Sparta_Store.util.QuerydslUtil;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -12,9 +10,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
+import static com.example.Sparta_Store.OrderItem.entity.QOrderItem.orderItem;
+import static com.example.Sparta_Store.item.entity.QItem.item;
+import static com.example.Sparta_Store.orders.entity.QOrders.orders;
+import static com.example.Sparta_Store.user.entity.QUser.user;
+
 @Repository
 @RequiredArgsConstructor
-public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
+public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
@@ -23,6 +28,22 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
         JPAQuery<OrderItem> result = queryFactory.selectFrom(orderItem).where(orderIdEquals(orderId));
 
         return QuerydslUtil.fetchPage(result, orderItem, pageable);
+    }
+
+    @Override
+    public Optional<OrderItem> findOrderItemWithUserAndItem(Long userId, Long itemId) {
+        OrderItem result = queryFactory
+                .selectFrom(orderItem)
+                .join(orderItem.orders, orders).fetchJoin()
+                .join(orders.user, user).fetchJoin()
+                .join(orderItem.item, item).fetchJoin()
+                .where(
+                        orders.user.id.eq(userId),
+                        orderItem.item.id.eq(itemId)
+                )
+                .fetchOne();
+
+        return Optional.ofNullable(result);
     }
 
     // orderId로 주문 상품 조회
