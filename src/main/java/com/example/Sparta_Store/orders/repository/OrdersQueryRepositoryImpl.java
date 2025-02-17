@@ -14,10 +14,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class OrderQueryRepository {
+public class OrdersQueryRepositoryImpl implements OrdersQueryRepository {
 
     private final JPAQueryFactory queryFactory;
 
+    @Override
     public Page<Orders> findByUserId(Long userId, Pageable pageable) {
         JPAQuery<Orders> result = queryFactory.selectFrom(orders).where(userIdEquals(userId));
 
