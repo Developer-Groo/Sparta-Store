@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,9 @@ public class User extends TimestampedEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long id;
+
+    @Column(unique = true, updatable = false)
+    private String customerKey;
 
     @Column(nullable = false)
     private String name;
@@ -41,6 +45,7 @@ public class User extends TimestampedEntity {
         this.password = password;
         this.name = name;
         this.address = address;
+        this.customerKey = UUID.randomUUID().toString();
     }
 
     public void updateUserInfo(String name, Address address) {

@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,13 +30,13 @@ public class OrderController {
      * 주문 생성 API
      * - 장바구니에서 '결제하기'를 누르면 동작
      */
-    @PostMapping("/checkout")
-    public ResponseEntity<Map<String,String>> createOrder(HttpServletRequest request) {
-        Long userId = (Long) request.getAttribute("id");
-
-        orderService.checkoutCart(userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 주문이 완료되었습니다."));
-    }
+//    @PostMapping("/checkout")
+//    public ResponseEntity<Map<String,String>> createOrder(HttpServletRequest request) {
+//        Long userId = (Long) request.getAttribute("id");
+//
+//        orderService.checkoutOrder(userId);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 주문이 완료되었습니다."));
+//    }
 
     /**
      * 주문 상태 변경 API
