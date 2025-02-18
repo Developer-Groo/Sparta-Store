@@ -87,6 +87,7 @@ public class PaymentController {
     public String failPayment(HttpServletRequest request, Model model) {
         model.addAttribute("code", request.getParameter("code"));
         model.addAttribute("message", request.getParameter("message"));
+        System.out.println("dddd");
         return "/fail";
     }
 

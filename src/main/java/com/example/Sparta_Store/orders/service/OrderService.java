@@ -65,15 +65,15 @@ public class OrderService {
         itemService.decreaseStock(cartItemList);
         log.info("주문한 상품 수량만큼 재고를 감소하였습니다.");
 
-        // Orders 엔티티 생성
+        // Orders 엔티티 생성 호출
         Long orderId = createOrder(payment, userId);
         log.info("Orders 생성 완료");
 
-        // OrderItem 엔티티 생성
+        // OrderItem 엔티티 생성 호출
         createOrderItem(orderId, cartItemList);
         log.info("OrderItem 생성 완료");
 
-        // CartItem 초기화
+        // CartItem 초기화 호출
         cartService.deleteCartItem(cartItemList);
         log.info("CartItem 초기화 완료");
 
@@ -111,7 +111,6 @@ public class OrderService {
         model.addAttribute("customerEmail", customerEmail);
         model.addAttribute("customerName", customerName);
         model.addAttribute("customerKey", customerKey);
-
     }
 
     // orders 생성

@@ -41,7 +41,7 @@ public class PaymentService {
         );
         paymentRepository.save(savedPayment);
 
-        // Orders 생성
+        // 주문 생성 호출
         orderService.checkoutOrder(savedPayment, user.getId());
     }
 

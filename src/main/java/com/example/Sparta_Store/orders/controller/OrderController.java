@@ -27,18 +27,6 @@ public class OrderController {
     private final OrderService orderService;
 
     /**
-     * 주문 생성 API
-     * - 장바구니에서 '결제하기'를 누르면 동작
-     */
-//    @PostMapping("/checkout")
-//    public ResponseEntity<Map<String,String>> createOrder(HttpServletRequest request) {
-//        Long userId = (Long) request.getAttribute("id");
-//
-//        orderService.checkoutOrder(userId);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 주문이 완료되었습니다."));
-//    }
-
-    /**
      * 주문 상태 변경 API
      */
     @PatchMapping("/status/{orderId}")
