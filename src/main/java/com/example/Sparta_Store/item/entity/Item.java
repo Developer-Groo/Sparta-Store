@@ -103,6 +103,9 @@ public class Item extends TimestampedEntity {
         if (stockQuantity != null) {
             this.stockQuantity = stockQuantity;
         }
+        if (category != null) {
+            this.category = category;
+        }
     }
 
     public int getTotalSales() {

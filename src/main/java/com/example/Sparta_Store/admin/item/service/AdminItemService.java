@@ -61,7 +61,7 @@ public class AdminItemService {
                 item.getPrice(),
                 item.getDescription(),
                 item.getStockQuantity(),
-                item.getCategory()
+                item.getCategory().getId()
         );
     }
 

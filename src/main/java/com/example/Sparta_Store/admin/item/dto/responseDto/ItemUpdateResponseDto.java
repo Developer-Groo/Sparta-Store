@@ -6,5 +6,5 @@ public record ItemUpdateResponseDto(
         Integer price,
         String description,
         Integer stockQuantity,
-        com.example.Sparta_Store.category.entity.Category category) {
+        Long categoryId) {
 }
