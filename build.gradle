@@ -59,6 +59,15 @@ dependencies {
 	//validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+	//springSecurity
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	//thymeleaf
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	//JSON simple
+	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+
 	//redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }

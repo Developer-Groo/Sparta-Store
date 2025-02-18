@@ -28,10 +28,6 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
-    }
-
     private Claims extractAllClaims(String token) {
         token = token.replace("Bearer ", ""); // 앞에 붙는 'Bearer ' 제거
 
@@ -45,7 +41,7 @@ public class JwtUtil {
         Date date = new Date();
 
         if (id == 1) {
-            name = "ADMIN"; // 관리자 이름으로 설정
+            name = "ROLE_ADMIN"; // 스프링시큐리티를 사용하기위해 ROLE_ADMIN 으로 변경했습니다.
         }
 
         return BEARER_PREFIX +

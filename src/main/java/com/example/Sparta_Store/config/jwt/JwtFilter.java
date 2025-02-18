@@ -6,24 +6,34 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j(topic = "JwtFilter")
 @RequiredArgsConstructor
+@Component("SpartaFilter")
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        HttpServletRequest httpRequest = request;
-        HttpServletResponse httpResponse = response;
-        String requestURI = httpRequest.getRequestURI();
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
         String jwt = null;
 
-        String authorizationHeader = httpRequest.getHeader("Authorization");
+        String authorizationHeader = request.getHeader("Authorization");
 
         // 회원가입 및 로그인시 토큰없어도 실행 가능
         if(requestURI.equals("/login") || requestURI.equals("/users/signUp")) {
@@ -31,11 +41,17 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        if(requestURI.contains("items") && request.getMethod().equals("GET")) {
+            filterChain.doFilter(request,response);
+            return;
+        }
+
+
         // JWT 토큰 검증
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.info("JWT 토큰이 필요 합니다.");
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 토큰이 필요 합니다.");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 토큰이 필요 합니다.");
             return;
         }
 
@@ -43,20 +59,20 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // Secret Key 는 내가 만든게 맞는지 검증 만료 기간 지났는지 검증
         if (!jwtUtil.validateToken(jwt)) {
-            httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            httpResponse.getWriter().write("{\"error\": \"Unauthorized\"}");
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("{\"error\": \"Unauthorized\"}");
         }
 
-        if(requestURI.startsWith("/admin")) {
+        String auth = jwtUtil.extractNames(jwt);
 
-            // JWT에 관리자 권한이 있는지 확인
-            if(jwtUtil.hasName(jwt,"ADMIN")) {
-                filterChain.doFilter(request, response);
-            } else {
-                httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다.");
-            }
-            return;
-        }
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(auth));
+
+        User user = new User(auth, "", authorities);
+
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
+
+        Long id = jwtUtil.extractId(jwt);
+        request.setAttribute("id", id);
 
         filterChain.doFilter(request, response);
     }
