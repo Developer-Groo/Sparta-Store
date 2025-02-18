@@ -176,8 +176,10 @@ public class OrderService {
 
     // 주문상태 변경 가능 여부
     public void isStatusUpdatable(OrderStatus originStatus, OrderStatus requestStatus) {
-        if(requestStatus == OrderStatus.CONFIRMED) {
-            throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
+        if (requestStatus != OrderStatus.ORDER_CANCEL_REQUEST
+            && requestStatus != OrderStatus.RETURN_REQUESTED
+            && requestStatus != OrderStatus.EXCHANGE_REQUESTED) {
+            throw new IllegalArgumentException("주문상태 변경 권한이 없습니다.");
         }
 
         if (!statusUpdatable.get(requestStatus).equals(originStatus)) {
