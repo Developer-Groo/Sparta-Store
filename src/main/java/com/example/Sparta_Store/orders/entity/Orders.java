@@ -2,6 +2,7 @@ package com.example.Sparta_Store.orders.entity;
 
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.orders.OrderStatus;
+import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +28,10 @@ public class Orders extends TimestampedEntity {
     @Column(name = "order_id")
     private Long id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_number", unique = true, nullable = false)
+    private Payment payment;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -37,7 +43,8 @@ public class Orders extends TimestampedEntity {
     @Column(name = "total_price")
     private Integer totalPrice;
 
-    public Orders(User user, OrderStatus orderStatus) {
+    public Orders(Payment payment, User user, OrderStatus orderStatus) {
+        this.payment = payment;
         this.user = user;
         this.orderStatus = orderStatus;
     }

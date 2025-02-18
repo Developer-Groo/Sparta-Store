@@ -1,25 +1,24 @@
-package com.example.Sparta_Store.OrderItem.repository;
+package com.example.Sparta_Store.orderItem.repository;
 
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
+import static com.example.Sparta_Store.item.entity.QItem.item;
+import static com.example.Sparta_Store.orderItem.entity.QOrderItem.orderItem;
+import static com.example.Sparta_Store.orders.entity.QOrders.orders;
+import static com.example.Sparta_Store.user.entity.QUser.user;
+
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.util.QuerydslUtil;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
-import static com.example.Sparta_Store.OrderItem.entity.QOrderItem.orderItem;
-import static com.example.Sparta_Store.item.entity.QItem.item;
-import static com.example.Sparta_Store.orders.entity.QOrders.orders;
-import static com.example.Sparta_Store.user.entity.QUser.user;
-
 @Repository
 @RequiredArgsConstructor
-public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository {
+public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
 
     private final JPAQueryFactory queryFactory;
 
