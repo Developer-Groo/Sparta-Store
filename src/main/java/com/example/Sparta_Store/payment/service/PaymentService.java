@@ -24,7 +24,7 @@ public class PaymentService {
     private final OrderService orderService;
 
     @Transactional
-    public void CreatePayment(JSONObject response, Long userId) {
+    public void createPayment(JSONObject response, Long userId) {
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));

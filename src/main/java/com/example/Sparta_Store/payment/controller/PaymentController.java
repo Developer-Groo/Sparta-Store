@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("")
+@RequestMapping("/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -60,7 +60,7 @@ public class PaymentController {
     /**
      * 결제 승인
      */
-    @PostMapping(value = { "/payments/confirm"})
+    @PostMapping(value = { "/confirm"})
     public ResponseEntity<Map<String,String>> confirmPayment(HttpServletRequest request, @RequestBody String jsonBody) throws Exception {
         String secretKey = SECRET_KEY;
         JSONObject response = sendRequest(
@@ -75,7 +75,7 @@ public class PaymentController {
 
         Long userId = (Long) request.getAttribute("id");
         // 결제 승인되어 Payment, Order, OrderItem 엔티티 생성
-        paymentService.CreatePayment(response, userId);
+        paymentService.createPayment(response, userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "상품 주문이 완료되었습니다."));
     }
@@ -87,7 +87,7 @@ public class PaymentController {
     public String failPayment(HttpServletRequest request, Model model) {
         model.addAttribute("code", request.getParameter("code"));
         model.addAttribute("message", request.getParameter("message"));
-        System.out.println("dddd");
+
         return "/fail";
     }
 
