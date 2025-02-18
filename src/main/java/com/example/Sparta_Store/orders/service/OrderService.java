@@ -17,6 +17,7 @@ import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
+import com.example.Sparta_Store.point.service.PointService;
 import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
@@ -41,6 +42,7 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final CartService cartService;
     private final ItemService itemService;
+    private final PointService pointService;
 
     /**
      * 주문 생성
@@ -134,6 +136,18 @@ public class OrderService {
         order.updateOrderStatus(requestStatus);
         log.info("주문상태 변경 완료 >> {}", requestDto.orderStatus());
 
+        // 구매확정시 코드 실행
+        if (requestStatus == OrderStatus.CONFIRMED) {
+            givePoint(userId, order);
+        }
+
+    }
+
+    // 구매확정이 되면 실행되는 메서드
+    private void givePoint(Long userId, Orders order) {
+        int points = (int) (order.getTotalPrice() * 0.1); // 주문에서 토탈가격의 10% 적립
+        pointService.earnPoints(userId, points); //포인트서비스에서 포인트적립메서드 실행
+        log.info("포인트 {} 적립 완료 (유저 ID: {})", points, userId);
     }
 
     // 주문상태 변경 가능 여부
