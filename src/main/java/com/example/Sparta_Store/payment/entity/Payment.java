@@ -22,8 +22,7 @@ public class Payment {
     private String paymentKey;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_key", referencedColumnName = "customerKey",
-        insertable = false, nullable = false)
+    @JoinColumn(name = "customer_key", referencedColumnName = "customer_key", nullable = false)
     private User user;
 
     @Column(name = "order_number", unique = true, updatable = false, nullable = false)
