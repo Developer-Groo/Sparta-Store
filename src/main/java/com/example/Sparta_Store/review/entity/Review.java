@@ -30,29 +30,36 @@ public class Review extends TimestampedEntity {
 
     private String imgUrl;
 
-    public Review(
+    @Column(nullable = false)
+    private int rating;
+
+    private Review(
             User user,
             Item item,
             String content,
-            String imgUrl
+            String imgUrl,
+            int rating
     ) {
         this.user = user;
         this.item = item;
         this.content = content;
         this.imgUrl = imgUrl;
+        updateRating(rating);
     }
 
     public static Review toEntity(
             User user,
             Item item,
             String content,
-            String imgUrl
+            String imgUrl,
+            int rating
     ) {
         return new Review(
                 user,
                 item,
                 content,
-                imgUrl != null && !imgUrl.isBlank() ? imgUrl : null
+                imgUrl != null && !imgUrl.isBlank() ? imgUrl : null,
+                rating
         );
     }
 
@@ -65,17 +72,16 @@ public class Review extends TimestampedEntity {
         }
     }
 
-    /**
-     * 리뷰 내용 업데이트
-     */
-    public void updateReview(String content) {
+    public void updateReview(String content, String newImageUrl, int rating) {
         this.content = content;
+        this.imgUrl = newImageUrl;
+        updateRating(rating);
     }
 
-    /**
-     * 이미지 업데이트 (Optional)
-     */
-    public void updateImageUrl(String newImageUrl) {
-        this.imgUrl = newImageUrl;
+    private void updateRating(int rating) {
+        if (rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("별점은 1~5 사이의 정수여야 합니다.");
+        }
+        this.rating = rating;
     }
 }

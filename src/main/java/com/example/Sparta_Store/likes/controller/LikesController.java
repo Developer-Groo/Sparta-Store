@@ -21,7 +21,7 @@ public class LikesController {
     @PostMapping
     public ResponseEntity<String> addLike(@RequestBody @Valid LikesRequestDto requestDto){
         likesService.addLike(requestDto.userId(), requestDto.itemId());
-        return ResponseEntity.status(HttpStatus.OK).body("찜 추가가 되셨습니다.");
+        return ResponseEntity.status(HttpStatus.CREATED).body("찜 추가가 되셨습니다.");
     }
 
     @GetMapping
@@ -30,8 +30,14 @@ public class LikesController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @DeleteMapping("/{itemId}")
-    public ResponseEntity<String> removeLike(@PathVariable("itemId") Long itemId, @RequestParam Long userId) {
+    @GetMapping("/{itemId}")
+    public ResponseEntity<Long> getLikeCount(@PathVariable("itemId") Long itemId) {
+        Long count = likesService.getLikeCount(itemId);
+        return ResponseEntity.status(HttpStatus.OK).body(count);
+    }
+
+    @DeleteMapping("/{itemId}/{userId}")
+    public ResponseEntity<String> removeLike(@PathVariable("itemId") Long itemId, @PathVariable("userId") Long userId) {
         likesService.removeLike(userId, itemId);
         return ResponseEntity.status(HttpStatus.OK).body("찜 취소가 되었습니다.");
     }

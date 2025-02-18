@@ -2,6 +2,7 @@ package com.example.Sparta_Store.item.entity;
 
 import com.example.Sparta_Store.category.entity.Category;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
+import com.example.Sparta_Store.salesSummary.entity.SalesSummary;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -36,18 +37,41 @@ public class Item extends TimestampedEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    public Item(
+    @OneToOne(mappedBy = "item") // mappedBy 를 설정할 경우 자동 Lazy 적용
+    private SalesSummary salesSummary;
+
+    private Item(
             String name,
             String imgUrl,
             int price,
             String description,
-            int stockQuantity
-    ){
+            int stockQuantity,
+            Category category
+    ) {
         this.name = name;
         this.imgUrl = imgUrl;
         this.price = price;
         this.description = description;
         this.stockQuantity = stockQuantity;
+        this.category = category;
+    }
+
+    public static Item toEntity(
+            String name,
+            String imgUrl,
+            int price,
+            String description,
+            int stockQuantity,
+            Category category
+    ) {
+        return new Item(
+                name,
+                imgUrl,
+                price,
+                description,
+                stockQuantity,
+                category
+        );
     }
 
     public void decreaseStock(int quantity) {
@@ -62,22 +86,29 @@ public class Item extends TimestampedEntity {
             String imgUrl,
             Integer price,
             String description,
-            Integer stockQuantity
-    ){
-        if (name != null && !name.isEmpty()){
+            Integer stockQuantity,
+            Category category) {
+        if (name != null && !name.isEmpty()) {
             this.name = name;
         }
-        if (imgUrl != null && !imgUrl.isEmpty()){
+        if (imgUrl != null && !imgUrl.isEmpty()) {
             this.imgUrl = imgUrl;
         }
-        if (price != null){
+        if (price != null) {
             this.price = price;
         }
-        if (description != null && !description.isEmpty()){
+        if (description != null && !description.isEmpty()) {
             this.description = description;
         }
-        if (stockQuantity != null){
+        if (stockQuantity != null) {
             this.stockQuantity = stockQuantity;
         }
+        if (category != null) {
+            this.category = category;
+        }
+    }
+
+    public int getTotalSales() {
+        return salesSummary != null ? salesSummary.getTotalSales() : 0;
     }
 }

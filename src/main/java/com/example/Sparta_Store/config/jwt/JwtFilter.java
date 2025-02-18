@@ -6,18 +6,30 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j(topic = "JwtFilter")
 @RequiredArgsConstructor
+@Component("SpartaFilter")
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
         String jwt = null;
 
@@ -28,6 +40,12 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request,response);
             return;
         }
+
+        if(requestURI.contains("items") && request.getMethod().equals("GET")) {
+            filterChain.doFilter(request,response);
+            return;
+        }
+
 
         // JWT 토큰 검증
 
@@ -45,16 +63,13 @@ public class JwtFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"error\": \"Unauthorized\"}");
         }
 
-        if(requestURI.startsWith("/admin")) {
+        String auth = jwtUtil.extractNames(jwt);
 
-            // JWT에 관리자 권한이 있는지 확인
-            if(jwtUtil.hasName(jwt,"ADMIN")) {
-                filterChain.doFilter(request, response);
-            } else {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다.");
-            }
-            return;
-        }
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(auth));
+
+        User user = new User(auth, "", authorities);
+
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
 
         Long id = jwtUtil.extractId(jwt);
         request.setAttribute("id", id);

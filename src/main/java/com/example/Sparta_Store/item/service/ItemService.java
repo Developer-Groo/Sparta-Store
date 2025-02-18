@@ -6,11 +6,12 @@ import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,15 +20,15 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
 
-    public PageResult<ItemResponseDto> getItems(PageQuery pageQuery) {
-        Page<ItemResponseDto> itemList = itemRepository.findAll(pageQuery.toPageable())
+    public PageResult<ItemResponseDto> getItems(boolean inStock, PageQuery pageQuery) {
+        Page<ItemResponseDto> itemList = itemRepository.findAllByStockCondition(inStock, pageQuery.toPageable())
                 .map(ItemResponseDto::toDto);
 
         return PageResult.from(itemList);
     }
 
-    public PageResult<ItemResponseDto> getSearchItems(String keyword, PageQuery pageQuery) {
-        Page<ItemResponseDto> itemList = itemRepository.findByName(keyword, pageQuery.toPageable())
+    public PageResult<ItemResponseDto> getSearchItems(boolean inStock, String keyword, PageQuery pageQuery) {
+        Page<ItemResponseDto> itemList = itemRepository.findByNameAndStockCondition(inStock, keyword, pageQuery.toPageable())
                 .map(ItemResponseDto::toDto);
 
         return PageResult.from(itemList);

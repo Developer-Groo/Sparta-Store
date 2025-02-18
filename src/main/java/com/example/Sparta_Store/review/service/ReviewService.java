@@ -1,12 +1,13 @@
 package com.example.Sparta_Store.review.service;
 
+import com.example.Sparta_Store.OrderItem.entity.OrderItem;
+import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.item.repository.ItemRepository;
+import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.review.dto.response.ReviewResponseDto;
 import com.example.Sparta_Store.review.entity.Review;
 import com.example.Sparta_Store.review.repository.ReviewRepository;
 import com.example.Sparta_Store.user.entity.User;
-import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
+    private final OrderItemRepository orderItemRepository;
 
     public PageResult<ReviewResponseDto> getReviews(Long itemId, PageQuery pageQuery) {
         Page<ReviewResponseDto> reviewList = reviewRepository.findByItemId(itemId, pageQuery.toPageable())
@@ -35,15 +35,22 @@ public class ReviewService {
             Long userId,
             Long itemId,
             String content,
-            String imgUrl
+            String imgUrl,
+            int rating
     ) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상품이 존재하지 않습니다."));
+        OrderItem orderItem = orderItemRepository.findOrderItemWithUserAndItem(userId, itemId)
+                .orElseThrow(() -> new IllegalArgumentException("구매한 상품만 리뷰를 작성할 수 있습니다."));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+        if (orderItem.getOrders().getOrderStatus() != OrderStatus.CONFIRMED) {
+            throw new IllegalArgumentException("구매 확정된 상품만 리뷰를 작성할 수 있습니다.");
+        }
 
-        Review savedReview = reviewRepository.save(Review.toEntity(user, item, content, imgUrl));
+        User user = orderItem.getOrders().getUser();
+        Item item = orderItem.getItem();
+
+        Review savedReview = reviewRepository.save(
+                Review.toEntity(user, item, content, imgUrl, rating)
+        );
         return ReviewResponseDto.toDto(savedReview);
     }
 
@@ -52,15 +59,14 @@ public class ReviewService {
             Long requestUserId,
             Long reviewId,
             String content,
-            String imgUrl
+            String imgUrl,
+            int rating
     ) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
 
         review.checkOwnership(requestUserId);
-
-        review.updateReview(content);
-        review.updateImageUrl(imgUrl);
+        review.updateReview(content, imgUrl, rating);
         return ReviewResponseDto.toDto(review);
     }
 
