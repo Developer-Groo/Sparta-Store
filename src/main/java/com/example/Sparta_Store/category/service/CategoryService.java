@@ -28,8 +28,8 @@ public class CategoryService {
     /**
      * 특정 카테고리의 상품목록 조회
      */
-    public PageResult<ItemResponseDto> getItemsByCategory(Long categoryId, Pageable pageable) {
-        Page<ItemResponseDto> findItems = itemRepository.findByCategoryId(categoryId, pageable)
+    public PageResult<ItemResponseDto> getItemsByCategory(Long categoryId, boolean inStock, Pageable pageable) {
+        Page<ItemResponseDto> findItems = itemRepository.findByCategoryId(categoryId, inStock, pageable)
                 .map(ItemResponseDto::toDto);
 
         return PageResult.from(findItems);

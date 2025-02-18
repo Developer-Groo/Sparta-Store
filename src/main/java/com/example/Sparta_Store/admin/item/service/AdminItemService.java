@@ -4,17 +4,21 @@ import com.example.Sparta_Store.admin.item.dto.requestDto.ItemUpdateRequestDto;
 import com.example.Sparta_Store.admin.item.dto.responseDto.ItemRegisterResponseDto;
 import com.example.Sparta_Store.admin.item.dto.responseDto.ItemUpdateResponseDto;
 import com.example.Sparta_Store.admin.item.respository.AdminItemRepository;
+import com.example.Sparta_Store.admin.review.service.AdminReviewService;
 import com.example.Sparta_Store.item.entity.Item;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminItemService {
 
     private final AdminItemRepository adminItemRepository;
+    private final AdminReviewService adminReviewService;
 
+    @Transactional
     public ItemRegisterResponseDto registerItem(
             String name,
             String imageUrl,
@@ -22,7 +26,7 @@ public class AdminItemService {
             String description,
             int stockQuantity
     ) {
-        Item item = new Item(
+        Item item = Item.toEntity(
                 name,
                 imageUrl,
                 price,
@@ -56,10 +60,15 @@ public class AdminItemService {
         );
     }
 
-    private Item findById(Long id) {
-        Item item = adminItemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("존재하지않는 아이템입니다."));
+    @Transactional
+    public void deleteItem(Long itemId) {
+        Item item = findById(itemId);
+        adminItemRepository.delete(item);
+        adminReviewService.deleteReviewByItem(itemId);
+    }
 
-        return item;
+    private Item findById(Long id) {
+        return adminItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("존재하지않는 아이템입니다."));
     }
 }
