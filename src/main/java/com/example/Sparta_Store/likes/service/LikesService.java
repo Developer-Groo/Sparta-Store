@@ -11,6 +11,7 @@ import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,12 +47,19 @@ public class LikesService {
                 .collect(Collectors.toList());
     }
 
+    public Long getLikeCount(Long itemId) {
+        return likesRepository.countByItemId(itemId);
+    }
+
     // 찜 취소
+    @Transactional
     public void removeLike(Long itemId, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
-        Item item = itemRepository.findById(itemId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
-        Likes likes = likesRepository.findByUserAndItem(user, item).orElseThrow(()-> new CustomException(LikesErrorCode.PRODUCT_NOT_WISHLIST));
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
+        Likes likes = likesRepository.findByUserAndItem(user, item).orElseThrow(() -> new CustomException(LikesErrorCode.PRODUCT_NOT_WISHLIST));
 
         likesRepository.delete(likes);
     }
+
+
 }
