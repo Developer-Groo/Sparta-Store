@@ -5,6 +5,7 @@ import com.example.Sparta_Store.admin.item.dto.responseDto.ItemRegisterResponseD
 import com.example.Sparta_Store.admin.item.dto.responseDto.ItemUpdateResponseDto;
 import com.example.Sparta_Store.admin.item.respository.AdminItemRepository;
 import com.example.Sparta_Store.admin.review.service.AdminReviewService;
+import com.example.Sparta_Store.category.entity.Category;
 import com.example.Sparta_Store.item.entity.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,14 +25,16 @@ public class AdminItemService {
             String imageUrl,
             int price,
             String description,
-            int stockQuantity
+            int stockQuantity,
+            Category category
     ) {
         Item item = Item.toEntity(
                 name,
                 imageUrl,
                 price,
                 description,
-                stockQuantity
+                stockQuantity,
+                category
         );
 
         Item registerItem = adminItemRepository.save(item);
@@ -48,7 +51,8 @@ public class AdminItemService {
                 requestDto.imgUrl(),
                 requestDto.price(),
                 requestDto.description(),
-                requestDto.stockQuantity()
+                requestDto.stockQuantity(),
+                requestDto.category()
         );
 
         return new ItemUpdateResponseDto(
@@ -56,7 +60,8 @@ public class AdminItemService {
                 item.getImgUrl(),
                 item.getPrice(),
                 item.getDescription(),
-                item.getStockQuantity()
+                item.getStockQuantity(),
+                item.getCategory().getId()
         );
     }
 
