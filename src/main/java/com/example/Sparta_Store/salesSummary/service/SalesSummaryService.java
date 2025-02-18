@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class SalesSummaryService {
@@ -15,7 +18,9 @@ public class SalesSummaryService {
 
     @Transactional
     public void updateSales(Item item, int quantity) {
-        SalesSummary summary = repository.findSalesSummaryByItemId(item.getId())
+        LocalDateTime currentWeekStartDate = LocalDateTime.now().with(DayOfWeek.MONDAY);
+
+        SalesSummary summary = repository.findByItemIdAndCreatedAt(item.getId(), currentWeekStartDate)
                 .map(existingSummary -> {
                     existingSummary.incrementSales(quantity);
                     return existingSummary;
