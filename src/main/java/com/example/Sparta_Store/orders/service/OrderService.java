@@ -10,7 +10,6 @@ import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
-import com.example.Sparta_Store.cartItem.service.CartItemService;
 import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
