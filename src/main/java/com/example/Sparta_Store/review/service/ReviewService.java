@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.review.service;
 
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
-import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
+import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.review.dto.response.ReviewResponseDto;
