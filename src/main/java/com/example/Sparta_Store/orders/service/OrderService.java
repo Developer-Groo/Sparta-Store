@@ -67,7 +67,7 @@ public class OrderService {
             .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
         );
 
-        int totalPrice = getTotalPrice(cartItemList);
+        long totalPrice = getTotalPrice(cartItemList);
 
         Address address = requestDto == null ? user.getAddress() : requestDto.address();
 
@@ -80,126 +80,51 @@ public class OrderService {
         log.info("OrderItem 생성 완료");
     }
 
-    /**
-     * 주문 생성
-     * - Cart 조회 -> CartItem 조회 -> 재고 감소 -> Orders 생성 -> OrderItem 생성 -> CartItem 삭제
-     */
-//    public void checkoutOrder(Payment payment, Long userId){
-//        // 카트 조회
-//        Cart cart = cartRepository.findByUserId(userId).orElseThrow(
-//            () -> new IllegalArgumentException("카트 정보를 찾을 수 없습니다.")
-//        );
-//        Long cartId = cart.getId();
-//
-//        // 카트에 상품이 담겨있어야 주문 생성 가능
-//        List<CartItem> cartItemList = cartItemRepository.findByCartId(cartId)
-//            .filter(list -> !list.isEmpty()) // 리스트가 비어있지 않은 경우만 반환
-//            .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
-//        );
-//
-//        // 재고 감소
-//        itemService.decreaseStock(cartItemList);
-//        log.info("주문한 상품 수량만큼 재고를 감소하였습니다.");
-//
-//        // Orders 엔티티 생성 호출
-//        Long orderId = createOrder(payment, userId);
-//        log.info("Orders 생성 완료");
-//
-//        // OrderItem 엔티티 생성 호출
-//        createOrderItem(orderId, cartItemList);
-//        log.info("OrderItem 생성 완료");
-//
-//        // CartItem 초기화 호출
-//        cartService.deleteCartItem(cartItemList);
-//        log.info("CartItem 초기화 완료");
-//
-//    }
-
-//    public void getPaymentInfo(Model model, Long userId) {
-//        // 카트 조회
-//        Cart cart = cartRepository.findByUserId(userId).orElseThrow(
-//            () -> new IllegalArgumentException("카트 정보를 찾을 수 없습니다.")
-//        );
-//        Long cartId = cart.getId();
-//
-//        // 카트에 상품이 담겨있어야 주문 생성 가능
-//        List<CartItem> cartItemList = cartItemRepository.findByCartId(cartId)
-//            .filter(list -> !list.isEmpty()) // 리스트가 비어있지 않은 경우만 반환
-//            .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
-//            );
-//
-//        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
-//        int amount = 0;
-//        for (CartItem cartItem : cartItemList) {
-//            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-//            amount += orderPrice;
-//        }
-//
-//        int quantity = cartItemList.size();
-//        String orderName = cartItemList.get(0).getItem().getName();
-//        String customerEmail = cart.getUser().getEmail();
-//        String customerName = cart.getUser().getName();
-//        String customerKey = cart.getUser().getCustomerKey();
-//
-//        // 모델에 주문 정보를 추가
-//        model.addAttribute("amount", amount);
-//        model.addAttribute("orderName", orderName+" 외 "+(quantity-1)+"건"); //todo
-//        model.addAttribute("quantity", quantity);
-//        model.addAttribute("customerEmail", customerEmail);
-//        model.addAttribute("customerName", customerName);
-//        model.addAttribute("customerKey", customerKey);
-//    }
-    public void getPaymentInfo(Model model, Long userId) {
-        // 카트 조회
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow(
-            () -> new IllegalArgumentException("카트 정보를 찾을 수 없습니다.")
+    public void getPaymentInfo(Model model, Long userId, String orderId) {
+        // 요청을 보낸 user와 order 주인이 동일한지 검증
+        // 주문서를 작성한 후, 로그인 정보가 바뀌었을 상황 대비
+        User user = userRepository.findById(userId).orElseThrow(
+            () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
-        Long cartId = cart.getId();
 
-        // 카트에 상품이 담겨있어야 주문 생성 가능
-        List<CartItem> cartItemList = cartItemRepository.findByCartId(cartId)
-            .filter(list -> !list.isEmpty()) // 리스트가 비어있지 않은 경우만 반환
-            .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
-            );
+        Orders order = ordersRepository.findById(orderId).orElseThrow(
+            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+        );
 
-        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
-        int amount = 0;
-        for (CartItem cartItem : cartItemList) {
-            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-            amount += orderPrice;
+        if(!order.getUser().equals(user)) {
+            throw new IllegalArgumentException("잘못된 접근입니다.");
         }
 
-        int quantity = cartItemList.size();
-        String orderName = cartItemList.get(0).getItem().getName();
-        String customerEmail = cart.getUser().getEmail();
-        String customerName = cart.getUser().getName();
-        String customerKey = cart.getUser().getCustomerKey();
+        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
+        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order).orElseThrow(
+            () -> new IllegalArgumentException("주문 상품 정보를 찾을 수 없습니다.")
+        );
+
+        long amount = order.getTotalPrice();
+        int quantity = orderItemList.size();
+        String orderName = orderItemList.get(0).getItem().getName();
+        String customerEmail = user.getEmail();
+        String customerName = user.getName();
+        String customerKey = user.getCustomerKey();
 
         // 모델에 주문 정보를 추가
+        model.addAttribute("orderId", orderId);
         model.addAttribute("amount", amount);
-        model.addAttribute("orderName", orderName+" 외 "+(quantity-1)+"건"); //todo
+        if(quantity == 1) {
+            model.addAttribute("orderName", orderName);
+        }
+        else {
+            model.addAttribute("orderName", orderName+" 외 "+(quantity-1)+"건");
+        }
         model.addAttribute("quantity", quantity);
         model.addAttribute("customerEmail", customerEmail);
         model.addAttribute("customerName", customerName);
         model.addAttribute("customerKey", customerKey);
     }
-//
-//    // orders 생성 //todo
-//    @Transactional
-//    public Long createOrder(Payment payment, Long userId) {
-//        User user = userRepository.findById(userId).orElseThrow(
-//            () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
-//        );
-//
-//        Orders savedOrder = new Orders(payment, user, ORDER_COMPLETED);
-//        ordersRepository.save(savedOrder);
-//        // orderId 반환
-//        return savedOrder.getId();
-//    }
 
-    // orders 생성 //todo
+    // orders 생성
     @Transactional
-    public String createOrder(Long userId, int totalPrice, Address address) {
+    public String createOrder(Long userId, long totalPrice, Address address) {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
@@ -210,31 +135,6 @@ public class OrderService {
         // orderId 반환
         return savedOrder.getId();
     }
-
-
-
-//    // orderItem 생성
-//    @Transactional
-//    public void createOrderItem(Long orderId, List<CartItem> cartItemList) {
-//        Orders order = ordersRepository.findById(orderId).orElseThrow(
-//            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
-//        );
-//        int totalPrice = 0;
-//
-//        for (CartItem cartItem : cartItemList) {
-//            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-//            totalPrice += orderPrice;
-//            OrderItem savedOrderItem = new OrderItem(
-//                order,
-//                cartItem.getItem(),
-//                orderPrice,
-//                cartItem.getQuantity()
-//            );
-//            orderItemRepository.save(savedOrderItem);
-//        }
-//        order.setTotalPrice(totalPrice);
-//        ordersRepository.save(order);
-//    }
 
     // orderItem 생성
     @Transactional
@@ -257,8 +157,8 @@ public class OrderService {
     }
 
     // get totalPrice //TODO cartItem Repository
-    public int getTotalPrice(List<CartItem> cartItemList) {
-        int totalPrice = 0;
+    public long getTotalPrice(List<CartItem> cartItemList) {
+        long totalPrice = 0;
 
         for (CartItem cartItem : cartItemList) {
             int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
@@ -267,7 +167,6 @@ public class OrderService {
 
         return totalPrice;
     }
-
 
     /**
      * 주문 상태 변경

@@ -50,4 +50,12 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
         return orderId != null ? orderItem.orders.id.eq(orderId) : null;
     }
 
+    // orderItem 갯수 조회
+    @Override
+    public Long findOrderItemQuantity(String orderId) {
+        return queryFactory.select(orderItem.count()).from(orderItem)
+            .where(orderItem.orders.id.eq(orderId))
+            .fetchOne();
+    }
+
 }

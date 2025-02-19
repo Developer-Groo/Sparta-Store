@@ -1,5 +1,7 @@
 package com.example.Sparta_Store.payment.controller;
 
+import com.example.Sparta_Store.cart.service.CartService;
+import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -25,10 +28,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+@Slf4j(topic = "PaymentController")
 @Controller
 @RequestMapping("/payments")
 @RequiredArgsConstructor
@@ -41,17 +46,27 @@ public class PaymentController {
     private String CLIENT_KEY;
     private final PaymentService paymentService;
     private final OrderService orderService;
+    private final OrdersRepository ordersRepository;
+    private final CartService cartService;
 
     /**
      * 결제창 생성
      */
-    @GetMapping("/checkout")
-    public String checkoutPay(HttpServletRequest request, Model model) {
-
+    @GetMapping("/checkout/{orderId}")
+    public String checkoutPay(
+        HttpServletRequest request,
+        @PathVariable("orderId") String orderId,
+        Model model
+    ) {
         Long userId = (Long) request.getAttribute("id");
 
+        // 상태가 BEFORE_PAYMENT 인 주문인지 확인
+        if (!paymentService.checkStatus(orderId)) {
+            return "/fail"; // "/fail" 페이지로 이동
+        }
+
         // 결제 정보 불러오기
-        orderService.getPaymentInfo(model, userId);
+        orderService.getPaymentInfo(model, userId, orderId);
         model.addAttribute("clientKey", CLIENT_KEY);
 
         return "payment/checkout";
@@ -62,20 +77,53 @@ public class PaymentController {
      */
     @PostMapping(value = { "/confirm"})
     public ResponseEntity<Map<String,String>> confirmPayment(HttpServletRequest request, @RequestBody String jsonBody) throws Exception {
+        Long userId = (Long) request.getAttribute("id");
+
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(jsonBody);
+
+        // orderId, amount 일치 검증
+        String orderId = (String) jsonObject.get("orderId");
+        long amount = Long.parseLong((String) jsonObject.get("amount"));
+
+        try {
+            // user, orderId, amount 일치 검증
+            paymentService.checkData(userId, orderId, amount);
+        } catch (Exception e) {
+            paymentService.paymentCancelled(orderId);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "상품 주문에 실패하였습니다."));
+        }
+
+        // 결제 승인 API 호출
         String secretKey = SECRET_KEY;
         JSONObject response = sendRequest(
             parseRequestData(jsonBody),
             secretKey,
             "https://api.tosspayments.com/v1/payments/confirm"
         );
+        log.info("결제 승인 API 호출");
 
         if(response.containsKey("error")) {
+            paymentService.paymentCancelled(orderId);
+            log.info("결제 승인 에러 발생");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "상품 주문에 실패하였습니다."));
         }
 
-        Long userId = (Long) request.getAttribute("id");
-        // 결제 승인되어 Payment, Order, OrderItem 엔티티 생성
-        paymentService.createPayment(response, userId);
+        // 결제 승인되어 Payment 엔티티 생성
+        try {
+            // 상품 재고 감소 및 order 상태 변경
+            paymentService.checkout(orderId);
+            // payment 엔티티 생성
+            paymentService.createPayment(response);
+        } catch (Exception e) {
+            paymentService.paymentCancelled(orderId);
+            log.info("Payment 엔티티 생성 실패");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "상품 주문에 실패하였습니다."));
+        }
+
+        // CartItem 초기화 TODO 이벤트리스너
+        cartService.deleteCartItem(userId);
+        log.info("CartItem 초기화 완료");
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "상품 주문이 완료되었습니다."));
     }
