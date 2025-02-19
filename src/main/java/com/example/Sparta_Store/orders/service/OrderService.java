@@ -22,10 +22,12 @@ import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -176,8 +178,10 @@ public class OrderService {
 
     // 주문상태 변경 가능 여부
     public void isStatusUpdatable(OrderStatus originStatus, OrderStatus requestStatus) {
-        if(requestStatus == OrderStatus.CONFIRMED) {
-            throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
+        if (requestStatus != OrderStatus.ORDER_CANCEL_REQUEST
+            && requestStatus != OrderStatus.RETURN_REQUESTED
+            && requestStatus != OrderStatus.EXCHANGE_REQUESTED) {
+            throw new IllegalArgumentException("주문상태 변경 권한이 없습니다.");
         }
 
         if (!statusUpdatable.get(requestStatus).equals(originStatus)) {
@@ -185,6 +189,22 @@ public class OrderService {
                 String.format("'%s' 상태에서는 '%s' 상태로 변경할 수 없습니다.", originStatus, requestStatus)
             );
         }
+    }
+
+    /**
+     * 자동 구매확정
+     * - 주문상태가 "DELIVERED" 이며, 업데이트일자가 5일 전인 주문의 상태를 구매확정으로 바꾼다.
+     * - 매일 자정에 실행
+     */
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void autoConfirmOrders() {
+        // 조건에 맞는 주문 리스트 조회
+        List<Orders> orderList = ordersRepository.findOrdersForAutoConfirmation();
+
+        // 주문상태 변경
+        orderList.forEach(orders -> orders.updateOrderStatus(OrderStatus.CONFIRMED));
+        log.info("{} 기준, 총 {}개의 주문을 자동 구매확정 하였습니다. ", LocalDateTime.now(), orderList.size());
     }
 
     /**
