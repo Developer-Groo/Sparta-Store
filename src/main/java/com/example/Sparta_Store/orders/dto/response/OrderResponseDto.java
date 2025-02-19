@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public record OrderResponseDto(
     String orderId,
-    int totalPrice,
+    long totalPrice,
     OrderStatus orderStatus,
     LocalDateTime createdAt
 ) {

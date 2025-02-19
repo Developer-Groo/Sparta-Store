@@ -1,17 +1,16 @@
 package com.example.Sparta_Store.item.service;
 
-import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.item.dto.response.ItemResponseDto;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +34,10 @@ public class ItemService {
     }
 
     @Transactional
-    public void decreaseStock(List<CartItem> cartItemList) { //todo 추후 동시성 문제, 성능개선
-        for (CartItem cartItem : cartItemList) {
-            int quantity = cartItem.getQuantity();
-            Item item = cartItem.getItem();
+    public void decreaseStock(List<OrderItem> orderItemList) { //todo 추후 동시성 문제, 성능개선
+        for (OrderItem orderItem : orderItemList) {
+            int quantity = orderItem.getQuantity();
+            Item item = orderItem.getItem();
             item.decreaseStock(quantity);
         }
     }
