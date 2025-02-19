@@ -22,7 +22,7 @@ public class User extends TimestampedEntity {
     @Column(name = "user_id")
     private Long id;
 
-    @Column(unique = true, updatable = false)
+    @Column(name = "customer_key", unique = true, updatable = false)
     private String customerKey;
 
     @Column(nullable = false)
