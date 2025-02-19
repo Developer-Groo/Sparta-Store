@@ -39,12 +39,12 @@ public class Orders extends TimestampedEntity {
     private OrderStatus orderStatus;
 
     @Column(name = "total_price", updatable = false)
-    private Integer totalPrice;
+    private Long totalPrice;
 
     @Column(name = "address", nullable = false)
     private Address address;
 
-    public Orders(User user, int totalPrice, Address address) {
+    public Orders(User user, long totalPrice, Address address) {
 //        this.payment = payment;
         this.id = UUID.randomUUID().toString();
         this.user = user;
