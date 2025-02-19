@@ -23,22 +23,27 @@ public class PointService {
 
     // 주문 완료 시 자동 포인트 적립
     @Transactional
-    public void earnPoints(Long userId, int amount) {
+    public void earnPoints(Long userId, int amount) { // userid로 user를 찾고 amount < 구매금액의 10% 적립
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")); // userid로 사용자조회 및 예외발생
 
         // 사용자 포인트 조회 (없으면 새로 생성)
-        Point point = pointRepository.findByUser(user)
-                .orElse(new Point(user, 0));
+        Point point = getOrCreatePoint(user);
 
-        point.addPoints(amount);
-        pointRepository.save(point);
+        point.addPoints(amount); // 기존 포인트에 추가
+        pointRepository.save(point); // 변겅내용 저장
 
-        // ✅ 포인트 적립 내역 저장
-        PointTransaction transaction = new PointTransaction(user, amount, TransactionType.EARNED);
-        pointTransactionRepository.save(transaction);
+        // 포인트 적립 내역 저장
+        PointTransaction transaction = new PointTransaction(user, amount, TransactionType.EARNED); //transaction은 거래내역 이라 내역을 생성하고
+        pointTransactionRepository.save(transaction); // 내역을 저장
+    }
 
-        log.info("포인트 {} 자동 적립 완료 (유저 ID: {})", amount, userId);
+    // 컨트롤러와 서비스에 중복되는 포인트 정보를 조회하는 메서드
+    public Point getOrCreatePoint(User user) {
+        return pointRepository.findByUser(user) // 해당 유저의 포인트정보 조회
+                .orElseGet(() -> {
+                    return new Point(user, 0); // 포인트 정보가 없으면 새로 생성하고 잔액은 0
+                });
     }
 
 }
