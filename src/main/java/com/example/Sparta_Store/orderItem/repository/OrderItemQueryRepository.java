@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface OrderItemQueryRepository {
 
-    Page<OrderItem> findByOrderId(Long orderId, Pageable pageable);
+    Page<OrderItem> findByOrderId(String orderId, Pageable pageable);
 
     Optional<OrderItem> findOrderItemWithUserAndItem(Long userId, Long itemId);
 }
