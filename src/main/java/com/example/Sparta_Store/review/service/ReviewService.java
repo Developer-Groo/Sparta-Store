@@ -1,8 +1,9 @@
 package com.example.Sparta_Store.review.service;
 
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
-import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
+import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.review.dto.response.ReviewResponseDto;
 import com.example.Sparta_Store.review.entity.Review;
 import com.example.Sparta_Store.review.repository.ReviewRepository;
@@ -39,6 +40,10 @@ public class ReviewService {
     ) {
         OrderItem orderItem = orderItemRepository.findOrderItemWithUserAndItem(userId, itemId)
                 .orElseThrow(() -> new IllegalArgumentException("구매한 상품만 리뷰를 작성할 수 있습니다."));
+
+        if (orderItem.getOrders().getOrderStatus() != OrderStatus.CONFIRMED) {
+            throw new IllegalArgumentException("구매 확정된 상품만 리뷰를 작성할 수 있습니다.");
+        }
 
         User user = orderItem.getOrders().getUser();
         Item item = orderItem.getItem();

@@ -3,30 +3,34 @@ package com.example.Sparta_Store.orders.service;
 import static com.example.Sparta_Store.orders.OrderStatus.ORDER_COMPLETED;
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
-import com.example.Sparta_Store.OrderItem.dto.response.OrderItemResponseDto;
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
-import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.item.service.ItemService;
+import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
+import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
+import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
-import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 
 @Slf4j(topic = "OrderService")
 @Service
@@ -46,8 +50,7 @@ public class OrderService {
      * 주문 생성
      * - Cart 조회 -> CartItem 조회 -> 재고 감소 -> Orders 생성 -> OrderItem 생성 -> CartItem 삭제
      */
-    public void checkoutCart(Long userId){
-
+    public void checkoutOrder(Payment payment, Long userId){
         // 카트 조회
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(
             () -> new IllegalArgumentException("카트 정보를 찾을 수 없습니다.")
@@ -63,26 +66,63 @@ public class OrderService {
         // 재고 감소
         itemService.decreaseStock(cartItemList);
         log.info("주문한 상품 수량만큼 재고를 감소하였습니다.");
-        // Orders 엔티티 생성
-        Long orderId = createOrder(userId);
+
+        // Orders 엔티티 생성 호출
+        Long orderId = createOrder(payment, userId);
         log.info("Orders 생성 완료");
-        // OrderItem 엔티티 생성
+
+        // OrderItem 엔티티 생성 호출
         createOrderItem(orderId, cartItemList);
         log.info("OrderItem 생성 완료");
-        // CartItem 초기화
+
+        // CartItem 초기화 호출
         cartService.deleteCartItem(cartItemList);
         log.info("CartItem 초기화 완료");
 
     }
+    public void getPaymentInfo(Model model, Long userId) {
+        // 카트 조회
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(
+            () -> new IllegalArgumentException("카트 정보를 찾을 수 없습니다.")
+        );
+        Long cartId = cart.getId();
+
+        // 카트에 상품이 담겨있어야 주문 생성 가능
+        List<CartItem> cartItemList = cartItemRepository.findByCartId(cartId)
+            .filter(list -> !list.isEmpty()) // 리스트가 비어있지 않은 경우만 반환
+            .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
+            );
+
+        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
+        int amount = 0;
+        for (CartItem cartItem : cartItemList) {
+            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
+            amount += orderPrice;
+        }
+
+        int quantity = cartItemList.size();
+        String orderName = cartItemList.get(0).getItem().getName();
+        String customerEmail = cart.getUser().getEmail();
+        String customerName = cart.getUser().getName();
+        String customerKey = cart.getUser().getCustomerKey();
+
+        // 모델에 주문 정보를 추가
+        model.addAttribute("amount", amount);
+        model.addAttribute("orderName", orderName+" 외 "+(quantity-1)+"건");
+        model.addAttribute("quantity", quantity);
+        model.addAttribute("customerEmail", customerEmail);
+        model.addAttribute("customerName", customerName);
+        model.addAttribute("customerKey", customerKey);
+    }
 
     // orders 생성
     @Transactional
-    public Long createOrder(Long userId) {
+    public Long createOrder(Payment payment, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
 
-        Orders savedOrder = new Orders(user, ORDER_COMPLETED);
+        Orders savedOrder = new Orders(payment, user, ORDER_COMPLETED);
         ordersRepository.save(savedOrder);
         // orderId 반환
         return savedOrder.getId();
@@ -138,8 +178,10 @@ public class OrderService {
 
     // 주문상태 변경 가능 여부
     public void isStatusUpdatable(OrderStatus originStatus, OrderStatus requestStatus) {
-        if(requestStatus == OrderStatus.CONFIRMED) {
-            throw new IllegalArgumentException("주문완료 상태로 변경할 수 없습니다.");
+        if (requestStatus != OrderStatus.ORDER_CANCEL_REQUEST
+            && requestStatus != OrderStatus.RETURN_REQUESTED
+            && requestStatus != OrderStatus.EXCHANGE_REQUESTED) {
+            throw new IllegalArgumentException("주문상태 변경 권한이 없습니다.");
         }
 
         if (!statusUpdatable.get(requestStatus).equals(originStatus)) {
@@ -147,6 +189,22 @@ public class OrderService {
                 String.format("'%s' 상태에서는 '%s' 상태로 변경할 수 없습니다.", originStatus, requestStatus)
             );
         }
+    }
+
+    /**
+     * 자동 구매확정
+     * - 주문상태가 "DELIVERED" 이며, 업데이트일자가 5일 전인 주문의 상태를 구매확정으로 바꾼다.
+     * - 매일 자정에 실행
+     */
+    @Scheduled(cron = "0 0 0 * * *")
+    @Transactional
+    public void autoConfirmOrders() {
+        // 조건에 맞는 주문 리스트 조회
+        List<Orders> orderList = ordersRepository.findOrdersForAutoConfirmation();
+
+        // 주문상태 변경
+        orderList.forEach(orders -> orders.updateOrderStatus(OrderStatus.CONFIRMED));
+        log.info("{} 기준, 총 {}개의 주문을 자동 구매확정 하였습니다. ", LocalDateTime.now(), orderList.size());
     }
 
     /**

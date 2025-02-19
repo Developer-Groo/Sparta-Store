@@ -45,13 +45,15 @@ public class Item extends TimestampedEntity {
             String imgUrl,
             int price,
             String description,
-            int stockQuantity
+            int stockQuantity,
+            Category category
     ) {
         this.name = name;
         this.imgUrl = imgUrl;
         this.price = price;
         this.description = description;
         this.stockQuantity = stockQuantity;
+        this.category = category;
     }
 
     public static Item toEntity(
@@ -59,14 +61,16 @@ public class Item extends TimestampedEntity {
             String imgUrl,
             int price,
             String description,
-            int stockQuantity
+            int stockQuantity,
+            Category category
     ) {
         return new Item(
                 name,
                 imgUrl,
                 price,
                 description,
-                stockQuantity
+                stockQuantity,
+                category
         );
     }
 
@@ -82,8 +86,8 @@ public class Item extends TimestampedEntity {
             String imgUrl,
             Integer price,
             String description,
-            Integer stockQuantity
-    ) {
+            Integer stockQuantity,
+            Category category) {
         if (name != null && !name.isEmpty()) {
             this.name = name;
         }
@@ -98,6 +102,9 @@ public class Item extends TimestampedEntity {
         }
         if (stockQuantity != null) {
             this.stockQuantity = stockQuantity;
+        }
+        if (category != null) {
+            this.category = category;
         }
     }
 

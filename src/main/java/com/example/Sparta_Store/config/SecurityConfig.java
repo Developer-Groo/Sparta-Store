@@ -28,8 +28,8 @@ public class SecurityConfig {
             .formLogin(AbstractHttpConfigurer::disable)
             .addFilterBefore(jwtFilter, SecurityContextHolderAwareRequestFilter.class)
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/users/signUp", "/users/login", "/login", "/css/**", "/oauth2/**").permitAll() // 회원가입, 로그인, CSS 파일 요청 허용
-                    .requestMatchers(HttpMethod.GET, "/items", "/items/**").permitAll()
+                .requestMatchers("/users/signUp","/login").permitAll() //회원가입과 로그인은 인증없이 가능
+                .requestMatchers(HttpMethod.GET, "/items", "/items/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN") //admin 이 붙은것은 ADMIN 이 존재해야만 통과 나머지는 누구나 가능하게 했습니다.
                 .anyRequest().authenticated()
             )

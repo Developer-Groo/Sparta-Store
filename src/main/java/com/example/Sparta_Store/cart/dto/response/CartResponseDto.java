@@ -12,7 +12,9 @@ public record CartResponseDto(
         Long userId,
         Page<CartItemResponseDto> cartItems,
         List<CartItemResponseDto> cartItemList
+
 ) {
+
     // 장바구니 조회 시 사용
     public static CartResponseDto toDto(Cart cart, Page<CartItem> cartItems) {
         return new CartResponseDto(

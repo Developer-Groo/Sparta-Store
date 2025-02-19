@@ -2,10 +2,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-      properties:
+    properties:
       hibernate:
         show_sql: true
         format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   datasource:
     url: jdbc:mysql://localhost:3306/SpartaStore
@@ -16,3 +20,8 @@ spring:
 jwt:
   secret:
     key: SWZ0aGlzZ2V0c3N0b2xlbml0c2FiaWdwcm9ibGVtSWZ0aGVsZW5ndGhpc3Rvb3Nob3J0dGhlc2VjdXJpdHlpc25vdHN1ZmZpY2llbnRzb2FuZXJyb3JvY2N1cnNxcHF3bWZwcXdjPS0xMjM5MTI1OThxc2Fjbm1hcHNrbWRtcXdwbWRwbHhtcXdwcnBzb21iMTAyLTk1bDtrYWR2a21hc2xrbmQ=
+
+tosspayments:
+  api:
+    secret-key: ${TOSS_SECRET_KEY}
+    client-key: ${TOSS_CLIENT_KEY}

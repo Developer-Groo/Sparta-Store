@@ -75,13 +75,13 @@ public class CartService {
      * 장바구니 조회
      */
     @Transactional(readOnly = true)
-    public CartResponseDto getCart(Long userId, Pageable pageQuery) {
+    public CartResponseDto getCart(Long userId, Pageable pageable) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
 
         Cart cart = cartRepository.findByUser(user).orElse(new Cart(user));
 
-        Page<CartItem> cartItems = cartItemRepository.findByCart(cart, pageQuery);
+        Page<CartItem> cartItems = cartItemRepository.findByCart(cart, pageable);
 
         return CartResponseDto.toDto(cart, cartItems);
     }
