@@ -18,20 +18,13 @@
     <div class="p-grid-col text--left"><b>에러메시지</b></div>
     <div class="p-grid-col text--right" id="message"></div>
   </div>
-  <div class="p-grid typography--p" style="margin-top: 10px">
-    <div class="p-grid-col text--left"><b>에러코드</b></div>
-    <div class="p-grid-col text--right" id="code"></div>
-  </div>
 </div>
-
 <script>
-  const urlParams = new URLSearchParams(window.location.search);
+  // const urlParams = new URLSearchParams(window.location.search);
 
-  const codeElement = document.getElementById("code");
   const messageElement = document.getElementById("message");
 
-  codeElement.textContent = urlParams.get("code");
-  messageElement.textContent = urlParams.get("message");
+  messageElement.textContent = "결제가 완료된 주문이거나, 결제를 할 수 없는 주문입니다.";
 </script>
 </body>
 </html>
