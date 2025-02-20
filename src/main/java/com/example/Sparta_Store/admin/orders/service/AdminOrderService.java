@@ -23,7 +23,7 @@ public class AdminOrderService {
      * 주문 상태 변경
      */
     @Transactional
-    public void updateOrderStatus(Long orderId, UpdateOrderStatusDto requestDto) {
+    public void updateOrderStatus(String orderId, UpdateOrderStatusDto requestDto) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );

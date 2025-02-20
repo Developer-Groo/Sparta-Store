@@ -23,7 +23,7 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<OrderItem> findByOrderId(Long orderId, Pageable pageable) {
+    public Page<OrderItem> findByOrderId(String orderId, Pageable pageable) {
         JPAQuery<OrderItem> result = queryFactory.selectFrom(orderItem).where(orderIdEquals(orderId));
 
         return QuerydslUtil.fetchPage(result, orderItem, pageable);
@@ -46,8 +46,16 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
     }
 
     // orderId로 주문 상품 조회
-    private BooleanExpression orderIdEquals(Long orderId) {
+    private BooleanExpression orderIdEquals(String orderId) {
         return orderId != null ? orderItem.orders.id.eq(orderId) : null;
+    }
+
+    // orderItem 갯수 조회
+    @Override
+    public Long findOrderItemQuantity(String orderId) {
+        return queryFactory.select(orderItem.count()).from(orderItem)
+            .where(orderItem.orders.id.eq(orderId))
+            .fetchOne();
     }
 
 }

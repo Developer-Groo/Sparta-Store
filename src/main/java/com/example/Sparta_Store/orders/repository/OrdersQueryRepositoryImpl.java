@@ -40,10 +40,10 @@ public class OrdersQueryRepositoryImpl implements OrdersQueryRepository {
     public List<Orders> findOrdersForAutoConfirmation() {
         LocalDateTime fiveDaysAgo = LocalDateTime.now().minusDays(5);
 
-        return queryFactory.selectFrom(orders).where(
-            orders.orderStatus.eq(OrderStatus.DELIVERED)
-                .and(orders.updatedAt.loe(fiveDaysAgo))
-        ).fetch();
+        return queryFactory.selectFrom(orders)
+            .where(orders.orderStatus.eq(OrderStatus.DELIVERED)
+                .and(orders.updatedAt.loe(fiveDaysAgo)))
+            .fetch();
     }
 
 }

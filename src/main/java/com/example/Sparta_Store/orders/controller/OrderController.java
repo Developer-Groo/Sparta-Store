@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.orders.controller;
 
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
+import com.example.Sparta_Store.orders.dto.request.OrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.service.OrderService;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,12 +29,23 @@ public class OrderController {
     private final OrderService orderService;
 
     /**
+     * 주문서 페이지
+     */
+    @PostMapping("/checkout")
+    public ResponseEntity<Map<String,String>> checkoutOrder(HttpServletRequest request, @RequestBody(required = false) OrderRequestDto requestDto) {
+        Long userId = (Long) request.getAttribute("id");
+
+        orderService.checkoutOrder(userId, requestDto);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "주문서가 작성되었습니다."));
+    }
+
+    /**
      * 주문 상태 변경 API
      */
     @PatchMapping("/status/{orderId}")
     public ResponseEntity<Map<String,String>> updateOrderStatus(
         HttpServletRequest request,
-        @PathVariable("orderId") Long orderId,
+        @PathVariable("orderId") String orderId,
         @Valid @RequestBody UpdateOrderStatusDto requestDto
     ) {
         Long userId = (Long) request.getAttribute("id");
@@ -58,7 +71,7 @@ public class OrderController {
     public ResponseEntity<PageResult<OrderItemResponseDto>> getOrderDetail(
         HttpServletRequest request,
         PageQuery pageQuery,
-        @PathVariable("orderId") Long orderId
+        @PathVariable("orderId") String orderId
     ) {
         Long userId = (Long) request.getAttribute("id");
 
