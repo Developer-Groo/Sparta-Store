@@ -3,16 +3,6 @@ package com.example.Sparta_Store.payment.controller;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -28,6 +18,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/payments")
@@ -74,7 +71,7 @@ public class PaymentController {
         }
 
         Long userId = (Long) request.getAttribute("id");
-        // 결제 승인되어 Payment, Order, OrderItem 엔티티 생성
+        // 결제 승인되어 Payment, Order, orderItem 엔티티 생성
         paymentService.createPayment(response, userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "상품 주문이 완료되었습니다."));
