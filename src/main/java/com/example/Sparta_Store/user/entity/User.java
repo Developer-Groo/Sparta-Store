@@ -31,7 +31,7 @@ public class User extends TimestampedEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column
     private String password;
 
     @Embedded
@@ -40,12 +40,31 @@ public class User extends TimestampedEntity {
     @Column(nullable = false)
     private boolean isDeleted;
 
+    @Column(unique = true)
+    private String providerId;
+
+    @Column
+    private String provider;
+
     public User(String email, String password ,String name, Address address){
         this.email = email;
         this.password = password;
         this.name = name;
         this.address = address;
         this.customerKey = UUID.randomUUID().toString();
+    }
+
+    public User(String provider, String providerId , String name, String email, Address address){
+        this.provider = provider;
+        this.providerId = providerId;
+        this.name = name;
+        this.email = email;
+        this.address = address;
+    }
+
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
     }
 
     public void updateUserInfo(String name, Address address) {

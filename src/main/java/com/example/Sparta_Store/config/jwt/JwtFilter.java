@@ -33,10 +33,13 @@ public class JwtFilter extends OncePerRequestFilter {
         String requestURI = request.getRequestURI();
         String jwt = null;
 
-        String authorizationHeader = request.getHeader("Authorization");
-
         // 회원가입 및 로그인시 토큰없어도 실행 가능
-        if(requestURI.equals("/login") || requestURI.equals("/users/signUp")) {
+
+         if( requestURI.equals("/login") ||
+             requestURI.equals("/users/signUp") ||
+             requestURI.equals("/users/login") ||
+             requestURI.equals("/users/main")
+         ) {
             filterChain.doFilter(request,response);
             return;
         }
@@ -46,9 +49,15 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (requestURI.endsWith(".css")) {
+            // CSS 파일 요청인 경우 필터 처리를 건너뜁니다.
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String authorizationHeader = request.getHeader("Authorization");
 
         // JWT 토큰 검증
-
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.info("JWT 토큰이 필요 합니다.");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 토큰이 필요 합니다.");
