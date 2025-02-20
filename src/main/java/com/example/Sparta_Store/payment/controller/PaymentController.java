@@ -72,12 +72,10 @@ public class PaymentController {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        // 데이터 검증 및 상품 재고 감소, 주문 상태변경
+        // 데이터 검증 프로세스
         try {
             // user, orderId, amount 일치 검증
             paymentService.checkData(userId, orderId, amount);
-            // 상품 재고 감소 및 order 상태 변경
-            paymentService.checkout(orderId);
         } catch (Exception e) {
             paymentService.paymentCancelled(orderId);
             log.info("결제 승인 API 호출 전, 에러 발생: {}", e);
@@ -89,7 +87,7 @@ public class PaymentController {
 
         // 결제 승인 API 호출
         log.info("결제 승인 API 호출");
-        JSONObject response = paymentService.confirmPayment(SECRET_KEY, jsonBody);
+        JSONObject response = paymentService.confirmPaymentTossAPI(SECRET_KEY, jsonBody);
 
         if(response.containsKey("error")) {
             paymentService.paymentCancelled(orderId);
@@ -97,19 +95,19 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
-        // 결제 승인되어 Payment 엔티티 생성
+        // 결제 승인 후, 상품 재고 감소 및 order 상태 변경, Payment 엔티티 생성
         try {
-            paymentService.createPayment(response);
-            log.info("Payment 엔티티 생성 완료");
+            paymentService.approvePayment(response);
+            log.info("결제 승인 후 Payment 엔티티 생성 및 재고 감소 완료");
         } catch (Exception e) {
-            log.info("Payment 엔티티 생성 실패: {}", e);
+            log.info("결제 승인 후 Payment 엔티티 생성 및 재고 감소: {}", e);
             paymentService.paymentCancelled(orderId);
             // 결제 취소 API 호출
             log.info("결제 취소 API 호출");
-            paymentService.cancelPayment(
+            paymentService.cancelPaymentTossAPI(
                 SECRET_KEY,
                 response.get("paymentKey").toString(),
-                "payment 엔티티 생성 실패"
+                ""
             );
 
             JSONObject jsonResponse = new JSONObject();
