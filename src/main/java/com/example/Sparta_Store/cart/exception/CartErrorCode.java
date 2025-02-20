@@ -14,8 +14,6 @@ public enum CartErrorCode implements ErrorCode {
     PRODUCT_QUANTITY_TOO_LOW(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "상품 수량은 1 이상이어야 합니다."),
     NOT_EXISTS_CART(HttpStatus.NOT_FOUND, "NOT_FOUND", "카트가 존재하지 않습니다.");
 
-
-
     private final HttpStatus status;
     private final String name;
     private final String message;
