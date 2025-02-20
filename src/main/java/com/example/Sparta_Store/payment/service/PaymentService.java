@@ -54,6 +54,15 @@ public class PaymentService {
         return order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT);
     }
 
+    // 결제 승인 후, 데이터 후처리 (데이터 정합성 보장)
+    @Transactional
+    public void approvePayment(JSONObject response) {
+        String orderId = response.get("orderId").toString();
+
+        checkout(orderId); // 상품 재고 감소 및 order 상태 변경
+        createPayment(response); // Payment 엔티티 생성
+    }
+
     // 결제 승인되어 Payment 엔티티 생성
     @Transactional
     public void createPayment(JSONObject response) {
@@ -72,6 +81,7 @@ public class PaymentService {
             approvedAt,
             response.get("method").toString()
         );
+        log.info("Payment 엔티티 생성 완료");
         paymentRepository.save(savedPayment);
     }
 
@@ -101,6 +111,8 @@ public class PaymentService {
         itemService.decreaseStock(orderItemList);
         // 주문상태 변경
         order.updateOrderStatus(OrderStatus.CONFIRMED);
+
+        log.info("상품 재고 감소 및 order 상태 변경 완료");
     }
 
     // PAYMENT_CANCELLED 로 주문상태 변경
@@ -114,7 +126,7 @@ public class PaymentService {
     }
 
     // 토스페이먼츠 결제 승인 API 호출
-    public JSONObject confirmPayment(String secretKey, String jsonBody) throws Exception {
+    public JSONObject confirmPaymentTossAPI(String secretKey, String jsonBody) throws Exception {
         JSONObject response = sendRequest(
             parseRequestData(jsonBody),
             secretKey,
@@ -124,7 +136,7 @@ public class PaymentService {
     }
 
     // 토스페이먼츠 결제 취소 API 호출
-    public JSONObject cancelPayment(String secretKey, String paymentKey, String cancleReason) throws Exception {
+    public JSONObject cancelPaymentTossAPI(String secretKey, String paymentKey, String cancleReason) throws Exception {
         JSONObject cancelRequestData = new JSONObject();
         cancelRequestData.put("cancelReason", cancleReason);
 
