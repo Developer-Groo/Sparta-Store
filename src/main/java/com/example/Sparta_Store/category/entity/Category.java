@@ -2,6 +2,7 @@ package com.example.Sparta_Store.category.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.util.List;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Category {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
