@@ -48,7 +48,7 @@ public class OrderService {
 
     /**
      * 주문 생성
-     * - Cart 조회 -> CartItem 조회 -> 재고 감소 -> Orders 생성 -> OrderItem 생성 -> CartItem 삭제
+     * - Cart 조회 -> CartItem 조회 -> 재고 감소 -> Orders 생성 -> orderItem 생성 -> CartItem 삭제
      */
     public void checkoutOrder(Payment payment, Long userId){
         // 카트 조회
@@ -71,9 +71,9 @@ public class OrderService {
         Long orderId = createOrder(payment, userId);
         log.info("Orders 생성 완료");
 
-        // OrderItem 엔티티 생성 호출
+        // orderItem 엔티티 생성 호출
         createOrderItem(orderId, cartItemList);
-        log.info("OrderItem 생성 완료");
+        log.info("orderItem 생성 완료");
 
         // CartItem 초기화 호출
         cartService.deleteCartItem(cartItemList);

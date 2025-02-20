@@ -5,12 +5,14 @@ import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.salesSummary.entity.SalesSummary;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Item extends TimestampedEntity {
 
     @Id
@@ -106,6 +108,11 @@ public class Item extends TimestampedEntity {
         if (category != null) {
             this.category = category;
         }
+    }
+
+    public void updateSalesSummary(SalesSummary salesSummary) {
+        this.salesSummary = salesSummary;
+        salesSummary.updateItem(this);
     }
 
     public int getTotalSales() {

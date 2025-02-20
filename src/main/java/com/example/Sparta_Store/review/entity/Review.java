@@ -1,7 +1,9 @@
 package com.example.Sparta_Store.review.entity;
 
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
+import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.review.exception.ReviewErrorCode;
 import com.example.Sparta_Store.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -68,7 +70,7 @@ public class Review extends TimestampedEntity {
      */
     public void checkOwnership(Long userId) {
         if (!this.user.getId().equals(userId)) {
-            throw new IllegalArgumentException("리뷰를 수정할 권한이 없습니다.");
+            throw new CustomException(ReviewErrorCode.REVIEW_UPDATE_FORBIDDEN);
         }
     }
 
@@ -80,7 +82,7 @@ public class Review extends TimestampedEntity {
 
     private void updateRating(int rating) {
         if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("별점은 1~5 사이의 정수여야 합니다.");
+            throw new CustomException(ReviewErrorCode.INVALID_RATING_VALUE);
         }
         this.rating = rating;
     }
