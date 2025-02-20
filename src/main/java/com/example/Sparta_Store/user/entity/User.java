@@ -4,6 +4,7 @@ import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class User extends TimestampedEntity {
 
     @Id
