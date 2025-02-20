@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.cart.service;
 
 import com.example.Sparta_Store.address.entity.Address;
+import com.example.Sparta_Store.common.entity.cart.service.CartRedisService;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.user.entity.User;

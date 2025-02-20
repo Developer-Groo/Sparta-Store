@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.cartItem.entity;
 
-import com.example.Sparta_Store.cart.entity.Cart;
+import com.example.Sparta_Store.common.entity.cart.entity.Cart;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.item.entity.Item;
 import jakarta.persistence.*;

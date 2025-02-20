@@ -3,9 +3,9 @@ package com.example.Sparta_Store.orders.service;
 import static com.example.Sparta_Store.orders.OrderStatus.ORDER_COMPLETED;
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
-import com.example.Sparta_Store.cart.entity.Cart;
-import com.example.Sparta_Store.cart.repository.CartRepository;
-import com.example.Sparta_Store.cart.service.CartService;
+import com.example.Sparta_Store.common.entity.cart.entity.Cart;
+import com.example.Sparta_Store.common.entity.cart.repository.CartRepository;
+import com.example.Sparta_Store.common.entity.cart.service.CartService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.item.service.ItemService;
