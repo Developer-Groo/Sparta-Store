@@ -1,12 +1,12 @@
 package com.example.Sparta_Store.payment.entity;
 
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.orders.entity.Orders;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,12 +21,9 @@ public class Payment {
     @Column(name = "payment_key", updatable = false)
     private String paymentKey;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_key", referencedColumnName = "customer_key", nullable = false)
-    private User user;
-
-    @Column(name = "order_number", unique = true, updatable = false, nullable = false)
-    private String orderNumber;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false, updatable = false)
+    private Orders order;
 
     @Column(name = "approved_at", nullable = false, updatable = false)
     private LocalDateTime approvedAt;
@@ -36,14 +33,12 @@ public class Payment {
 
     public Payment(
         String paymentKey,
-        User user,
-        String orderNumber,
+        Orders order,
         LocalDateTime approvedAt,
         String method
     ) {
         this.paymentKey = paymentKey;
-        this.user = user;
-        this.orderNumber = orderNumber;
+        this.order = order;
         this.approvedAt = approvedAt;
         this.method = method;
     }

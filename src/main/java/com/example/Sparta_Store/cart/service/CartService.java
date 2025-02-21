@@ -117,8 +117,11 @@ public class CartService {
 
     // 카트 초기화
     @Transactional
-    public void deleteCartItem(List<CartItem> cartItemList) {
-
+    public void deleteCartItem(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_CART));
+        List<CartItem> cartItemList = cartItemRepository.findByCartId(
+            cart.getId()).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT)
+        );
         cartItemList.stream()
                 .forEach(cartItem -> cartItemRepository.delete(cartItem));
     }
