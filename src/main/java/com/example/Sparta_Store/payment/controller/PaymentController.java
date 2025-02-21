@@ -67,50 +67,13 @@ public class PaymentController {
 
         String paymentKey = (String) jsonObject.get("paymentKey");
         String orderId = (String) jsonObject.get("orderId");
-        long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        // 데이터 검증 및 Payment 생성
-        try {
-            paymentService.checkData(userId, orderId, amount);
-            log.info("sdsd");
-            paymentService.createPayment(jsonObject);
-            log.info("wewewewewd");
+        JSONObject response;
+        try{
+            response = paymentService.confirmPayment(userId, jsonBody);
         } catch (Exception e) {
             log.info("결제 승인 API 호출 전, 에러 발생");
             adminOrderService.orderCancelled(orderId);
-
-            JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("message", "결제 승인 에러 발생");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jsonResponse);
-        }
-
-        // 결제 승인 API 호출
-        log.info("결제 승인 API 호출");
-        JSONObject response = paymentService.confirmPaymentTossAPI(SECRET_KEY, jsonBody);
-
-        if(response.containsKey("error")) {
-            log.info("결제 승인 API 에러 발생");
-            adminOrderService.orderCancelled(orderId);
-            paymentService.updateAborted(paymentKey);
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-
-        // 결제 승인 후, 상품 재고 감소 및 order 상태 변경
-        try {
-            paymentService.checkout(orderId);
-            log.info("상품 재고 감소 및 주문 상태 변경 완료");
-        } catch (Exception e) {
-            log.info("상품 재고 감소 또는 주문 상태 변경 실패");
-            // 결제 취소 API 호출
-            log.info("결제 취소 API 호출");
-            paymentService.cancelPaymentTossAPI(
-                SECRET_KEY,
-                response.get("paymentKey").toString(),
-                ""
-            );
-            // Payment isCancelled = true + Order 상태 변경
-            paymentService.paymentCancelled(response);
 
             JSONObject jsonResponse = new JSONObject();
             jsonResponse.put("message", "에러 발생");
@@ -127,5 +90,74 @@ public class PaymentController {
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    // ------- 수정 전 ----------
+//    @PostMapping(value = { "/confirm"})
+//    public ResponseEntity<JSONObject> confirmPayment(HttpServletRequest request, @RequestBody String jsonBody) throws Exception {
+//        Long userId = (Long) request.getAttribute("id");
+//
+//        JSONParser parser = new JSONParser();
+//        JSONObject jsonObject = (JSONObject) parser.parse(jsonBody);
+//
+//        String paymentKey = (String) jsonObject.get("paymentKey");
+//        String orderId = (String) jsonObject.get("orderId");
+//        long amount = Long.parseLong((String) jsonObject.get("amount"));
+//
+//        // 데이터 검증 및 Payment 생성
+//        try {
+//            paymentService.checkData(userId, orderId, amount);
+//            paymentService.createPayment(jsonObject);
+//        } catch (Exception e) {
+//            log.info("결제 승인 API 호출 전, 에러 발생");
+//            adminOrderService.orderCancelled(orderId);
+//
+//            JSONObject jsonResponse = new JSONObject();
+//            jsonResponse.put("message", "결제 승인 에러 발생");
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jsonResponse);
+//        }
+//
+//        // 결제 승인 API 호출
+//        log.info("결제 승인 API 호출");
+//        JSONObject response = paymentService.confirmPaymentTossAPI(SECRET_KEY, jsonBody);
+//
+//        if(response.containsKey("error")) {
+//            log.info("결제 승인 API 에러 발생");
+//            adminOrderService.orderCancelled(orderId);
+//            paymentService.updateAborted(paymentKey);
+//
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//        }
+//
+//        // 결제 승인 후, 상품 재고 감소 및 order 상태 변경
+//        try {
+//            paymentService.checkout(orderId);
+//            log.info("상품 재고 감소 및 주문 상태 변경 완료");
+//        } catch (Exception e) {
+//            log.info("상품 재고 감소 또는 주문 상태 변경 실패");
+//            // 결제 취소 API 호출
+//            log.info("결제 취소 API 호출");
+//            paymentService.cancelPaymentTossAPI(
+//                SECRET_KEY,
+//                response.get("paymentKey").toString(),
+//                ""
+//            );
+//            // Payment isCancelled = true + Order 상태 변경
+//            paymentService.paymentCancelled(response);
+//
+//            JSONObject jsonResponse = new JSONObject();
+//            jsonResponse.put("message", "에러 발생");
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jsonResponse);
+//        }
+//
+//        // Payment approvedAt, method 저장
+//        paymentService.approvedPayment(response);
+//
+//        // CartItem 초기화 TODO 이벤트리스너
+//        cartService.deleteCartItem(userId);
+//        log.info("CartItem 초기화 완료");
+//        log.info("결제 승인 완료");
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(response);
+//    }
 
 }
