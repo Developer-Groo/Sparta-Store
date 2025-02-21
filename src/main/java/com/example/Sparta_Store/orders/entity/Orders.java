@@ -28,10 +28,6 @@ public class Orders extends TimestampedEntity {
     @Column(name = "order_id", updatable = false)
     private String id;
 
-//    @OneToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "order_number", unique = true, nullable = false)
-//    private Payment payment;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
     private User user;
@@ -47,17 +43,12 @@ public class Orders extends TimestampedEntity {
     private Address address;
 
     public Orders(User user, long totalPrice, Address address) {
-//        this.payment = payment;
         this.id = UUID.randomUUID().toString();
         this.user = user;
         this.orderStatus = OrderStatus.BEFORE_PAYMENT;
         this.totalPrice = totalPrice;
         this.address = address;
     }
-
-//    public void setTotalPrice(int totalPrice) {
-//        this.totalPrice = totalPrice;
-//    }
 
     public void updateOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;

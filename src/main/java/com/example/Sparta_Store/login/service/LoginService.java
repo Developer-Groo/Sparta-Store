@@ -28,6 +28,6 @@ public class LoginService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        return jwtUtil.generateToken(user.getEmail(),user.getName(), user.getId());
+        return jwtUtil.generateToken(user.getEmail(),user.getRole(), user.getId());
     }
 }

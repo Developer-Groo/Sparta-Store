@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,21 +26,44 @@ public class Payment {
     @JoinColumn(name = "order_id", nullable = false, updatable = false)
     private Orders order;
 
-    @Column(name = "approved_at", nullable = false, updatable = false)
+    @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
-    @Column(name = "method", nullable = false)
+    @Column(name = "amount", nullable = false, updatable = false)
+    private Long amount;
+
+    @Column(name = "method", nullable = true)
     private String method;
+
+    @Column(name = "is_cancelled")
+    private boolean isCancelled;
+
+    @Column(name = "is_aborted")
+    private boolean isAborted;
 
     public Payment(
         String paymentKey,
         Orders order,
-        LocalDateTime approvedAt,
-        String method
+        Long amount
     ) {
         this.paymentKey = paymentKey;
         this.order = order;
-        this.approvedAt = approvedAt;
+        this.amount = amount;
+        this.isCancelled = false;
+        this.isAborted = false;
+    }
+
+    public void updateCancelled() {
+        this.isCancelled = true;
+    }
+
+    public void updateAborted() {
+        this.isAborted = true;
+    }
+
+    public void approvedPayment(String date, String method) {
+        OffsetDateTime odt = OffsetDateTime.parse(date);
+        this.approvedAt = odt.toLocalDateTime();
         this.method = method;
     }
 }
