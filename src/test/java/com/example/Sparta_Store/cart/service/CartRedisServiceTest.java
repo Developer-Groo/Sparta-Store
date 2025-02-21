@@ -1,44 +1,33 @@
 package com.example.Sparta_Store.cart.service;
 
-import com.example.Sparta_Store.address.entity.Address;
-import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.item.repository.ItemRepository;
-import com.example.Sparta_Store.user.entity.User;
-import com.example.Sparta_Store.user.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
+import com.example.Sparta_Store.cartItem.entity.CartItem;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-@SpringBootTest(classes = CartRedisService.class)
-@AutoConfigureMockMvc
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CartRedisServiceTest {
 
-    @Autowired
-    private CartRedisService cartRedisService;
+//    @Autowired
+//    private CartRedisService cartRedisService;
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    @Test
+    @DisplayName("수량이 잘 업데이트된다.")
+    void updateQuantityTest() {
+        // given
+        CartItem cartItem = new CartItem(null, null, 10);
 
-    @Mock
-    private UserRepository userRepository;
+        // when
+        cartItem.updateQuantity(5);
 
-    @Mock
-    private ItemRepository itemRepository;
-
-    private User user;
-    private Item item;
-
-    @BeforeEach
-    void setUp() {
-        Address address = new Address("서울시", "테헤란로", "12345");
-        user = new User("email1@email.com", "testUser", "김르탄", address);
-//        item = new Item("갤럭시", "https://example.com/iphone15.jpg", "1,000,000", "")
-
+        // than
+        Assertions.assertThat(cartItem.getQuantity()).isEqualTo(5);
     }
 
+    @Test
+    @DisplayName("장바구니에서 상품 목록을 조회하면 올바른 개수가 반환된다.")
+    void getCartItemsTest() {
 
+    }
 
 }

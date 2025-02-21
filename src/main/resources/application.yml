@@ -17,6 +17,11 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: ${DB_PASSWORD}
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false  # LocalDateTime을 ISO-8601 문자열로 변환
+    date-format: yyyy-MM-dd HH:mm:ss  # 기본 날짜 형식 지정
+    time-zone: Asia/Seoul  # 한국 시간대 적용
 jwt:
   secret:
     key: SWZ0aGlzZ2V0c3N0b2xlbml0c2FiaWdwcm9ibGVtSWZ0aGVsZW5ndGhpc3Rvb3Nob3J0dGhlc2VjdXJpdHlpc25vdHN1ZmZpY2llbnRzb2FuZXJyb3JvY2N1cnNxcHF3bWZwcXdjPS0xMjM5MTI1OThxc2Fjbm1hcHNrbWRtcXdwbWRwbHhtcXdwcnBzb21iMTAyLTk1bDtrYWR2a21hc2xrbmQ=

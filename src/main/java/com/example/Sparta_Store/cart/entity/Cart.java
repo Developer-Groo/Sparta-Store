@@ -33,6 +33,10 @@ public class Cart extends TimestampedEntity {
         this.user = user;
     }
 
+    public void addCartItem(CartItem cartItem) {
+        cartItems.add(cartItem);
+    }
+
 
 
 }

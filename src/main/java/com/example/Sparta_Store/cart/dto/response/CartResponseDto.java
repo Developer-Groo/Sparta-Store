@@ -5,6 +5,7 @@ import com.example.Sparta_Store.cartItem.dto.response.CartItemResponseDto;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import org.springframework.data.domain.Page;
 
+import java.util.Collection;
 import java.util.List;
 
 public record CartResponseDto(
@@ -34,4 +35,5 @@ public record CartResponseDto(
                 cartItemList.stream().map(CartItemResponseDto::toDto).toList()
         );
     }
+
 }

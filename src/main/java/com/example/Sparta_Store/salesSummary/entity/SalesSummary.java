@@ -21,14 +21,14 @@ public class SalesSummary extends TimestampedEntity {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    private int totalSales;
+    private Integer totalSales;
 
-    private SalesSummary(Item item, int totalSales) {
+    private SalesSummary(Item item, Integer totalSales) {
         this.item = item;
         this.totalSales = totalSales;
     }
 
-    public static SalesSummary toEntity(Item item, int totalSales) {
+    public static SalesSummary toEntity(Item item, Integer totalSales) {
         return new SalesSummary(item, totalSales);
     }
 

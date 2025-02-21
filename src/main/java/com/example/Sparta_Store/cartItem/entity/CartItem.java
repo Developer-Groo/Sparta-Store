@@ -3,6 +3,7 @@ package com.example.Sparta_Store.cartItem.entity;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.item.entity.Item;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-
 public class CartItem extends TimestampedEntity{
 
     @Id
@@ -20,6 +20,7 @@ public class CartItem extends TimestampedEntity{
     @Column(name = "cart_item_id")
     private Long id;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
     private Cart cart;
