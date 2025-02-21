@@ -1,6 +1,6 @@
-package com.example.Sparta_Store.common.entity.cart.dto.response;
+package com.example.Sparta_Store.cart.dto.response;
 
-import com.example.Sparta_Store.common.entity.cart.entity.Cart;
+import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cartItem.dto.response.CartItemResponseDto;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import org.springframework.data.domain.Page;

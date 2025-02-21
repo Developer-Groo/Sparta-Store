@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.review.service;
 
+import com.example.Sparta_Store.config.jwt.UserRoleEnum;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
@@ -43,7 +44,7 @@ class ReviewServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = new User(1L, "key", "testName", "test@example", "password", null, false);
+        user = new User(1L,"","", "test@example", "key", null, false, "providerId", "provider", UserRoleEnum.USER);
         item = new Item(1L, "testName", "www.example.com", 10000, "test", 100, null, null);
 
         Orders order = new Orders("1", user, OrderStatus.CONFIRMED, 100000L, null);
