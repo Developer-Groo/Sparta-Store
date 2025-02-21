@@ -18,6 +18,13 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+
+        # jdbc batch 설정
+        order_updates: true
+        jdbc:
+          batch_size: 50
+
+
   data:
     redis:
       host: localhost
