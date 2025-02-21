@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.common.entity.cart.exception;
+package com.example.Sparta_Store.cart.exception;
 
 import com.example.Sparta_Store.exception.ErrorCode;
 import lombok.AllArgsConstructor;
