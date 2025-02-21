@@ -1,11 +1,11 @@
 package com.example.Sparta_Store.orders.service;
 
-import static com.example.Sparta_Store.orders.OrderStatus.ORDER_COMPLETED;
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
-import com.example.Sparta_Store.common.entity.cart.entity.Cart;
-import com.example.Sparta_Store.common.entity.cart.repository.CartRepository;
-import com.example.Sparta_Store.common.entity.cart.service.CartService;
+import com.example.Sparta_Store.address.entity.Address;
+import com.example.Sparta_Store.cart.entity.Cart;
+import com.example.Sparta_Store.cart.repository.CartRepository;
+import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.item.service.ItemService;
@@ -13,11 +13,11 @@ import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
+import com.example.Sparta_Store.orders.dto.request.OrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
-import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
@@ -47,10 +47,14 @@ public class OrderService {
     private final ItemService itemService;
 
     /**
-     * 주문 생성
-     * - Cart 조회 -> CartItem 조회 -> 재고 감소 -> Orders 생성 -> orderItem 생성 -> CartItem 삭제
+     * 주문서 페이지 -> 주문 생성 (결제전)
      */
-    public void checkoutOrder(Payment payment, Long userId){
+    @Transactional
+    public void checkoutOrder(Long userId, OrderRequestDto requestDto) {
+        User user = userRepository.findById(userId).orElseThrow(
+            () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
+        );
+
         // 카트 조회
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(
             () -> new IllegalArgumentException("카트 정보를 찾을 수 없습니다.")
@@ -63,52 +67,55 @@ public class OrderService {
             .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
         );
 
-        // 재고 감소
-        itemService.decreaseStock(cartItemList);
-        log.info("주문한 상품 수량만큼 재고를 감소하였습니다.");
+        long totalPrice = getTotalPrice(cartItemList);
 
-        // Orders 엔티티 생성 호출
-        Long orderId = createOrder(payment, userId);
+        Address address = requestDto == null ? user.getAddress() : requestDto.address();
+
+        // order 엔티티 생성 호출
+        String orderId = createOrder(userId, totalPrice, address);
         log.info("Orders 생성 완료");
 
         // orderItem 엔티티 생성 호출
         createOrderItem(orderId, cartItemList);
-        log.info("orderItem 생성 완료");
-
-        // CartItem 초기화 호출
-        cartService.deleteCartItem(cartItemList);
-        log.info("CartItem 초기화 완료");
-
+        log.info("OrderItem 생성 완료");
     }
-    public void getPaymentInfo(Model model, Long userId) {
-        // 카트 조회
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow(
-            () -> new IllegalArgumentException("카트 정보를 찾을 수 없습니다.")
+
+    public void getPaymentInfo(Model model, Long userId, String orderId) {
+        // 요청을 보낸 user와 order 주인이 동일한지 검증
+        // 주문서를 작성한 후, 로그인 정보가 바뀌었을 상황 대비
+        User user = userRepository.findById(userId).orElseThrow(
+            () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
-        Long cartId = cart.getId();
 
-        // 카트에 상품이 담겨있어야 주문 생성 가능
-        List<CartItem> cartItemList = cartItemRepository.findByCartId(cartId)
-            .filter(list -> !list.isEmpty()) // 리스트가 비어있지 않은 경우만 반환
-            .orElseThrow(() -> new IllegalArgumentException("장바구니에 상품이 없습니다.")
-            );
+        Orders order = ordersRepository.findById(orderId).orElseThrow(
+            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+        );
 
-        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
-        int amount = 0;
-        for (CartItem cartItem : cartItemList) {
-            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-            amount += orderPrice;
+        if(!order.getUser().equals(user)) {
+            throw new IllegalArgumentException("잘못된 접근입니다.");
         }
 
-        int quantity = cartItemList.size();
-        String orderName = cartItemList.get(0).getItem().getName();
-        String customerEmail = cart.getUser().getEmail();
-        String customerName = cart.getUser().getName();
-        String customerKey = cart.getUser().getCustomerKey();
+        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
+        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order).orElseThrow(
+            () -> new IllegalArgumentException("주문 상품 정보를 찾을 수 없습니다.")
+        );
+
+        long amount = order.getTotalPrice();
+        int quantity = orderItemList.size();
+        String orderName = orderItemList.get(0).getItem().getName();
+        String customerEmail = user.getEmail();
+        String customerName = user.getName();
+        String customerKey = user.getCustomerKey();
 
         // 모델에 주문 정보를 추가
+        model.addAttribute("orderId", orderId);
         model.addAttribute("amount", amount);
-        model.addAttribute("orderName", orderName+" 외 "+(quantity-1)+"건");
+        if(quantity == 1) {
+            model.addAttribute("orderName", orderName);
+        }
+        else {
+            model.addAttribute("orderName", orderName+" 외 "+(quantity-1)+"건");
+        }
         model.addAttribute("quantity", quantity);
         model.addAttribute("customerEmail", customerEmail);
         model.addAttribute("customerName", customerName);
@@ -117,28 +124,27 @@ public class OrderService {
 
     // orders 생성
     @Transactional
-    public Long createOrder(Payment payment, Long userId) {
+    public String createOrder(Long userId, long totalPrice, Address address) {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
 
-        Orders savedOrder = new Orders(payment, user, ORDER_COMPLETED);
+        Orders savedOrder = new Orders(user, totalPrice, address);
         ordersRepository.save(savedOrder);
+
         // orderId 반환
         return savedOrder.getId();
     }
 
     // orderItem 생성
     @Transactional
-    public void createOrderItem(Long orderId, List<CartItem> cartItemList) {
+    public void createOrderItem(String orderId, List<CartItem> cartItemList) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
-        int totalPrice = 0;
 
         for (CartItem cartItem : cartItemList) {
             int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-            totalPrice += orderPrice;
             OrderItem savedOrderItem = new OrderItem(
                 order,
                 cartItem.getItem(),
@@ -147,8 +153,19 @@ public class OrderService {
             );
             orderItemRepository.save(savedOrderItem);
         }
-        order.setTotalPrice(totalPrice);
         ordersRepository.save(order);
+    }
+
+    // get totalPrice //TODO cartItem Repository
+    public long getTotalPrice(List<CartItem> cartItemList) {
+        long totalPrice = 0;
+
+        for (CartItem cartItem : cartItemList) {
+            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
+            totalPrice += orderPrice;
+        }
+
+        return totalPrice;
     }
 
     /**
@@ -156,7 +173,8 @@ public class OrderService {
      * - 주문취소는 주문완료 상태에서만 가능
      */
     @Transactional
-    public void updateOrderStatus(Long userId, Long orderId, UpdateOrderStatusDto requestDto) {
+    public void updateOrderStatus(Long userId, String orderId, UpdateOrderStatusDto requestDto) {
+
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
@@ -224,7 +242,7 @@ public class OrderService {
      */
     public PageResult<OrderItemResponseDto> getOrderItems(
         Long userId,
-        Long orderId,
+        String orderId,
         PageQuery pageQuery
     ) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(

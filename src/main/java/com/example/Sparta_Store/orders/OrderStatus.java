@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Map;
 
 public enum OrderStatus {
+    BEFORE_PAYMENT, // 결제전
+    PAYMENT_CANCELLED, // 결제취소
     ORDER_COMPLETED, // 주문완료
     ORDER_CANCEL_REQUEST, // 주문취소요청
     PREPARING_SHIPMENT, // 배송준비중
@@ -23,17 +25,19 @@ public enum OrderStatus {
             .orElseThrow(()-> new IllegalArgumentException("등록되지 않은 주문상태 값입니다."));
     }
 
-    public static Map<OrderStatus, OrderStatus> statusUpdatable = Map.of(
-        ORDER_CANCEL_REQUEST, ORDER_COMPLETED,
-        PREPARING_SHIPMENT, ORDER_COMPLETED,
-        SHIPPING, PREPARING_SHIPMENT,
-        DELIVERED, SHIPPING,
-        CANCELED, ORDER_CANCEL_REQUEST,
-        RETURN_REQUESTED, DELIVERED,
-        EXCHANGE_REQUESTED, DELIVERED,
-        CONFIRMED, DELIVERED,
-        RETURNED, RETURN_REQUESTED,
-        EXCHANGED, EXCHANGE_REQUESTED
+    public static Map<OrderStatus, OrderStatus> statusUpdatable = Map.ofEntries(
+        Map.entry(ORDER_CANCEL_REQUEST, ORDER_COMPLETED),
+        Map.entry(PREPARING_SHIPMENT, ORDER_COMPLETED),
+        Map.entry(SHIPPING, PREPARING_SHIPMENT),
+        Map.entry(DELIVERED, SHIPPING),
+        Map.entry(CANCELED, ORDER_CANCEL_REQUEST),
+        Map.entry(RETURN_REQUESTED, DELIVERED),
+        Map.entry(EXCHANGE_REQUESTED, DELIVERED),
+        Map.entry(CONFIRMED, DELIVERED),
+        Map.entry(RETURNED, RETURN_REQUESTED),
+        Map.entry(EXCHANGED, EXCHANGE_REQUESTED),
+        Map.entry(PAYMENT_CANCELLED, BEFORE_PAYMENT),
+        Map.entry(ORDER_COMPLETED, BEFORE_PAYMENT)
     );
 
 }
