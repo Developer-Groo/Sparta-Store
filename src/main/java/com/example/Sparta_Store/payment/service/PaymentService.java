@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.payment.service;
 
+import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
 import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
@@ -18,8 +19,6 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +44,7 @@ public class PaymentService {
     private final OrderItemRepository orderItemRepository;
     private final ItemService itemService;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final AdminOrderService adminOrderService;
 
     // 결제전, 주문상태 확인
     public boolean checkStatus(String orderId) {
@@ -54,16 +54,7 @@ public class PaymentService {
         return order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT);
     }
 
-    // 결제 승인 후, 데이터 후처리 (데이터 정합성 보장)
-    @Transactional
-    public void approvePayment(JSONObject response) {
-        String orderId = response.get("orderId").toString();
-
-        checkout(orderId); // 상품 재고 감소 및 order 상태 변경
-        createPayment(response); // Payment 엔티티 생성
-    }
-
-    // 결제 승인되어 Payment 엔티티 생성
+    // Payment 엔티티 생성
     @Transactional
     public void createPayment(JSONObject response) {
 
@@ -72,17 +63,14 @@ public class PaymentService {
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
 
-        OffsetDateTime odt = OffsetDateTime.parse(response.get("approvedAt").toString());
-        LocalDateTime approvedAt = odt.toLocalDateTime();
-
         Payment savedPayment = new Payment(
             response.get("paymentKey").toString(),
             order,
-            approvedAt,
-            response.get("method").toString()
+            Long.valueOf(response.get("amount").toString())
         );
-        log.info("Payment 엔티티 생성 완료");
+
         paymentRepository.save(savedPayment);
+        log.info("Payment 엔티티 생성 완료");
     }
 
     // user, orderId, amount 일치 검증
@@ -115,15 +103,50 @@ public class PaymentService {
         log.info("상품 재고 감소 및 order 상태 변경 완료");
     }
 
-    // PAYMENT_CANCELLED 로 주문상태 변경
+    // 승인 실패 isAborted = true
     @Transactional
-    public void paymentCancelled(String orderId) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+    public void updateAborted(String paymentKey) {
+        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
+            () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다.")
         );
-        // 주문상태 변경
-        order.updateOrderStatus(OrderStatus.PAYMENT_CANCELLED);
+        payment.updateAborted();
+        log.info("Payment({}) isAborted = {}", payment.getPaymentKey(), payment.isAborted());
     }
+
+    // 승인 완료 approvedAt, method 저장
+    @Transactional
+    public void approvedPayment(JSONObject response) {
+        String paymentKey = response.get("paymentKey").toString();
+        String date = response.get("approvedAt").toString();
+        String method = response.get("method").toString();
+
+        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
+            () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다.")
+        );
+        payment.approvedPayment(date, method);
+        log.info("Payment({}) approvedAt = {}", payment.getPaymentKey(), payment.getApprovedAt());
+    }
+
+
+    // 결제 취소
+    // Payment isCancelled = true
+    // Order PAYMENT_CANCELLED 로 주문상태 변경
+    @Transactional
+    public void paymentCancelled(JSONObject response) {
+        String orderId = response.get("orderId").toString();
+        String paymentKey = response.get("paymentKey").toString();
+
+        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
+            () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다.")
+        );
+
+        payment.updateCancelled();
+        adminOrderService.orderCancelled(orderId);
+    }
+
+    /**
+     * -------------- 토스 API 관련 ---------------
+     */
 
     // 토스페이먼츠 결제 승인 API 호출
     public JSONObject confirmPaymentTossAPI(String secretKey, String jsonBody) throws Exception {
@@ -136,6 +159,7 @@ public class PaymentService {
     }
 
     // 토스페이먼츠 결제 취소 API 호출
+    @Transactional
     public JSONObject cancelPaymentTossAPI(String secretKey, String paymentKey, String cancleReason) throws Exception {
         JSONObject cancelRequestData = new JSONObject();
         cancelRequestData.put("cancelReason", cancleReason);
@@ -148,7 +172,6 @@ public class PaymentService {
         return response;
     }
 
-    // ------- 토스 API 관련 --------
     private JSONObject parseRequestData(String jsonBody) {
         try {
             return (JSONObject) new JSONParser().parse(jsonBody);

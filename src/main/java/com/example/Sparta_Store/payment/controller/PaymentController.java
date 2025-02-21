@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.payment.controller;
 
+import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
 import com.example.Sparta_Store.cart.service.CartService;
-import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,8 +32,8 @@ public class PaymentController {
     private String CLIENT_KEY;
     private final PaymentService paymentService;
     private final OrderService orderService;
-    private final OrdersRepository ordersRepository;
     private final CartService cartService;
+    private final AdminOrderService adminOrderService;
 
     /**
      * 결제창 생성
@@ -69,16 +69,19 @@ public class PaymentController {
         JSONParser parser = new JSONParser();
         JSONObject jsonObject = (JSONObject) parser.parse(jsonBody);
 
+        String paymentKey = (String) jsonObject.get("paymentKey");
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        // 데이터 검증 프로세스
+        // 데이터 검증 및 Payment 생성
         try {
-            // user, orderId, amount 일치 검증
             paymentService.checkData(userId, orderId, amount);
+            log.info("sdsd");
+            paymentService.createPayment(jsonObject);
+            log.info("wewewewewd");
         } catch (Exception e) {
-            paymentService.paymentCancelled(orderId);
             log.info("결제 승인 API 호출 전, 에러 발생");
+            adminOrderService.orderCancelled(orderId);
 
             JSONObject jsonResponse = new JSONObject();
             jsonResponse.put("message", "결제 승인 에러 발생");
@@ -90,18 +93,19 @@ public class PaymentController {
         JSONObject response = paymentService.confirmPaymentTossAPI(SECRET_KEY, jsonBody);
 
         if(response.containsKey("error")) {
-            paymentService.paymentCancelled(orderId);
             log.info("결제 승인 API 에러 발생");
+            adminOrderService.orderCancelled(orderId);
+            paymentService.updateAborted(paymentKey);
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
-        // 결제 승인 후, 상품 재고 감소 및 order 상태 변경, Payment 엔티티 생성
+        // 결제 승인 후, 상품 재고 감소 및 order 상태 변경
         try {
-            paymentService.approvePayment(response);
-            log.info("결제 승인 후 Payment 엔티티 생성 및 재고 감소 완료");
+            paymentService.checkout(orderId);
+            log.info("상품 재고 감소 및 주문 상태 변경 완료");
         } catch (Exception e) {
-            log.info("결제 승인 후 Payment 엔티티 생성 또는 재고 감소 실패");
-            paymentService.paymentCancelled(orderId);
+            log.info("상품 재고 감소 또는 주문 상태 변경 실패");
             // 결제 취소 API 호출
             log.info("결제 취소 API 호출");
             paymentService.cancelPaymentTossAPI(
@@ -109,11 +113,16 @@ public class PaymentController {
                 response.get("paymentKey").toString(),
                 ""
             );
+            // Payment isCancelled = true + Order 상태 변경
+            paymentService.paymentCancelled(response);
 
             JSONObject jsonResponse = new JSONObject();
             jsonResponse.put("message", "에러 발생");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jsonResponse);
         }
+
+        // Payment approvedAt, method 저장
+        paymentService.approvedPayment(response);
 
         // CartItem 초기화 TODO 이벤트리스너
         cartService.deleteCartItem(userId);
