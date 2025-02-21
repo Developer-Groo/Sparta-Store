@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.oAuth.service;
 
 import com.example.Sparta_Store.address.entity.Address;
+import com.example.Sparta_Store.config.jwt.UserRoleEnum;
 import com.example.Sparta_Store.oAuth.model.GoogleUser;
 import com.example.Sparta_Store.oAuth.model.ProviderUser;
 import com.example.Sparta_Store.user.entity.User;
@@ -45,7 +46,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     providerId,
                     name,
                     email,
-                    new Address("","","")
+                    new Address("","",""),
+                    UserRoleEnum.USER
             );
             userRepository.save(user);
         }

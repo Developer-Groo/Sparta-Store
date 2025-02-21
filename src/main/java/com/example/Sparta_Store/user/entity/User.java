@@ -2,6 +2,7 @@ package com.example.Sparta_Store.user.entity;
 
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
+import com.example.Sparta_Store.config.jwt.UserRoleEnum;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -45,21 +46,26 @@ public class User extends TimestampedEntity {
     @Column
     private String provider;
 
-    public User(String email, String password, String name, Address address) {
+    @Column
+    private UserRoleEnum role;
+
+    public User(String email, String password, String name, Address address, UserRoleEnum role) {
 
         this.email = email;
         this.password = password;
         this.name = name;
         this.address = address;
         this.customerKey = UUID.randomUUID().toString();
+        this.role = role;
     }
 
-    public User(String provider, String providerId , String name, String email, Address address){
+    public User(String provider, String providerId , String name, String email, Address address , UserRoleEnum role){
         this.provider = provider;
         this.providerId = providerId;
         this.name = name;
         this.email = email;
         this.address = address;
+        this.role = role;
     }
 
     public User(String name, String email) {

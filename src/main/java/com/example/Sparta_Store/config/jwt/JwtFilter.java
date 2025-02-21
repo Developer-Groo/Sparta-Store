@@ -72,7 +72,7 @@ public class JwtFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"error\": \"Unauthorized\"}");
         }
 
-        String auth = jwtUtil.extractNames(jwt);
+        String auth = jwtUtil.extractRole(jwt);
 
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(auth));
 

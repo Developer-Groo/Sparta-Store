@@ -2,6 +2,7 @@ package com.example.Sparta_Store.oAuth.handler;
 
 
 import com.example.Sparta_Store.config.jwt.JwtUtil;
+import com.example.Sparta_Store.config.jwt.UserRoleEnum;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,12 +36,12 @@ public class CustomOAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         String email = (String) attributes.get("email");
-        String name = (String) attributes.get("name");
+        UserRoleEnum role = userRepository.findByEmail(email).get().getRole();
 
         Long id = userRepository.findByEmail(email).get().getId();
 
         // JWT 생성
-        String jwt = jwtUtil.generateToken(email,name,id);
+        String jwt = jwtUtil.generateToken(email,role,id);
 
         // 예시: response 헤더에 토큰 세팅
         response.setHeader("Authorization", jwt);
