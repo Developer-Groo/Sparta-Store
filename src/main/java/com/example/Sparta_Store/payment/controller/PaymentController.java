@@ -76,9 +76,7 @@ public class PaymentController {
         // 데이터 검증 및 Payment 생성
         try {
             paymentService.checkData(userId, orderId, amount);
-            log.info("sdsd");
             paymentService.createPayment(jsonObject);
-            log.info("wewewewewd");
         } catch (Exception e) {
             log.info("결제 승인 API 호출 전, 에러 발생");
             adminOrderService.orderCancelled(orderId);
