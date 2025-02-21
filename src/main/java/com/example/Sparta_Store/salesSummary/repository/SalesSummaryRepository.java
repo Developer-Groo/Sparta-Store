@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface SalesSummaryRepository extends JpaRepository<SalesSummary, Long> {
 
     Optional<SalesSummary> findByItemIdAndCreatedAt(Long itemId, LocalDateTime createdAt);
+
+    Optional<SalesSummary> findByItemIdAndCreatedAtAndTotalSales(Long itemId,
+            LocalDateTime createdAt, int totalSales);
 }

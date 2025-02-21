@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.popularItem.repository.sold;
 
 import static com.example.Sparta_Store.item.entity.QItem.item;
-import static com.example.Sparta_Store.popularItem.service.PopularItemService.SoldItemToDto;
+import static com.example.Sparta_Store.popularItem.service.PopularItemService.soldItemToDto;
 
 import com.example.Sparta_Store.item.entity.QItem;
 import com.example.Sparta_Store.popularItem.dto.PopularItemRankValueDto;
@@ -34,7 +34,7 @@ public class SoldItemRepositoryImpl implements SoldItemRepositoryCustom {
                 .limit(10) // 상위10개
                 .fetch(); //쿼리 실행시 List<Tuple> 리스트 형태로 결과를 반환 > List<Tuple> 이 튜플에는 상품id와 판매량이 들어있음
 
-        return SoldItemToDto(idAndSalesNums); // DTO 변환 실행
+        return soldItemToDto(idAndSalesNums); // DTO 변환 실행
 
     }
 

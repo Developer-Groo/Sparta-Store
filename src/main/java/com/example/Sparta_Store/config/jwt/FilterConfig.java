@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.config.jwt;
 
-
+import com.example.Sparta_Store.config.jwt.JwtFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

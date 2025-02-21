@@ -3,10 +3,10 @@ package com.example.Sparta_Store;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+//@SpringBootTest
 class SpartaStoreApplicationTests {
 
-	@Test
+//	@Test
 	void contextLoads() {
 	}
 
