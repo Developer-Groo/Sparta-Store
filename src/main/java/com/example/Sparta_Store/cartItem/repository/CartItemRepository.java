@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.cartItem.repository;
 
-import com.example.Sparta_Store.cart.entity.Cart;
+import com.example.Sparta_Store.common.entity.cart.entity.Cart;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import java.util.List;
 import java.util.Optional;

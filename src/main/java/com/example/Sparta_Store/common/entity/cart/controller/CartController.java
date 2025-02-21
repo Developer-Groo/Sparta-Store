@@ -1,9 +1,9 @@
-package com.example.Sparta_Store.cart.controller;
+package com.example.Sparta_Store.common.entity.cart.controller;
 
-import com.example.Sparta_Store.cart.dto.request.CartRequestDto;
-import com.example.Sparta_Store.cart.dto.response.CartResponseDto;
-import com.example.Sparta_Store.cart.service.CartRedisService;
-import com.example.Sparta_Store.cart.service.CartService;
+import com.example.Sparta_Store.common.entity.cart.dto.request.CartRequestDto;
+import com.example.Sparta_Store.common.entity.cart.dto.response.CartResponseDto;
+import com.example.Sparta_Store.common.entity.cart.service.CartRedisService;
+import com.example.Sparta_Store.common.entity.cart.service.CartService;
 import com.example.Sparta_Store.cartItem.dto.request.CartItemUpdateRequestDto;
 import com.example.Sparta_Store.cartItem.dto.response.CartItemResponseDto;
 import com.example.Sparta_Store.util.PageQuery;

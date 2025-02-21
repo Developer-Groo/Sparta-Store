@@ -1,4 +1,14 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect_uri: http://localhost:8080/login/oauth2/code/google
+            scope:
+              - email
+              - profile
+
   jpa:
     hibernate:
       ddl-auto: create
