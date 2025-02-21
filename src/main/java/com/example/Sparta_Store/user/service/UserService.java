@@ -3,6 +3,7 @@ package com.example.Sparta_Store.user.service;
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.address.entity.AddressDto;
 import com.example.Sparta_Store.config.PasswordEncoder;
+import com.example.Sparta_Store.config.jwt.UserRoleEnum;
 import com.example.Sparta_Store.user.dto.CreateUserResponseDto;
 import com.example.Sparta_Store.user.dto.UserResponseDto;
 import com.example.Sparta_Store.user.entity.User;
@@ -33,7 +34,8 @@ public class UserService {
                 email,
                 encodePassword,
                 name,
-                address
+                address,
+                UserRoleEnum.USER
         );
 
         User saveUser = userRepository.save(user);
@@ -57,7 +59,7 @@ public class UserService {
                 ? new Address(address.city(), address.street(), address.zipcode())
                 : null;
 
-        user.updateUserInfo(name, newAddress != null ? newAddress : user.getAddress());; // 있으면 이름과 주소 변경
+        user.updateUserInfo(name, newAddress != null ? newAddress : user.getAddress()); // 있으면 이름과 주소 변경
 
         return UserResponseDto.updateInfoSuccess();
     }
