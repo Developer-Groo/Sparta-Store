@@ -6,11 +6,13 @@ import com.example.Sparta_Store.salesSummary.entity.SalesSummary;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Item extends TimestampedEntity {
@@ -108,6 +110,11 @@ public class Item extends TimestampedEntity {
         if (category != null) {
             this.category = category;
         }
+    }
+
+    public void updateSalesSummary(SalesSummary salesSummary) {
+        this.salesSummary = salesSummary;
+        salesSummary.updateItem(this);
     }
 
     public int getTotalSales() {

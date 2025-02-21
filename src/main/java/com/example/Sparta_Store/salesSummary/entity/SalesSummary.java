@@ -4,11 +4,13 @@ import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.item.entity.Item;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SalesSummary extends TimestampedEntity {
 
@@ -23,16 +25,19 @@ public class SalesSummary extends TimestampedEntity {
 
     private Integer totalSales;
 
-    private SalesSummary(Item item, Integer totalSales) {
-        this.item = item;
+    private SalesSummary(int totalSales) {
         this.totalSales = totalSales;
     }
 
-    public static SalesSummary toEntity(Item item, Integer totalSales) {
-        return new SalesSummary(item, totalSales);
+    public static SalesSummary toEntity(int totalSales) {
+        return new SalesSummary(totalSales);
     }
 
     public void incrementSales(int quantity) {
         this.totalSales += quantity;
+    }
+
+    public void updateItem(Item item) {
+        this.item = item;
     }
 }
