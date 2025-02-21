@@ -46,7 +46,7 @@ class ReviewServiceTest {
         user = new User(1L, "key", "testName", "test@example", "password", null, false);
         item = new Item(1L, "testName", "www.example.com", 10000, "test", 100, null, null);
 
-        Orders order = new Orders(null, user, OrderStatus.CONFIRMED);
+        Orders order = new Orders("1", user, OrderStatus.CONFIRMED, 100000L, null);
         orderItem = new OrderItem(1L, order, item, 10000, 10);
     }
 
@@ -93,7 +93,7 @@ class ReviewServiceTest {
     @DisplayName("리뷰 생성 실패 - 구매 확정되지 않은 상품")
     void createReview_Fail_NotConfirmed() {
         // given
-        Orders notConfirmedOrder = new Orders(2L, null, user, OrderStatus.SHIPPING, 100000);
+        Orders notConfirmedOrder = new Orders("2L", user, OrderStatus.SHIPPING, 100000L, null);
         OrderItem notConfirmedOrderItem = new OrderItem(2L, notConfirmedOrder, item, 10000, 10);
 
         given(orderItemRepository.findOrderItemWithUserAndItem(2L, 2L))
