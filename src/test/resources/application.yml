@@ -1,5 +1,7 @@
 spring:
   config:
+    activate:
+      on-profile: test
     import: optional:file:.env[.properties]
 
   security:
@@ -14,7 +16,14 @@ spring:
               - email
               - profile
 
+  datasource:
+    url: jdbc:h2:mem:test  # H2 인메모리 DB
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
   jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create
     properties:
@@ -27,15 +36,9 @@ spring:
       host: localhost
       port: 6379
 
-  datasource:
-    url: jdbc:mysql://localhost:3306/SpartaStore
-    username: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    password: ${DB_PASSWORD}
-
 jwt:
   secret:
-    key: ${JWT_SECRET_KEY}
+   key: ${JWT_SECRET_KEY}
 
 toss-payments:
   api:
