@@ -28,6 +28,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CartRedisService {
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -79,8 +80,7 @@ public class CartRedisService {
 
     }
 
-    @Transactional(readOnly = true)
-    public CartResponseDto getCart(Long userId) {
+    public CartResponseDto shoppingCartList(Long userId) {
         String cartKey = getCartKey(userId);
 
         Cart cart = redisService.getObject(cartKey, Cart.class);
@@ -90,7 +90,6 @@ public class CartRedisService {
 
         return CartResponseDto.toDto(cart, cart.getCartItems());
     }
-
 
     @Transactional
     public void cartItemRemove(Long cartItemId, Long userId) {

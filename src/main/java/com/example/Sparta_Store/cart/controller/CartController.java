@@ -33,9 +33,9 @@ public class CartController {
      * 장바구니 조회
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<CartResponseDto> getCart(HttpServletRequest request) {
+    public ResponseEntity<CartResponseDto> getCartList(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("id");
-        CartResponseDto cartResponse = cartRedisService.getCart(userId);
+        CartResponseDto cartResponse = cartRedisService.shoppingCartList(userId);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(cartResponse);
     }
