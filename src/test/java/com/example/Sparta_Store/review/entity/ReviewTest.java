@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.review.entity;
 
-import com.example.Sparta_Store.config.jwt.UserRoleEnum;
+import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.review.exception.ReviewErrorCode;
