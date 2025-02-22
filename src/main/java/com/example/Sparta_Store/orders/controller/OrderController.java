@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.orders.controller;
 
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
-import com.example.Sparta_Store.orders.dto.request.OrderRequestDto;
+import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.service.OrderService;
@@ -32,11 +32,11 @@ public class OrderController {
      * 주문서 페이지
      */
     @PostMapping("/checkout")
-    public ResponseEntity<Map<String,String>> checkoutOrder(HttpServletRequest request, @RequestBody(required = false) OrderRequestDto requestDto) {
+    public String checkoutOrder(HttpServletRequest request, @RequestBody(required = false) CreateOrderRequestDto requestDto) {
         Long userId = (Long) request.getAttribute("id");
 
-        orderService.checkoutOrder(userId, requestDto);
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "주문서가 작성되었습니다."));
+        String orderId = orderService.checkoutOrder(userId, requestDto);
+        return "redirect:/payments/checkout/" + orderId; // 프론트
     }
 
     /**

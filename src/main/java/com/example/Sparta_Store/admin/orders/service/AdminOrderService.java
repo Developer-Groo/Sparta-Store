@@ -58,9 +58,8 @@ public class AdminOrderService {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
-        isStatusUpdatable(order.getOrderStatus(), OrderStatus.PAYMENT_CANCELLED); // 주문상태 변경 가능 여부
 
         order.updateOrderStatus(OrderStatus.PAYMENT_CANCELLED);
-        log.info("주문 결제취소 완료 >> {}", order.getOrderStatus());
+        log.info("주문번호 {} 결제취소 완료 >> {}", orderId, order.getOrderStatus());
     }
 }
