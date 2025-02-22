@@ -2,7 +2,7 @@ package com.example.Sparta_Store.user.entity;
 
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
-import com.example.Sparta_Store.config.jwt.UserRoleEnum;
+import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,6 +15,7 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "Users")
 public class User extends TimestampedEntity {
 
     @Id
