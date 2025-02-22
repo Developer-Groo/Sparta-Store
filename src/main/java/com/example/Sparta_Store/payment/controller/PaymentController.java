@@ -5,6 +5,8 @@ import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -46,14 +48,23 @@ public class PaymentController {
     ) {
         Long userId = (Long) request.getAttribute("id");
 
-        // 상태가 BEFORE_PAYMENT 인 주문인지 확인
-        if (!paymentService.checkStatus(orderId)) {
-            log.info("BEFORE_PAYMENT 상태인 주문만 결제가 가능합니다." );
-            //TOdo
-            return "/fail"; // "/fail" 페이지로 이동
-        }
         // 결제 정보 불러오기
-        orderService.getPaymentInfo(model, userId, orderId);
+        try{
+            orderService.getPaymentInfo(model, userId, orderId);
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            return "redirect:/fail.html?message=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
+        }
+
+        // 상태가 BEFORE_PAYMENT 인 주문인지 확인
+        if (!paymentService.checkBeforePayment(orderId)) {
+            log.info("BEFORE_PAYMENT 상태인 주문만 결제가 가능합니다.");
+            String errorMessage = "결제가 완료된 주문이거나, 결제를 할 수 없는 주문입니다.";
+            return "redirect:/fail.html?message=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
+
+        }
+
+
         model.addAttribute("clientKey", CLIENT_KEY);
 
         return "payment/checkout";
@@ -69,18 +80,17 @@ public class PaymentController {
         JSONParser parser = new JSONParser();
         JSONObject jsonObject = (JSONObject) parser.parse(jsonBody);
 
-        String paymentKey = (String) jsonObject.get("paymentKey");
-        String orderId = (String) jsonObject.get("orderId");
-
         JSONObject response;
         try{
             response = paymentService.confirmPayment(userId, jsonBody);
         } catch (Exception e) {
-            log.info("결제 승인 API 호출 전, 에러 발생");
+            log.info("결제 승인 API 호출 전, 에러 발생: {}", e.getMessage());
+
+            String orderId = (String) jsonObject.get("orderId");
             adminOrderService.orderCancelled(orderId);
 
             JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("message", "에러 발생");
+            jsonResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jsonResponse);
         }
 
