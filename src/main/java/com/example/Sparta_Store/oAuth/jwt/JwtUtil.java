@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.config.jwt;
+package com.example.Sparta_Store.oAuth.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
