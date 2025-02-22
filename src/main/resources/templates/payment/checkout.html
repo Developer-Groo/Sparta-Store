@@ -79,7 +79,7 @@
           amount,
           orderId,
           orderName: [[${orderName}]],
-          successUrl: window.location.origin + "/payment/success.html", // 결제 요청이 성공하면 리다이렉트되는 URL
+          successUrl: window.location.origin + "/payment/success.html", // 결제 요청이 성공하면 리다이렉트되는 URL (-> 결제 승인 요청)
           failUrl: window.location.origin + "/fail.html", // 결제 요청이 실패하면 리다이렉트되는 URL
           customerEmail: [[${customerEmail}]],
           customerName: [[${customerName}]],
