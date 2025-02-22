@@ -12,7 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
-@SpringBootTest(classes = CartRedisService.class)
+@SpringBootTest
 @AutoConfigureMockMvc
 class CartRedisServiceTest {
 
@@ -34,7 +34,7 @@ class CartRedisServiceTest {
     @BeforeEach
     void setUp() {
         Address address = new Address("서울시", "테헤란로", "12345");
-        user = new User("email1@email.com", "testUser", "김르탄", address);
+//        user = new User("email1@email.com", "testUser", "김르탄", address);
 //        item = new Item("갤럭시", "https://example.com/iphone15.jpg", "1,000,000", "")
 
     }
