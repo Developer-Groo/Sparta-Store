@@ -3,7 +3,7 @@ package com.example.Sparta_Store.config;
 import com.example.Sparta_Store.oAuth.handler.CustomOAuth2SuccessHandler;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import com.example.Sparta_Store.config.jwt.JwtFilter;
+import com.example.Sparta_Store.oAuth.jwt.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

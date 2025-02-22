@@ -2,6 +2,8 @@ package com.example.Sparta_Store.item.entity;
 
 import com.example.Sparta_Store.category.entity.Category;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
+import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.item.exception.ItemErrorCode;
 import com.example.Sparta_Store.salesSummary.entity.SalesSummary;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -36,7 +38,7 @@ public class Item extends TimestampedEntity {
     private int stockQuantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @OneToOne(mappedBy = "item") // mappedBy 를 설정할 경우 자동 Lazy 적용
@@ -101,6 +103,13 @@ public class Item extends TimestampedEntity {
         if (category != null) {
             this.category = category;
         }
+    }
+
+    public void decreaseStock(int quantity) {
+        if (this.stockQuantity < quantity) {
+            throw new CustomException(ItemErrorCode.OUT_OF_STOCK);
+        }
+        this.stockQuantity -= quantity;
     }
 
     public void updateSalesSummary(SalesSummary salesSummary) {
