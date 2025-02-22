@@ -30,7 +30,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class CartRedisServiceTest {
@@ -56,7 +55,6 @@ class CartRedisServiceTest {
     @Mock
     private CartItemRepository cartItemRepository;
 
-
     private User user;
     private Item item;
     private Cart cart;
@@ -79,21 +77,22 @@ class CartRedisServiceTest {
     void cartAddition () {
         // given
         CartRequestDto requestDto = new CartRequestDto(1L, 1L, 1);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(redisService.getObject(anyString(), eq(Cart.class))).thenReturn(cart);
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+        when(itemRepository.findById(1L))
+                .thenReturn(Optional.of(item));
+        when(redisService.getObject(anyString(), eq(Cart.class)))
+                .thenReturn(cart);
         log.info("cart {}", cart);
-        when(redisService.getObject(anyString(), eq(CartItem.class))).thenReturn(cartItem);
+        when(redisService.getObject(anyString(), eq(CartItem.class)))
+                .thenReturn(cartItem);
         log.info("cartItem {}", cartItem);
-
         // when
         CartResponseDto response = cartRedisService.cartAddition(requestDto, 1L);
-
         // then
         assertNotNull(response);
         assertEquals(1, response.cartItemList().size());
         verify(redisService, times(1)).putObject(anyString(), any(Cart.class));
-
     }
 
     @Test
@@ -101,9 +100,10 @@ class CartRedisServiceTest {
     void cartAddError() {
         // given
         CartRequestDto requestDto = new CartRequestDto(1L, 1L, 2);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(1L)).thenReturn(Optional.empty());
-
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+        when(itemRepository.findById(1L))
+                .thenReturn(Optional.empty());
         // when & then
         assertThrows(CustomException.class, () -> cartRedisService.cartAddition(requestDto, 1L));
 
@@ -113,11 +113,10 @@ class CartRedisServiceTest {
     @DisplayName("장바구니 조회 성공")
     void shoppingCartList() {
         // given
-        when(redisService.getObject(anyString(), eq(Cart.class))).thenReturn(cart);
-
+        when(redisService.getObject(anyString(), eq(Cart.class)))
+                .thenReturn(cart);
         // when
         CartResponseDto response = cartRedisService.shoppingCartList(1L);
-
         // then
         assertNotNull(response);
         assertEquals(cart.getId(), response.cartId());
@@ -127,8 +126,8 @@ class CartRedisServiceTest {
     @Test
     @DisplayName("장바구니 조회 실패 - 존재하지않은 장바구니")
     void shoppingCartList_Fall_NotFound() {
-        when(redisService.getObject(anyString(), eq(Cart.class))).thenReturn(null);
-
+        when(redisService.getObject(anyString(), eq(Cart.class)))
+                .thenReturn(null);
         assertThrows(CustomException.class, () -> cartRedisService.shoppingCartList(1L));
     }
 
@@ -136,18 +135,20 @@ class CartRedisServiceTest {
     @DisplayName("장바구니 상품 삭제 성공")
     void cartItemRemove() {
         // given
-        when(redisService.getObject(anyString(), eq(Cart.class))).thenReturn(cart);
+        when(redisService.getObject(anyString(), eq(Cart.class)))
+                .thenReturn(cart);
         // when
         cartRedisService.cartItemRemove(1L, 1L);
         // then
-        verify(redisService, times(1)).delete(anyString());
+        verify(redisService, times(1))
+                .delete(anyString());
     }
 
     @Test
     @DisplayName("장바구니 상품 삭제 실패 - 장바구니가 없음")
     void cartItemRemove_Fall_NotFound() {
-        when(redisService.getObject(anyString(), eq(Cart.class))).thenReturn(null);
-
+        when(redisService.getObject(anyString(), eq(Cart.class)))
+                .thenReturn(null);
         assertThrows(CustomException.class, () -> cartRedisService.cartItemRemove(1L, 1L));
     }
 
@@ -155,24 +156,23 @@ class CartRedisServiceTest {
     @DisplayName("상품 수량 변경 성공")
     void cartItemUpdate() {
         CartItemUpdateRequestDto requestDto = new CartItemUpdateRequestDto(1L, 3);
-        when(redisService.getObject(anyString(), eq(Cart.class))).thenReturn(cart);
-        when(redisService.getObject(anyString(), eq(CartItem.class))).thenReturn(cartItem);
-
+        when(redisService.getObject(anyString(), eq(Cart.class)))
+                .thenReturn(cart);
+        when(redisService.getObject(anyString(), eq(CartItem.class)))
+                .thenReturn(cartItem);
         cartRedisService.cartItemUpdate(1L, requestDto, 1L);
-
         assertEquals(3, cartItem.getQuantity());
         verify(redisService, times(1)).putObject(anyString(), any(CartItem.class));
-
     }
 
     @Test
     @DisplayName("상품 수량 변경 실패 - 상품 없음")
     void cartItemUpdate_Fall_NotFound() {
         CartItemUpdateRequestDto requestDto = new CartItemUpdateRequestDto(1L, 3);
-        when(redisService.getObject(anyString(), eq(Cart.class))).thenReturn(cart);
-        when(redisService.getObject(anyString(), eq(CartItem.class))).thenReturn(null);
-
+        when(redisService.getObject(anyString(), eq(Cart.class)))
+                .thenReturn(cart);
+        when(redisService.getObject(anyString(), eq(CartItem.class)))
+                .thenReturn(null);
         assertThrows(CustomException.class, () -> cartRedisService.cartItemUpdate(1L, requestDto, 1L));
     }
-
 }

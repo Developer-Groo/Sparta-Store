@@ -48,62 +48,68 @@ class LikesServiceTest {
         user = new User("test@test.com", "password", "테스트1", null, null);
         item = new Item(1L, "상품2", "img.jpa", 1000, null, null, null, null);
         likes = new Likes(1L, user, item);
-
     }
 
     @Test
     @DisplayName("찜 생성 성공")
     void addLikes(){
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(likesRepository.findByUserAndItem(user,item)).thenReturn(Optional.empty());
-
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+        when(itemRepository.findById(1L))
+                .thenReturn(Optional.of(item));
+        when(likesRepository.findByUserAndItem(user,item))
+                .thenReturn(Optional.empty());
         assertDoesNotThrow(() -> likesService.addLike(1L,1L));
-        verify(likesRepository, times(1)).save(any(Likes.class));
+        verify(likesRepository, times(1))
+                .save(any(Likes.class));
     }
 
     @Test
     @DisplayName("찜 생성 실패 - 이미 찜한 상품")
     void addLikes_Fall_NotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(likesRepository.findByUserAndItem(user,item)).thenReturn(Optional.of(likes));
-
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+        when(itemRepository.findById(1L))
+                .thenReturn(Optional.of(item));
+        when(likesRepository.findByUserAndItem(user,item))
+                .thenReturn(Optional.of(likes));
         assertThrows(CustomException.class, () -> likesService.addLike(1L, 1L));
     }
 
     @Test
     @DisplayName("찜 목록 성공")
     void getLikeList() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(likesRepository.findAllByUser(user)).thenReturn(List.of(likes));
-
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+        when(likesRepository.findAllByUser(user))
+                .thenReturn(List.of(likes));
         List<LikeResponseDto> likesList = likesService.getLikeList(1L);
-
         assertEquals(1, likesList.size());
     }
 
     @Test
     @DisplayName("찜 취소 성공")
     void removeLike() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(likesRepository.findByUserAndItem(user,item)).thenReturn(Optional.of(likes));
-
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+        when(itemRepository.findById(1L))
+                .thenReturn(Optional.of(item));
+        when(likesRepository.findByUserAndItem(user,item))
+                .thenReturn(Optional.of(likes));
         assertDoesNotThrow(() -> likesService.removeLike(1L, 1L));
-        verify(likesRepository, times(1)).delete(likes);
+        verify(likesRepository, times(1))
+                .delete(likes);
     }
 
     @Test
     @DisplayName("찜 취소 실패 - 찜하지 않은 상품")
     void removeLike_Fall_NotFound(){
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(likesRepository.findByUserAndItem(user,item)).thenReturn(Optional.empty());
-
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+        when(itemRepository.findById(1L))
+                .thenReturn(Optional.of(item));
+        when(likesRepository.findByUserAndItem(user,item))
+                .thenReturn(Optional.empty());
         assertThrows(CustomException.class, () -> likesService.removeLike(1L, 1L));
     }
-
-
 }
