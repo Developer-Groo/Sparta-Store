@@ -1,14 +1,10 @@
 package com.example.Sparta_Store.orders.service;
 
-import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
-
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.repository.CartRepository;
-import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
-import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
@@ -22,8 +18,6 @@ import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,6 +25,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 @Slf4j(topic = "OrderService")
 @Service
@@ -43,8 +42,6 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
     private final OrderItemRepository orderItemRepository;
-    private final CartService cartService;
-    private final ItemService itemService;
 
     /**
      * 주문서 페이지 -> 주문 생성 (결제전)

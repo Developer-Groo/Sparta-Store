@@ -33,8 +33,10 @@ public abstract class OAuth2ProviderUser implements ProviderUser {
         if (attributes == null || !attributes.containsKey("email")) {
             throw new IllegalArgumentException("Email attribute is missing");
         }
+
         Object emailObject = attributes.get("email");
         System.out.println("Email object: " + emailObject); // 추가된 로그
+
         if (emailObject == null) {
             throw new IllegalArgumentException("Email attribute is null");
         }
@@ -43,9 +45,11 @@ public abstract class OAuth2ProviderUser implements ProviderUser {
 
     @Override
     public List<? extends GrantedAuthority> getAuthorities() {
-        return oAuth2User.getAuthorities().stream()
-                .map(
-                        authority -> new SimpleGrantedAuthority(authority.getAuthority())
-                ).toList();
+        return oAuth2User.getAuthorities()
+                .stream()
+                .map(authority ->
+                        new SimpleGrantedAuthority(authority.getAuthority())
+                )
+                .toList();
     }
 }
