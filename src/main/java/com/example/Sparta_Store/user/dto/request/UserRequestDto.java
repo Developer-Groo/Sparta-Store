@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.user.dto;
+package com.example.Sparta_Store.user.dto.request;
 
 import com.example.Sparta_Store.address.entity.Address;
 import jakarta.validation.constraints.Email;

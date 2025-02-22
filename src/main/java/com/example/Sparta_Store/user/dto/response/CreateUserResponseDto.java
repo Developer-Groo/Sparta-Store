@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.user.dto;
+package com.example.Sparta_Store.user.dto.response;
 
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.user.entity.User;
