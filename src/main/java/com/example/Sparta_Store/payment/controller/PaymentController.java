@@ -22,10 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    @Value("${TOSS_SECRET_KEY}")
-    private String SECRET_KEY;
-    @Value("${TOSS_CLIENT_KEY}")
-    private String CLIENT_KEY;
+    @Value("${toss-payments.api.client-key}")
+    private String clientKey;
     private final PaymentService paymentService;
     private final OrderService orderService;
     private final CartService cartService;
@@ -50,7 +48,7 @@ public class PaymentController {
         }
         // 결제 정보 불러오기
         orderService.getPaymentInfo(model, userId, orderId);
-        model.addAttribute("clientKey", CLIENT_KEY);
+        model.addAttribute("clientKey", clientKey);
 
         return "payment/checkout";
     }
@@ -77,7 +75,8 @@ public class PaymentController {
 
             JSONObject jsonResponse = new JSONObject();
             jsonResponse.put("message", "에러 발생");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jsonResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(jsonResponse);
         }
 
         // Payment approvedAt, method 저장
@@ -88,7 +87,8 @@ public class PaymentController {
         log.info("CartItem 초기화 완료");
         log.info("결제 승인 완료");
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 
     // ------- 수정 전 ----------

@@ -11,16 +11,6 @@ import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
 import com.example.Sparta_Store.user.repository.UserRepository;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -31,6 +21,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,8 +44,8 @@ public class PaymentService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final AdminOrderService adminOrderService;
 
-    @Value("${TOSS_SECRET_KEY}")
-    private String SECRET_KEY;
+    @Value("${toss-payments.api.secret-key}")
+    private String secretKey;
 
     // 결제전, 주문상태 확인
     public boolean checkStatus(String orderId) {
@@ -79,7 +76,7 @@ public class PaymentService {
 
         // 결제 승인 API 호출
         log.info("결제 승인 API 호출");
-        JSONObject response = confirmPaymentTossAPI(SECRET_KEY, jsonBody);
+        JSONObject response = confirmPaymentTossAPI(secretKey, jsonBody);
 
         if(response.containsKey("error")) { // 승인 실패 CASE
             log.info("결제 승인 API 에러 발생");
