@@ -62,7 +62,7 @@
   const orderId = [[${orderId}]];
   // 회원 결제
   // @docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
-  const payment = tossPayments.payment({
+  const payment = tossPayments.payment({ // 결제창 초기화
     customerKey,
   });
 
@@ -85,7 +85,7 @@
           customerName: [[${customerName}]],
           card: {
             useEscrow: false,
-            flowMode: "DEFAULT",
+            flowMode: "DEFAULT", // 카드/간편결제 통합결제창, DIRECT는 카드 또는 간편결제의 자체창
             useCardPoint: false,
             useAppCardOnly: false,
           },
