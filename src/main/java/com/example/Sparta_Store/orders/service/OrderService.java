@@ -13,7 +13,7 @@ import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.orders.dto.request.OrderRequestDto;
+import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
@@ -50,7 +50,7 @@ public class OrderService {
      * 주문서 페이지 -> 주문 생성 (결제전)
      */
     @Transactional
-    public void checkoutOrder(Long userId, OrderRequestDto requestDto) {
+    public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
         User user = userRepository.findById(userId).orElseThrow(
             () -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")
         );
@@ -78,6 +78,8 @@ public class OrderService {
         // orderItem 엔티티 생성 호출
         createOrderItem(orderId, cartItemList);
         log.info("OrderItem 생성 완료");
+
+        return orderId;
     }
 
     public void getPaymentInfo(Model model, Long userId, String orderId) {
@@ -92,7 +94,7 @@ public class OrderService {
         );
 
         if(!order.getUser().equals(user)) {
-            throw new IllegalArgumentException("잘못된 접근입니다.");
+            throw new IllegalArgumentException("유저 정보가 일치하지 않습니다.");
         }
 
         // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가

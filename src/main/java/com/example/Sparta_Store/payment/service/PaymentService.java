@@ -28,6 +28,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,12 +47,54 @@ public class PaymentService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final AdminOrderService adminOrderService;
 
+    @Value("${TOSS_SECRET_KEY}")
+    private String SECRET_KEY;
+
     // 결제전, 주문상태 확인
-    public boolean checkStatus(String orderId) {
+    public boolean checkBeforePayment(String orderId) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
         );
         return order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT);
+    }
+
+    // 결제 승인
+    @Transactional
+    public JSONObject confirmPayment(Long userId, String jsonBody) throws Exception {
+        JSONParser parser = new JSONParser();
+        JSONObject jsonObject = (JSONObject) parser.parse(jsonBody);
+
+        String paymentKey = (String) jsonObject.get("paymentKey");
+        String orderId = (String) jsonObject.get("orderId");
+        long amount = Long.parseLong((String) jsonObject.get("amount"));
+
+        // 데이터 검증
+        checkData(userId, orderId, amount);
+
+        if (!checkBeforePayment(orderId)) {
+            String errorMessage = "주문 상태가 'BEFORE_PAYMENT' 이어야 합니다. ";
+            throw new RuntimeException(errorMessage);
+        }
+
+        // 상품 재고 감소 및 주문 CONFIRMED 상태 변경
+        checkout(orderId); // TODO 상태변경 CONFIRM
+
+        // Payment 엔티티 생성
+        createPayment(jsonObject);
+
+        // 결제 승인 API 호출
+        log.info("결제 승인 API 호출");
+        JSONObject response = confirmPaymentTossAPI(SECRET_KEY, jsonBody);
+
+        if(response.containsKey("error")) { // 승인 실패 CASE
+            log.info("결제 승인 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
+            adminOrderService.orderCancelled(orderId);
+            updateAborted(paymentKey);
+
+            throw new RuntimeException(response.get("message").toString());
+        }
+
+        return response;
     }
 
     // Payment 엔티티 생성
@@ -81,9 +124,11 @@ public class PaymentService {
         if(!order.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("유저 정보가 일치하지 않습니다.");
         }
+        // 쿼리 파라미터의 amount 값이 메서드 파라미터로 설정한 amount와 같은지 반드시 확인
         if(order.getTotalPrice() != amount) {
             throw new IllegalArgumentException("결제 금액이 변동되었습니다.");
         }
+        log.info("데이터 검증 완료");
     }
 
     // 상품 재고 감소 및 order 상태 변경
