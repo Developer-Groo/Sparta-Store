@@ -67,7 +67,7 @@ public class PaymentService {
         }
 
         // 상품 재고 감소 및 주문 CONFIRMED 상태 변경
-        orderService.checkoutOrder(orderId); //
+        orderService.completeOrder(orderId); //
 
         // Payment 엔티티 생성
         createPayment(jsonObject);
