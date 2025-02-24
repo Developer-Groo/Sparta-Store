@@ -42,6 +42,7 @@ public class CartRedisService {
     private String getCartKey(Long userId) {
         return "cart:" + userId;
     }
+
     private String getCartItemKey(Long cartId) {
         return "cartItem:" + cartId;
     }
@@ -55,12 +56,14 @@ public class CartRedisService {
         String cartKey = getCartKey(userId);
 
         Cart cart = redisService.getObject(cartKey, Cart.class);
+
         if (cart.getId() == null) {
            cart = cartRepository.saveAndFlush(new Cart(user));
         }
 
         String cartItemKey = getCartItemKey(cart.getId());
         CartItem cartItem = redisService.getObject(cartItemKey, CartItem.class);
+
         if (cartItem.getId() == null) {
            cartItem = cartItemRepository.saveAndFlush(new CartItem(cart, item, 0));
         }
@@ -81,6 +84,7 @@ public class CartRedisService {
         String cartKey = getCartKey(userId);
 
         Cart cart = redisService.getObject(cartKey, Cart.class);
+
         if (cart.getId() == null) {
           throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
         }
@@ -114,11 +118,14 @@ public class CartRedisService {
         if (cart.getId() == null) {
             throw  new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
+
         String cartItemKey = getCartItemKey(cart.getId());
         CartItem cartItem = redisService.getObject(cartItemKey, CartItem.class);
+
         if (cartItem.getId() == null) {
             throw new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
+
         if (requestDto.quantity() < 1) {
             throw new CustomException(CartErrorCode.PRODUCT_QUANTITY_TOO_LOW);
         }
@@ -127,6 +134,4 @@ public class CartRedisService {
 
         return CartItemResponseDto.toDto(cartItem);
     }
-
-
 }

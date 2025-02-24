@@ -37,6 +37,7 @@ public class CartItem extends TimestampedEntity{
         this.item = item;
         this.quantity = quantity;
     }
+
     public void updateQuantity(Integer quantity) {
         this.quantity = quantity;
     }
