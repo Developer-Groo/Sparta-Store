@@ -51,7 +51,7 @@ public class User extends TimestampedEntity {
     private UserRoleEnum role;
 
     public User(String email, String password, String name, Address address, UserRoleEnum role) {
-
+        this.isDeleted = false;
         this.email = email;
         this.password = password;
         this.name = name;
@@ -61,11 +61,13 @@ public class User extends TimestampedEntity {
     }
 
     public User(String provider, String providerId , String name, String email, Address address , UserRoleEnum role){
+        this.isDeleted = false;
         this.provider = provider;
         this.providerId = providerId;
         this.name = name;
         this.email = email;
         this.address = address;
+        this.customerKey = UUID.randomUUID().toString();
         this.role = role;
     }
 
