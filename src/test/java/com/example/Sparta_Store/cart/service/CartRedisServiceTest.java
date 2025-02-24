@@ -12,7 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 
-//@SpringBootTest(classes = CartRedisService.class)
+@SpringBootTest(classes = CartRedisService.class)
 @AutoConfigureMockMvc
 class CartRedisServiceTest {
 

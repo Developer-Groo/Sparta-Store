@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.*;
 
-//@ExtendWith(MockitoExtension.class)
+@ExtendWith(MockitoExtension.class)
 class ReviewTest {
 
     private User user;
@@ -24,7 +24,7 @@ class ReviewTest {
         item = new Item(1L, "testItem", "img.png", 10000, "item", 100, null, null);
     }
 
-//    @Test
+    @Test
     @DisplayName("리뷰 생성 성공 - 이미지가 없을 경우 null 처리")
     void createReview_NoImage_Success() {
         // given & when
@@ -34,7 +34,7 @@ class ReviewTest {
         assertThat(review.getImgUrl()).isNull();
     }
 
-//    @Test
+    @Test
     @DisplayName("리뷰 생성 실패 - 별점이 1점 미만")
     void createReview_Fail_InvalidRating_Low() {
         // when & then
@@ -44,7 +44,7 @@ class ReviewTest {
                 .isEqualTo(ReviewErrorCode.INVALID_RATING_VALUE);
     }
 
-//    @Test
+    @Test
     @DisplayName("리뷰 생성 실패 - 별점이 5점 초과")
     void createReview_Fail_InvalidRating_High() {
         // when & then
@@ -54,7 +54,7 @@ class ReviewTest {
                 .isEqualTo(ReviewErrorCode.INVALID_RATING_VALUE);
     }
 
-//    @Test
+    @Test
     @DisplayName("리뷰 소유자 검증 성공")
     void checkOwnership_Success() {
         // given
@@ -65,7 +65,7 @@ class ReviewTest {
                 .doesNotThrowAnyException();
     }
 
-//    @Test
+    @Test
     @DisplayName("리뷰 소유자 검증 실패")
     void checkOwnership_Fail() {
         // given
