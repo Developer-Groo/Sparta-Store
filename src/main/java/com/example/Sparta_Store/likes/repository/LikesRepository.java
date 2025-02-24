@@ -19,4 +19,8 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
     @Query("SELECT COUNT(l) FROM Likes l WHERE l.item.id = :itemId ")
     Long countByItemId(@Param("itemId") Long itemId);
 
+    @Query("SELECT DISTINCT l.item.id FROM Likes l")
+    List<Long> findDistinctItemIds();
+
+
 }
