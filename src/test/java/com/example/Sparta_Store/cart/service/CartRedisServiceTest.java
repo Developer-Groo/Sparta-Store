@@ -108,7 +108,7 @@ class CartRedisServiceTest {
         assertThatThrownBy(() -> cartRedisService.cartAddition(requestDto, 1L))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
+                .isEqualTo(CartErrorCode.PRODUCT_NOT_FOUND);
     }
 
     @Test
@@ -129,13 +129,14 @@ class CartRedisServiceTest {
     @DisplayName("장바구니 조회 실패 - 존재하지않은 장바구니")
     void shoppingCartList_Fall_NotFound() {
         // given
+        Cart emptyCart = new Cart(null, user, new ArrayList<>());
         given(redisService.getObject(anyString(), eq(Cart.class)))
-                .willReturn(null);
+                .willReturn(emptyCart);
         // when & then
         assertThatThrownBy(() -> cartRedisService.shoppingCartList(1L))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartErrorCode.NOT_EXISTS_CART);
+                .isEqualTo(CartErrorCode.NOT_EXISTS_USER);
     }
 
     @Test
@@ -154,13 +155,14 @@ class CartRedisServiceTest {
     @DisplayName("장바구니 상품 삭제 실패 - 장바구니가 없음")
     void cartItemRemove_Fall_NotFound() {
         // given
+        Cart emptyCart = new Cart(null, user, new ArrayList<>());
         given(redisService.getObject(anyString(), eq(Cart.class)))
-                .willReturn(null);
+                .willReturn(emptyCart);
         // when & then
         assertThatThrownBy(() -> cartRedisService.cartItemRemove(1L, 1L))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartErrorCode.NOT_EXISTS_CART);
+                .isEqualTo(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
     }
 
     @Test
@@ -184,14 +186,15 @@ class CartRedisServiceTest {
     void cartItemUpdate_Fall_NotFound() {
         // given
         CartItemUpdateRequestDto requestDto = new CartItemUpdateRequestDto(1L, 3);
+        CartItem emptyCartItem = new CartItem(null, cart, null , 0);
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(cart);
         given(redisService.getObject(anyString(), eq(CartItem.class)))
-                .willReturn(null);
+                .willReturn(emptyCartItem);
         // when & then
         assertThatThrownBy(() -> cartRedisService.cartItemUpdate(1L, requestDto, 1L))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
-                .isEqualTo(CartErrorCode.PRODUCT_NOT_FOUND);
+                .isEqualTo(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
     }
 }

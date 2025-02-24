@@ -3,8 +3,8 @@ package com.example.Sparta_Store.cart.entity;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.user.entity.User;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @Getter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(/*access = AccessLevel.PROTECTED*/)
 @AllArgsConstructor
 public class Cart extends TimestampedEntity {
 
@@ -28,6 +28,7 @@ public class Cart extends TimestampedEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> cartItems = new ArrayList<>();
 

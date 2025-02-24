@@ -3,15 +3,15 @@ package com.example.Sparta_Store.cart.dto.response;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cartItem.dto.response.CartItemResponseDto;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.domain.Page;
 
-import java.util.Collection;
 import java.util.List;
 
 public record CartResponseDto(
         Long cartId,
         Long userId,
-        Page<CartItemResponseDto> cartItems,
+        @JsonIgnore Page<CartItemResponseDto> cartItems,
         List<CartItemResponseDto> cartItemList
 
 ) {
