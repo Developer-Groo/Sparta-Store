@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.orders.controller;
 
-import com.example.Sparta_Store.OrderItem.dto.response.OrderItemResponseDto;
+import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
+import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.service.OrderService;
@@ -28,15 +29,14 @@ public class OrderController {
     private final OrderService orderService;
 
     /**
-     * 주문 생성 API
-     * - 장바구니에서 '결제하기'를 누르면 동작
+     * 주문서 페이지
      */
     @PostMapping("/checkout")
-    public ResponseEntity<Map<String,String>> createOrder(HttpServletRequest request) {
+    public String checkoutOrder(HttpServletRequest request, @RequestBody(required = false) CreateOrderRequestDto requestDto) {
         Long userId = (Long) request.getAttribute("id");
 
-        orderService.checkoutCart(userId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "상품 주문이 완료되었습니다."));
+        String orderId = orderService.checkoutOrder(userId, requestDto);
+        return "redirect:/payments/checkout/" + orderId; // 프론트
     }
 
     /**
@@ -45,7 +45,7 @@ public class OrderController {
     @PatchMapping("/status/{orderId}")
     public ResponseEntity<Map<String,String>> updateOrderStatus(
         HttpServletRequest request,
-        @PathVariable("orderId") Long orderId,
+        @PathVariable("orderId") String orderId,
         @Valid @RequestBody UpdateOrderStatusDto requestDto
     ) {
         Long userId = (Long) request.getAttribute("id");
@@ -71,7 +71,7 @@ public class OrderController {
     public ResponseEntity<PageResult<OrderItemResponseDto>> getOrderDetail(
         HttpServletRequest request,
         PageQuery pageQuery,
-        @PathVariable("orderId") Long orderId
+        @PathVariable("orderId") String orderId
     ) {
         Long userId = (Long) request.getAttribute("id");
 

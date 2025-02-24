@@ -1,12 +1,15 @@
 package com.example.Sparta_Store.review.service;
 
-import com.example.Sparta_Store.OrderItem.entity.OrderItem;
-import com.example.Sparta_Store.OrderItem.repository.OrderItemRepository;
+import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
+import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
+import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.review.dto.response.ReviewResponseDto;
 import com.example.Sparta_Store.review.entity.Review;
+import com.example.Sparta_Store.review.exception.ReviewErrorCode;
 import com.example.Sparta_Store.review.repository.ReviewRepository;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -38,9 +41,13 @@ public class ReviewService {
             int rating
     ) {
         OrderItem orderItem = orderItemRepository.findOrderItemWithUserAndItem(userId, itemId)
-                .orElseThrow(() -> new IllegalArgumentException("구매한 상품만 리뷰를 작성할 수 있습니다."));
+                .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_PURCHASED));
 
-        User user = orderItem.getOrders().getUser();
+        if (orderItem.getOrders().getOrderStatus() != OrderStatus.CONFIRMED) {
+            throw new CustomException(ReviewErrorCode.REVIEW_NOT_CONFIRMED);
+        }
+
+        Users user = orderItem.getOrders().getUser();
         Item item = orderItem.getItem();
 
         Review savedReview = reviewRepository.save(
@@ -58,7 +65,7 @@ public class ReviewService {
             int rating
     ) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
         review.checkOwnership(requestUserId);
         review.updateReview(content, imgUrl, rating);
@@ -68,7 +75,7 @@ public class ReviewService {
     @Transactional
     public void deleteReview(Long requestUserId, Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
 
         review.checkOwnership(requestUserId);
         reviewRepository.delete(review);

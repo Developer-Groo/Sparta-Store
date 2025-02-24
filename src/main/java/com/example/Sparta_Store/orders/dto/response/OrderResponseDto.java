@@ -5,8 +5,8 @@ import com.example.Sparta_Store.orders.entity.Orders;
 import java.time.LocalDateTime;
 
 public record OrderResponseDto(
-    Long orderId,
-    int totalPrice,
+    String orderId,
+    long totalPrice,
     OrderStatus orderStatus,
     LocalDateTime createdAt
 ) {

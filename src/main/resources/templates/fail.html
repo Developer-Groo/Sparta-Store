@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="kr">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="https://static.toss.im/icons/png/4x/icon-toss-logo.png" />
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스파르타스토어 토스페이먼츠 결제</title>
+</head>
+
+<body>
+<div id="info" class="box_section" style="width: 600px">
+  <img width="100px" src="https://static.toss.im/lotties/error-spot-no-loop-space-apng.png" />
+  <h2>결제를 실패했어요</h2>
+
+  <div class="p-grid typography--p" style="margin-top: 50px">
+    <div class="p-grid-col text--left"><b>에러메시지</b></div>
+    <div class="p-grid-col text--right" id="message"></div>
+  </div>
+</div>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const messageElement = document.getElementById("message");
+  // URL 파라미터에서 message 값을 읽어와 표시
+  const errorMessage = urlParams.get("message") || "결제가 완료된 주문이거나, 결제를 할 수 없는 주문입니다.";
+  messageElement.textContent = errorMessage;
+</script>
+</body>
+</html>

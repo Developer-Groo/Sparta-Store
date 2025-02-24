@@ -12,7 +12,7 @@ import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,7 +40,7 @@ public class CartService {
         //TODO userId값 임시고정 추후 삭제예정!!
         Long userId = 1L;
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
+        Users user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
 
         Item item = itemRepository.findById(responseDto.itemId()).orElseThrow(() -> new CustomException(CartErrorCode.PRODUCT_NOT_FOUND));
 
@@ -75,13 +75,13 @@ public class CartService {
      * 장바구니 조회
      */
     @Transactional(readOnly = true)
-    public CartResponseDto getCart(Long userId, Pageable pageQuery) {
+    public CartResponseDto getCart(Long userId, Pageable pageable) {
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
+        Users user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
 
         Cart cart = cartRepository.findByUser(user).orElse(new Cart(user));
 
-        Page<CartItem> cartItems = cartItemRepository.findByCart(cart, pageQuery);
+        Page<CartItem> cartItems = cartItemRepository.findByCart(cart, pageable);
 
         return CartResponseDto.toDto(cart, cartItems);
     }
@@ -117,8 +117,11 @@ public class CartService {
 
     // 카트 초기화
     @Transactional
-    public void deleteCartItem(List<CartItem> cartItemList) {
-
+    public void deleteCartItem(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_CART));
+        List<CartItem> cartItemList = cartItemRepository.findByCartId(
+            cart.getId()).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT)
+        );
         cartItemList.stream()
                 .forEach(cartItem -> cartItemRepository.delete(cartItem));
     }

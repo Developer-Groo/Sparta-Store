@@ -1,8 +1,10 @@
 package com.example.Sparta_Store.review.entity;
 
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
+import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.review.exception.ReviewErrorCode;
+import com.example.Sparta_Store.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +21,7 @@ public class Review extends TimestampedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
@@ -34,7 +36,7 @@ public class Review extends TimestampedEntity {
     private int rating;
 
     private Review(
-            User user,
+            Users user,
             Item item,
             String content,
             String imgUrl,
@@ -48,7 +50,7 @@ public class Review extends TimestampedEntity {
     }
 
     public static Review toEntity(
-            User user,
+            Users user,
             Item item,
             String content,
             String imgUrl,
@@ -68,7 +70,7 @@ public class Review extends TimestampedEntity {
      */
     public void checkOwnership(Long userId) {
         if (!this.user.getId().equals(userId)) {
-            throw new IllegalArgumentException("리뷰를 수정할 권한이 없습니다.");
+            throw new CustomException(ReviewErrorCode.REVIEW_UPDATE_FORBIDDEN);
         }
     }
 
@@ -80,7 +82,7 @@ public class Review extends TimestampedEntity {
 
     private void updateRating(int rating) {
         if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("별점은 1~5 사이의 정수여야 합니다.");
+            throw new CustomException(ReviewErrorCode.INVALID_RATING_VALUE);
         }
         this.rating = rating;
     }

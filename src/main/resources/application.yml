@@ -1,11 +1,31 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect_uri: http://localhost:8080/login/oauth2/code/google
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
   jpa:
     hibernate:
       ddl-auto: create
-      properties:
+    properties:
       hibernate:
         show_sql: true
         format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   datasource:
     url: jdbc:mysql://localhost:3306/SpartaStore
@@ -13,6 +33,16 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: ${DB_PASSWORD}
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false  # LocalDateTime을 ISO-8601 문자열로 변환
+    date-format: yyyy-MM-dd HH:mm:ss  # 기본 날짜 형식 지정
+    time-zone: Asia/Seoul  # 한국 시간대 적용
 jwt:
   secret:
-    key: SWZ0aGlzZ2V0c3N0b2xlbml0c2FiaWdwcm9ibGVtSWZ0aGVsZW5ndGhpc3Rvb3Nob3J0dGhlc2VjdXJpdHlpc25vdHN1ZmZpY2llbnRzb2FuZXJyb3JvY2N1cnNxcHF3bWZwcXdjPS0xMjM5MTI1OThxc2Fjbm1hcHNrbWRtcXdwbWRwbHhtcXdwcnBzb21iMTAyLTk1bDtrYWR2a21hc2xrbmQ=
+    key: ${JWT_SECRET_KEY}
+
+toss-payments:
+  api:
+    secret-key: ${TOSS_SECRET_KEY}
+    client-key: ${TOSS_CLIENT_KEY}

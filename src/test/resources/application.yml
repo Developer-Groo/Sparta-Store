@@ -1,0 +1,46 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+    import: optional:file:.env[.properties]
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect_uri: http://localhost:8080/login/oauth2/code/google
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
+  datasource:
+    url: jdbc:h2:mem:test  # H2 인메모리 DB
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+jwt:
+  secret:
+   key: ${JWT_SECRET_KEY}
+
+toss-payments:
+  api:
+    secret-key: ${TOSS_SECRET_KEY}
+    client-key: ${TOSS_CLIENT_KEY}
