@@ -261,4 +261,21 @@ public class OrderService {
         return PageResult.from(orderItemList);
     }
 
+    // 상품 재고 감소 및 order 상태 변경
+    @Transactional
+    public void checkoutOrder(String orderId) {
+        Orders order = ordersRepository.findById(orderId).orElseThrow(
+            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+        );
+        // 상품 재고 감소
+        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order).orElseThrow(
+            () -> new IllegalArgumentException("주문 상품 정보를 찾을 수 없습니다.")
+        );
+        itemService.decreaseStock(orderItemList);
+        // 주문상태 변경
+        order.updateOrderStatus(OrderStatus.CONFIRMED);
+
+        log.info("상품 재고 감소 및 order 상태 변경 완료");
+    }
+
 }
