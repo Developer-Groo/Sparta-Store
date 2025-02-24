@@ -11,7 +11,8 @@ import java.util.List;
 public record CartResponseDto(
         Long cartId,
         Long userId,
-        @JsonIgnore Page<CartItemResponseDto> cartItems,
+        @JsonIgnore
+        Page<CartItemResponseDto> cartItems,
         List<CartItemResponseDto> cartItemList
 
 ) {
