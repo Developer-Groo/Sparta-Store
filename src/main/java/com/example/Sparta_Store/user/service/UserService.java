@@ -6,7 +6,7 @@ import com.example.Sparta_Store.config.PasswordEncoder;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.user.dto.response.CreateUserResponseDto;
 import com.example.Sparta_Store.user.dto.response.UserResponseDto;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class UserService {
             throw new RuntimeException("이미 존재하는 이메일 입니다.");
         }
 
-        User user = new User(
+        Users user = new Users(
                 email,
                 encodePassword,
                 name,
@@ -38,7 +38,7 @@ public class UserService {
                 UserRoleEnum.USER
         );
 
-        User saveUser = userRepository.save(user);
+        Users saveUser = userRepository.save(user);
 
         return CreateUserResponseDto.toDto(saveUser);
 
@@ -52,7 +52,7 @@ public class UserService {
             AddressDto address
     ) { // 유저 아이디, 네임 , 주소를 인자로 받음
 
-        User user = userRepository.findById(userId) // 아이디를 조회
+        Users user = userRepository.findById(userId) // 아이디를 조회
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다.")); // 없으면 예외처리
 
         Address newAddress = (address != null)
@@ -72,7 +72,7 @@ public class UserService {
             String newPassword
     ) { // 유저 아이디 , 현재 비밀번호 , 바뀔 비밀번호
 
-        User user = userRepository.findById(userId) // 바꿀 아이디 조회
+        Users user = userRepository.findById(userId) // 바꿀 아이디 조회
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다.")); // 아이디가 없는 경우 예외처리
 
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) { //현재 비밀번호와 지금 비밀번호가 다를 경우
@@ -87,7 +87,7 @@ public class UserService {
     // 회원 탈퇴 (비밀번호 검증 후 isDeleted 변경)
     @Transactional
     public UserResponseDto deleteUser(Long userId, String rawPassword) { // 유저 아이디, 현재 비밀번호
-        User user = userRepository.findById(userId) // 삭제할 아이디 조회
+        Users user = userRepository.findById(userId) // 삭제할 아이디 조회
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다.")); // 예외처리
 
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) { // 삭제할 아이디에대한 비밀번호가 불일치 할 경우

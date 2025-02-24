@@ -13,6 +13,7 @@ import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.redis.RedisService;
 import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +58,7 @@ class CartRedisServiceTest {
     @Mock
     private CartItemRepository cartItemRepository;
 
-    private User user;
+    private Users user;
     private Item item;
     private Cart cart;
     private CartItem cartItem;
@@ -65,7 +66,7 @@ class CartRedisServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = new User("test@test.kr","password", "테스트", null , null);
+        user = new Users("test@test.kr","password", "테스트", null , null);
         item = new Item(1L, "상품1", "img.jpa", 1000, null,null,
                 null, null);
         cartItems = new ArrayList<>();

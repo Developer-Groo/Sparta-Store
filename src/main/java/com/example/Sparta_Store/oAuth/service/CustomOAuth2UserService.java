@@ -4,7 +4,7 @@ import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.oAuth.model.GoogleUser;
 import com.example.Sparta_Store.oAuth.model.ProviderUser;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         // 회원 가입
         if (userRepository.findByProviderAndProviderId(provider,providerId) == null) {
-            User user = new User (
+            Users user = new Users (
                     provider,
                     providerId,
                     name,

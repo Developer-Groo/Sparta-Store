@@ -1,7 +1,5 @@
 package com.example.Sparta_Store.orders.service;
 
-import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
-
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.repository.CartRepository;
@@ -19,12 +17,10 @@ import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +28,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 @Slf4j(topic = "OrderService")
 @Service
@@ -51,7 +52,7 @@ public class OrderService {
      */
     @Transactional
     public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
-        User user = userRepository.findById(userId).orElseThrow(
+        Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
 
@@ -85,7 +86,7 @@ public class OrderService {
     public void getPaymentInfo(Model model, Long userId, String orderId) {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
         // 주문서를 작성한 후, 로그인 정보가 바뀌었을 상황 대비
-        User user = userRepository.findById(userId).orElseThrow(
+        Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
 
@@ -127,7 +128,7 @@ public class OrderService {
     // orders 생성
     @Transactional
     public String createOrder(Long userId, long totalPrice, Address address) {
-        User user = userRepository.findById(userId).orElseThrow(
+        Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
 

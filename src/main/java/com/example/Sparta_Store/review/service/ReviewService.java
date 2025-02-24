@@ -1,15 +1,15 @@
 package com.example.Sparta_Store.review.service;
 
 import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
-import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.review.dto.response.ReviewResponseDto;
 import com.example.Sparta_Store.review.entity.Review;
 import com.example.Sparta_Store.review.exception.ReviewErrorCode;
 import com.example.Sparta_Store.review.repository.ReviewRepository;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +47,7 @@ public class ReviewService {
             throw new CustomException(ReviewErrorCode.REVIEW_NOT_CONFIRMED);
         }
 
-        User user = orderItem.getOrders().getUser();
+        Users user = orderItem.getOrders().getUser();
         Item item = orderItem.getItem();
 
         Review savedReview = reviewRepository.save(
