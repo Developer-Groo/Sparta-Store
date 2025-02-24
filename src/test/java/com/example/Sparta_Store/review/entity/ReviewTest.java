@@ -4,7 +4,6 @@ import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.review.exception.ReviewErrorCode;
-import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.entity.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

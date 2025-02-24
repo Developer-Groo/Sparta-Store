@@ -11,7 +11,6 @@ import com.example.Sparta_Store.review.dto.response.ReviewResponseDto;
 import com.example.Sparta_Store.review.entity.Review;
 import com.example.Sparta_Store.review.exception.ReviewErrorCode;
 import com.example.Sparta_Store.review.repository.ReviewRepository;
-import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.entity.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

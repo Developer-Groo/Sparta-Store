@@ -7,7 +7,6 @@ import com.example.Sparta_Store.likes.dto.response.LikeResponseDto;
 import com.example.Sparta_Store.likes.entity.Likes;
 import com.example.Sparta_Store.likes.exception.LikesErrorCode;
 import com.example.Sparta_Store.likes.repository.LikesRepository;
-import com.example.Sparta_Store.user.entity.User;
 import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
