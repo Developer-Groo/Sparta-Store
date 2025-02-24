@@ -37,17 +37,13 @@ public class JwtUtil {
             .getBody();
     }
 
-    public String generateToken(String email,String name,Long id) {
+    public String generateToken(String email,UserRoleEnum role,Long id) {
         Date date = new Date();
-
-        if (id == 1) {
-            name = "ROLE_ADMIN"; // 스프링시큐리티를 사용하기위해 ROLE_ADMIN 으로 변경했습니다.
-        }
 
         return BEARER_PREFIX +
             Jwts.builder()
                 .setSubject(email) // 사용자 식별자 (ID)
-                .claim("name" , name)
+                .claim("role" , role)
                 .claim("id",id)
                 .setExpiration(new Date(date.getTime() + TOKEN_TIME)) // 만료 시간 설정
                 .setIssuedAt(date) // 발급 시간 설정
@@ -55,17 +51,21 @@ public class JwtUtil {
                 .compact(); // JWT 토큰 생성
     }
 
-    public String extractNames(String token) {
-        return extractAllClaims(token).get("name", String.class);
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    public String extractEmail(String token) {
+        return extractAllClaims(token).getSubject();
     }
 
     public Long extractId(String token) {
         return extractAllClaims(token).get("id", Long.class);
     }
 
-    public boolean hasName(String token, String name) {
-        String names = extractNames(token);
-        return names.contains(name);
+    public boolean hasRole(String token, String role) {
+        String roles = extractRole(token);
+        return roles.contains(role);
     }
 
     public boolean validateToken(String token) {

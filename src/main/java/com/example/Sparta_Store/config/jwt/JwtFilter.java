@@ -7,8 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
@@ -31,12 +31,16 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
+        String email = null;
         String jwt = null;
 
-        String authorizationHeader = request.getHeader("Authorization");
-
         // 회원가입 및 로그인시 토큰없어도 실행 가능
-        if(requestURI.equals("/login") || requestURI.equals("/users/signUp")) {
+
+         if( requestURI.equals("/login") ||
+             requestURI.equals("/users/signUp") ||
+             requestURI.equals("/users/login") ||
+             requestURI.equals("/users/main")
+         ) {
             filterChain.doFilter(request,response);
             return;
         }
@@ -46,9 +50,15 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (requestURI.endsWith(".css")) {
+            // CSS 파일 요청인 경우 필터 처리를 건너뜁니다.
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String authorizationHeader = request.getHeader("Authorization");
 
         // JWT 토큰 검증
-
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             log.info("JWT 토큰이 필요 합니다.");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT 토큰이 필요 합니다.");
@@ -63,16 +73,19 @@ public class JwtFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"error\": \"Unauthorized\"}");
         }
 
-        String auth = jwtUtil.extractNames(jwt);
+        request.setAttribute("id",jwtUtil.extractId(jwt));
 
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(auth));
+        email = jwtUtil.extractEmail(jwt);
 
-        User user = new User(auth, "", authorities);
+        String auth = jwtUtil.extractRole(jwt);
+        UserRoleEnum userRole = UserRoleEnum.valueOf(auth);
+        User user = new User(email,"", List.of(userRole::getRole));
 
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
 
-        Long id = jwtUtil.extractId(jwt);
-        request.setAttribute("id", id);
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
 
         filterChain.doFilter(request, response);
     }
