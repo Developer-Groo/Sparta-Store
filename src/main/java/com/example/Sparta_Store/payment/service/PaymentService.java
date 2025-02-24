@@ -2,7 +2,6 @@ package com.example.Sparta_Store.payment.service;
 
 import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
 import com.example.Sparta_Store.item.service.ItemService;
-import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.entity.Orders;
@@ -20,7 +19,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -77,7 +75,7 @@ public class PaymentService {
         }
 
         // 상품 재고 감소 및 주문 CONFIRMED 상태 변경
-        checkout(orderId); // TODO 상태변경 CONFIRM
+        orderService.checkoutOrder(orderId); //
 
         // Payment 엔티티 생성
         createPayment(jsonObject);
@@ -129,23 +127,6 @@ public class PaymentService {
             throw new IllegalArgumentException("결제 금액이 변동되었습니다.");
         }
         log.info("데이터 검증 완료");
-    }
-
-    // 상품 재고 감소 및 order 상태 변경
-    @Transactional
-    public void checkout(String orderId) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
-        );
-        // 상품 재고 감소
-        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order).orElseThrow(
-            () -> new IllegalArgumentException("주문 상품 정보를 찾을 수 없습니다.")
-        );
-        itemService.decreaseStock(orderItemList);
-        // 주문상태 변경
-        order.updateOrderStatus(OrderStatus.CONFIRMED);
-
-        log.info("상품 재고 감소 및 order 상태 변경 완료");
     }
 
     // 승인 실패 isAborted = true
