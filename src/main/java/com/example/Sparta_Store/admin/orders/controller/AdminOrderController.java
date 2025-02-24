@@ -23,7 +23,7 @@ public class AdminOrderController {
     /**
      * 관리자 주문 상태 변경
      */
-    @PatchMapping("status/{orderId}")
+    @PatchMapping("/status/{orderId}")
     public ResponseEntity<Map<String, String>> updateOrderStatus(
         @PathVariable("orderId") String orderId,
         @Valid @RequestBody UpdateOrderStatusDto requestDto
