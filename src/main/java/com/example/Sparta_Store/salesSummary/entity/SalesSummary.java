@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SalesSummary extends TimestampedEntity {
 
     @Id
@@ -23,7 +23,7 @@ public class SalesSummary extends TimestampedEntity {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    private int totalSales;
+    private Integer totalSales;
 
     private SalesSummary(int totalSales) {
         this.totalSales = totalSales;

@@ -38,7 +38,7 @@ public class User extends TimestampedEntity {
     private Address address;
 
     @Column(nullable = false)
-    private boolean isDeleted;
+    private Boolean isDeleted;
 
     @Column(unique = true)
     private String providerId;

@@ -3,6 +3,7 @@ package com.example.Sparta_Store.item.entity;
 import com.example.Sparta_Store.category.entity.Category;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.salesSummary.entity.SalesSummary;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -11,8 +12,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Item extends TimestampedEntity {
 
     @Id
@@ -27,13 +29,13 @@ public class Item extends TimestampedEntity {
     private String imgUrl;
 
     @Column(nullable = false)
-    private int price;
+    private Integer price;
 
     @Column(nullable = false)
     private String description;
 
     @Column(nullable = false)
-    private int stockQuantity;
+    private Integer stockQuantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
