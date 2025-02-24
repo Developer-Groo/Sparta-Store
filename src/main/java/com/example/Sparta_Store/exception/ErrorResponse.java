@@ -26,7 +26,6 @@ public class ErrorResponse {
                                 .build()
                 );
     }
-
     public static ResponseEntity<ErrorResponse> toResponseEntity(HttpStatus status, String message) {
         return ResponseEntity
                 .status(status)

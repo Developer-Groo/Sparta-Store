@@ -15,7 +15,6 @@ public class GlobalExceptionHandler {
         return ErrorResponse
                 .toResponseEntity(ex.getErrorCode());
     }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
         log.error(ex.getMessage(), ex);
