@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartRedisService cartRedisService;
-
     /**
      * 장바구니 담기
      */
@@ -28,7 +27,6 @@ public class CartController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(cart);
     }
-
     /**
      * 장바구니 조회
      */
@@ -39,7 +37,6 @@ public class CartController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(cartResponse);
     }
-
     /**
      * 장바구니 상품 삭제
      */
@@ -50,7 +47,6 @@ public class CartController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body("장바구니에 상품이 삭제 되었습니다.");
     }
-
     /**
      * 장바구니 상품 수량 변경
      */

@@ -14,9 +14,7 @@ public record CartResponseDto(
         @JsonIgnore
         Page<CartItemResponseDto> cartItems,
         List<CartItemResponseDto> cartItemList
-
 ) {
-
     // 장바구니 조회 시 사용
     public static CartResponseDto toDto(Cart cart, Page<CartItem> cartItems) {
         return new CartResponseDto(
@@ -26,7 +24,6 @@ public record CartResponseDto(
                 null
         );
     }
-
     // 장바구니 생성 시 사용
     public static CartResponseDto toDto(Cart cart, List<CartItem> cartItemList) {
         return new CartResponseDto(
@@ -36,5 +33,4 @@ public record CartResponseDto(
                 cartItemList.stream().map(CartItemResponseDto::toDto).toList()
         );
     }
-
 }

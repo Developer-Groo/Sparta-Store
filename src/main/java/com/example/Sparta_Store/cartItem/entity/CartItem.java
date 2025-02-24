@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,13 +32,11 @@ public class CartItem extends TimestampedEntity{
 
     private Integer quantity;
 
-
     public CartItem(Cart cart, Item item, Integer quantity) {
         this.cart = cart;
         this.item = item;
         this.quantity = quantity;
     }
-
     public void updateQuantity(Integer quantity) {
         this.quantity = quantity;
     }

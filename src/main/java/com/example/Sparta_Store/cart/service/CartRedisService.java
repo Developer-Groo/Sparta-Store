@@ -39,11 +39,9 @@ public class CartRedisService {
     private final RedisService redisService;
     private final ZSetOperations<String, Object> zSetOperations;
 
-
     private String getCartKey(Long userId) {
         return "cart:" + userId;
     }
-
     private String getCartItemKey(Long cartId) {
         return "cartItem:" + cartId;
     }
@@ -77,7 +75,6 @@ public class CartRedisService {
         redisTemplate.expire(cartItemKey, Duration.ofDays(1));
 
         return CartResponseDto.toDto(cart, List.of(cartItem));
-
     }
 
     public CartResponseDto shoppingCartList(Long userId) {
@@ -87,7 +84,6 @@ public class CartRedisService {
         if (cart.getId() == null) {
           throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
         }
-
         return CartResponseDto.toDto(cart, cart.getCartItems());
     }
 
@@ -113,19 +109,16 @@ public class CartRedisService {
         log.info("user Id {}", userId);
 
         String cartKey = getCartKey(userId);
-
         Cart cart = redisService.getObject(cartKey, Cart.class);
 
         if (cart.getId() == null) {
             throw  new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
-
         String cartItemKey = getCartItemKey(cart.getId());
         CartItem cartItem = redisService.getObject(cartItemKey, CartItem.class);
         if (cartItem.getId() == null) {
             throw new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
-
         if (requestDto.quantity() < 1) {
             throw new CustomException(CartErrorCode.PRODUCT_QUANTITY_TOO_LOW);
         }
