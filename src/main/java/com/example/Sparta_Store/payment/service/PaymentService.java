@@ -1,15 +1,14 @@
 package com.example.Sparta_Store.payment.service;
 
 import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
-import com.example.Sparta_Store.item.service.ItemService;
-import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
+import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.entity.Payment;
+import com.example.Sparta_Store.payment.exception.PaymentErrorCode;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
-import com.example.Sparta_Store.user.repository.UserRepository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,11 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final UserRepository userRepository;
     private final OrderService orderService;
     private final OrdersRepository ordersRepository;
-    private final OrderItemRepository orderItemRepository;
-    private final ItemService itemService;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final AdminOrderService adminOrderService;
 
@@ -51,7 +47,7 @@ public class PaymentService {
     // 결제전, 주문상태 확인
     public boolean checkBeforePayment(String orderId) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
         );
         return order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT);
     }
@@ -70,8 +66,7 @@ public class PaymentService {
         checkData(userId, orderId, amount);
 
         if (!checkBeforePayment(orderId)) {
-            String errorMessage = "주문 상태가 'BEFORE_PAYMENT' 이어야 합니다. ";
-            throw new RuntimeException(errorMessage);
+            throw new CustomException(PaymentErrorCode.MUST_BE_BEFORE_PAYMENT);
         }
 
         // 상품 재고 감소 및 주문 CONFIRMED 상태 변경
@@ -101,7 +96,7 @@ public class PaymentService {
 
         String orderId = response.get("orderId").toString();
         Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
         );
 
         Payment savedPayment = new Payment(
@@ -117,14 +112,14 @@ public class PaymentService {
     // user, orderId, amount 일치 검증
     public void checkData(Long userId, String orderId, long amount) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다.")
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
         );
         if(!order.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("유저 정보가 일치하지 않습니다.");
+            throw new CustomException(PaymentErrorCode.USER_MISMATCH);
         }
         // 쿼리 파라미터의 amount 값이 메서드 파라미터로 설정한 amount와 같은지 반드시 확인
         if(order.getTotalPrice() != amount) {
-            throw new IllegalArgumentException("결제 금액이 변동되었습니다.");
+            throw new CustomException(PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
         log.info("데이터 검증 완료");
     }
@@ -133,7 +128,7 @@ public class PaymentService {
     @Transactional
     public void updateAborted(String paymentKey) {
         Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
-            () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다.")
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
         payment.updateAborted();
         log.info("Payment({}) isAborted = {}", payment.getPaymentKey(), payment.isAborted());
@@ -147,7 +142,7 @@ public class PaymentService {
         String method = response.get("method").toString();
 
         Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
-            () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다.")
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
         payment.approvedPayment(date, method);
         log.info("Payment({}) approvedAt = {}", payment.getPaymentKey(), payment.getApprovedAt());
@@ -163,7 +158,7 @@ public class PaymentService {
         String paymentKey = response.get("paymentKey").toString();
 
         Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
-            () -> new IllegalArgumentException("결제 정보를 찾을 수 없습니다.")
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
 
         payment.updateCancelled();
