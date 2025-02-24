@@ -3,20 +3,14 @@ package com.example.Sparta_Store.orders.entity;
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.user.entity.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import java.util.UUID;
+import com.example.Sparta_Store.user.entity.Users;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -30,7 +24,7 @@ public class Orders extends TimestampedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, updatable = false)
-    private User user;
+    private Users user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status")
@@ -42,7 +36,7 @@ public class Orders extends TimestampedEntity {
     @Column(name = "address", nullable = false)
     private Address address;
 
-    public Orders(User user, long totalPrice, Address address) {
+    public Orders(Users user, long totalPrice, Address address) {
         this.id = UUID.randomUUID().toString();
         this.user = user;
         this.orderStatus = OrderStatus.BEFORE_PAYMENT;

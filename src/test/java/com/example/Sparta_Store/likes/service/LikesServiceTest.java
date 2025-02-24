@@ -8,6 +8,7 @@ import com.example.Sparta_Store.likes.entity.Likes;
 import com.example.Sparta_Store.likes.exception.LikesErrorCode;
 import com.example.Sparta_Store.likes.repository.LikesRepository;
 import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,13 +42,13 @@ class LikesServiceTest {
     @Mock
     private LikesRepository likesRepository;
 
-    private User user;
+    private Users user;
     private Item item;
     private Likes likes;
 
     @BeforeEach
     void setUp() {
-        user = new User("test@test.com", "password", "테스트1", null, null);
+        user = new Users("test@test.com", "password", "테스트1", null, null);
         item = new Item(1L, "상품2", "img.jpa", 1000, null, null, null, null);
         likes = new Likes(1L, user, item);
     }

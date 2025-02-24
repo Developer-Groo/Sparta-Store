@@ -4,7 +4,7 @@ import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.review.exception.ReviewErrorCode;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,7 +21,7 @@ public class Review extends TimestampedEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
@@ -36,7 +36,7 @@ public class Review extends TimestampedEntity {
     private int rating;
 
     private Review(
-            User user,
+            Users user,
             Item item,
             String content,
             String imgUrl,
@@ -50,7 +50,7 @@ public class Review extends TimestampedEntity {
     }
 
     public static Review toEntity(
-            User user,
+            Users user,
             Item item,
             String content,
             String imgUrl,

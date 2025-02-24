@@ -12,6 +12,7 @@ import com.example.Sparta_Store.review.entity.Review;
 import com.example.Sparta_Store.review.exception.ReviewErrorCode;
 import com.example.Sparta_Store.review.repository.ReviewRepository;
 import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,13 +39,13 @@ class ReviewServiceTest {
     @Mock
     private ReviewRepository reviewRepository;
 
-    private User user;
+    private Users user;
     private Item item;
     private OrderItem orderItem;
 
     @BeforeEach
     void setUp() {
-        user = new User(1L,"","", "test@example", "key", null, false, "providerId", "provider", UserRoleEnum.USER);
+        user = new Users(1L,"","", "test@example", "key", null, false, "providerId", "provider", UserRoleEnum.USER);
         item = new Item(1L, "testName", "www.example.com", 10000, "test", 100, null, null);
 
         Orders order = new Orders("1", user, OrderStatus.CONFIRMED, 100000L, null);

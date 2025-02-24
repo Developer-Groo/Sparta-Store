@@ -5,6 +5,7 @@ import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.review.exception.ReviewErrorCode;
 import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,12 +17,12 @@ import static org.assertj.core.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 class ReviewTest {
 
-    private User user;
+    private Users user;
     private Item item;
 
     @BeforeEach
     void setUp() {
-        user = new User(1L,"","", "test@example", "key", null, false, "providerId", "provider", UserRoleEnum.USER);
+        user = new Users(1L,"","", "test@example", "key", null, false, "providerId", "provider", UserRoleEnum.USER);
         item = new Item(1L, "testItem", "img.png", 10000, "item", 100, null, null);
     }
 

@@ -15,7 +15,7 @@ import java.util.Optional;
 import static com.example.Sparta_Store.item.entity.QItem.item;
 import static com.example.Sparta_Store.orderItem.entity.QOrderItem.orderItem;
 import static com.example.Sparta_Store.orders.entity.QOrders.orders;
-import static com.example.Sparta_Store.user.entity.QUser.user;
+import static com.example.Sparta_Store.user.entity.QUsers.users;
 
 @Repository
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
         OrderItem result = queryFactory
                 .selectFrom(orderItem)
                 .join(orderItem.orders, orders).fetchJoin()
-                .join(orders.user, user).fetchJoin()
+                .join(orders.user, users).fetchJoin()
                 .join(orderItem.item, item).fetchJoin()
                 .where(
                         orders.user.id.eq(userId),

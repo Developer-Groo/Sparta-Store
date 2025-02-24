@@ -7,7 +7,7 @@ import com.example.Sparta_Store.likes.dto.response.LikeResponseDto;
 import com.example.Sparta_Store.likes.entity.Likes;
 import com.example.Sparta_Store.likes.exception.LikesErrorCode;
 import com.example.Sparta_Store.likes.repository.LikesRepository;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class LikesService {
     private final ItemRepository itemRepository;
 
     public void addLike(Long itemId, Long userId) {
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
@@ -39,7 +39,7 @@ public class LikesService {
     // 찜 목록
     public List<LikeResponseDto> getLikeList(Long userId) {
 
-        User user = userRepository.findById(userId).
+        Users user = userRepository.findById(userId).
                 orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
 
         List<Likes> likeList = likesRepository.findAllByUser(user);
@@ -56,7 +56,7 @@ public class LikesService {
     // 찜 취소
     @Transactional
     public void removeLike(Long itemId, Long userId) {
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));

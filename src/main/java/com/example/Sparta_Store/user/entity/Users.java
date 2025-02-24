@@ -15,8 +15,7 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "Users")
-public class User extends TimestampedEntity {
+public class Users extends TimestampedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,7 +49,7 @@ public class User extends TimestampedEntity {
     @Column
     private UserRoleEnum role;
 
-    public User(String email, String password, String name, Address address, UserRoleEnum role) {
+    public Users(String email, String password, String name, Address address, UserRoleEnum role) {
         this.isDeleted = false;
         this.email = email;
         this.password = password;
@@ -60,7 +59,7 @@ public class User extends TimestampedEntity {
         this.role = role;
     }
 
-    public User(String provider, String providerId , String name, String email, Address address , UserRoleEnum role){
+    public Users(String provider, String providerId , String name, String email, Address address , UserRoleEnum role){
         this.isDeleted = false;
         this.provider = provider;
         this.providerId = providerId;
@@ -71,7 +70,7 @@ public class User extends TimestampedEntity {
         this.role = role;
     }
 
-    public User(String name, String email) {
+    public Users(String name, String email) {
         this.name = name;
         this.email = email;
     }

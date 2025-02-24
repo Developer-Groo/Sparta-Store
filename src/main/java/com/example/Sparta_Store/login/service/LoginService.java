@@ -1,10 +1,10 @@
 package com.example.Sparta_Store.login.service;
 
-import com.example.Sparta_Store.oAuth.jwt.JwtUtil;
 import com.example.Sparta_Store.config.PasswordEncoder;
 import com.example.Sparta_Store.login.dto.LoginRequest;
 import com.example.Sparta_Store.login.repository.LoginRepository;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.oAuth.jwt.JwtUtil;
+import com.example.Sparta_Store.user.entity.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ public class LoginService {
         String email = request.email();
         String password = request.password();
 
-        User user = loginRepository.findByEmail(email).orElseThrow(
+        Users user = loginRepository.findByEmail(email).orElseThrow(
                 () -> new IllegalArgumentException("등록된 사용자가 없습니다.")
         );
 
