@@ -3,6 +3,8 @@ package com.example.Sparta_Store.salesSummary.entity;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.item.entity.Item;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,8 +12,8 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SalesSummary extends TimestampedEntity {
 
     @Id
@@ -23,7 +25,7 @@ public class SalesSummary extends TimestampedEntity {
     @JoinColumn(name = "item_id")
     private Item item;
 
-    private int totalSales;
+    private Integer totalSales;
 
     private SalesSummary(int totalSales) {
         this.totalSales = totalSales;
@@ -40,4 +42,5 @@ public class SalesSummary extends TimestampedEntity {
     public void updateItem(Item item) {
         this.item = item;
     }
+
 }

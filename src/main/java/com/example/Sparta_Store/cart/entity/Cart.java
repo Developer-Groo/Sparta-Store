@@ -5,6 +5,7 @@ import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Cart extends TimestampedEntity {
 
     @Id
@@ -31,6 +33,10 @@ public class Cart extends TimestampedEntity {
 
     public Cart(User user) {
         this.user = user;
+    }
+
+    public void addCartItem(CartItem cartItem) {
+        cartItems.add(cartItem);
     }
 
 

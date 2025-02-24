@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @Getter
@@ -22,6 +23,18 @@ public class ErrorResponse {
                                 .status(errorCode.getStatus().value())
                                 .name(errorCode.getName())
                                 .message(errorCode.getMessage())
+                                .build()
+                );
+    }
+
+    public static ResponseEntity<ErrorResponse> toResponseEntity(HttpStatus status, String message) {
+        return ResponseEntity
+                .status(status)
+                .body(
+                        ErrorResponse.builder()
+                                .status(status.value())
+                                .name(status.name())
+                                .message(message)
                                 .build()
                 );
     }

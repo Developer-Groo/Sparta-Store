@@ -20,11 +20,11 @@
   </div>
 </div>
 <script>
-  // const urlParams = new URLSearchParams(window.location.search);
-
+  const urlParams = new URLSearchParams(window.location.search);
   const messageElement = document.getElementById("message");
-
-  messageElement.textContent = "결제가 완료된 주문이거나, 결제를 할 수 없는 주문입니다.";
+  // URL 파라미터에서 message 값을 읽어와 표시
+  const errorMessage = urlParams.get("message") || "결제가 완료된 주문이거나, 결제를 할 수 없는 주문입니다.";
+  messageElement.textContent = errorMessage;
 </script>
 </body>
 </html>
