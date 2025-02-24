@@ -6,12 +6,17 @@ import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,11 +39,20 @@ public class ItemService {
     }
 
     @Transactional
-    public void decreaseStock(List<OrderItem> orderItemList) { //todo 추후 동시성 문제, 성능개선
-        for (OrderItem orderItem : orderItemList) {
-            int quantity = orderItem.getQuantity();
-            Item item = orderItem.getItem();
-            item.decreaseStock(quantity);
-        }
+    public void decreaseStock(List<OrderItem> orderItemList) {
+        List<Long> idList = orderItemList
+                .stream()
+                .map(orderItem -> orderItem.getItem().getId())
+                .toList();
+
+        log.info("[Thread-{}] Lock 획득 대기 중", Thread.currentThread().getName());
+        Map<Long, Item> lockWithItems = itemRepository.findAllByIdWithLock(idList)
+                .stream()
+                .collect(Collectors.toMap(Item::getId, item -> item));
+
+        orderItemList.forEach(orderItem -> {
+            Item item = lockWithItems.get(orderItem.getItem().getId());
+            item.decreaseStock(orderItem.getQuantity());
+        });
     }
 }

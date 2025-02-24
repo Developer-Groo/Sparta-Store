@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.user.dto;
+package com.example.Sparta_Store.user.dto.response;
 
 public record UserResponseDto(String message) {
 

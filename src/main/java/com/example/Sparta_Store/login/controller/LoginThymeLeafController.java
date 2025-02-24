@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.login.controller;
 
-import com.example.Sparta_Store.config.jwt.JwtUtil;
+import com.example.Sparta_Store.oAuth.jwt.JwtUtil;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;

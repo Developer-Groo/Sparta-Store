@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.config.jwt;
+package com.example.Sparta_Store.oAuth.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,7 +19,7 @@ import java.util.List;
 
 @Slf4j(topic = "JwtFilter")
 @RequiredArgsConstructor
-@Component("SpartaFilter")
+@Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;

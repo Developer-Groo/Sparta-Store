@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +24,10 @@ public class LikesService {
     private final ItemRepository itemRepository;
 
     public void addLike(Long itemId, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
-        Item item = itemRepository.findById(itemId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
 
         if(likesRepository.findByUserAndItem(user, item).isPresent()) {
             throw new CustomException(LikesErrorCode.PRODUCT_ALREADY_WISHLIST);
@@ -38,13 +39,14 @@ public class LikesService {
     // 찜 목록
     public List<LikeResponseDto> getLikeList(Long userId) {
 
-        User user = userRepository.findById(userId).orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+        User user = userRepository.findById(userId).
+                orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
 
         List<Likes> likeList = likesRepository.findAllByUser(user);
 
         return likeList.stream()
                 .map(LikeResponseDto::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Long getLikeCount(Long itemId) {
@@ -54,12 +56,14 @@ public class LikesService {
     // 찜 취소
     @Transactional
     public void removeLike(Long itemId, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
-        Likes likes = likesRepository.findByUserAndItem(user, item).orElseThrow(() -> new CustomException(LikesErrorCode.PRODUCT_NOT_WISHLIST));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
+        Likes likes = likesRepository.findByUserAndItem(user, item)
+                .orElseThrow(() -> new CustomException(LikesErrorCode.PRODUCT_NOT_WISHLIST));
 
         likesRepository.delete(likes);
     }
-
 
 }

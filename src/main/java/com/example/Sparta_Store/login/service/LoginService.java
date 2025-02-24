@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.login.service;
 
-import com.example.Sparta_Store.config.jwt.JwtUtil;
+import com.example.Sparta_Store.oAuth.jwt.JwtUtil;
 import com.example.Sparta_Store.config.PasswordEncoder;
 import com.example.Sparta_Store.login.dto.LoginRequest;
 import com.example.Sparta_Store.login.repository.LoginRepository;
@@ -16,7 +16,6 @@ public class LoginService {
     private final LoginRepository loginRepository;
 
     public String login(LoginRequest request) {
-
         String email = request.email();
         String password = request.password();
 

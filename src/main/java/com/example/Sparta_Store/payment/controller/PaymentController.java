@@ -5,8 +5,6 @@ import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -18,16 +16,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Slf4j(topic = "PaymentController")
 @Controller
 @RequestMapping("/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
-    @Value("${TOSS_SECRET_KEY}")
-    private String SECRET_KEY;
     @Value("${TOSS_CLIENT_KEY}")
-    private String CLIENT_KEY;
+    private String clientKey;
     private final PaymentService paymentService;
     private final OrderService orderService;
     private final CartService cartService;
@@ -61,7 +60,7 @@ public class PaymentController {
         }
 
 
-        model.addAttribute("clientKey", CLIENT_KEY);
+        model.addAttribute("clientKey", clientKey);
 
         return "payment/checkout";
     }
@@ -87,7 +86,8 @@ public class PaymentController {
 
             JSONObject jsonResponse = new JSONObject();
             jsonResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jsonResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(jsonResponse);
         }
 
         // Payment approvedAt, method 저장
@@ -98,7 +98,8 @@ public class PaymentController {
         log.info("CartItem 초기화 완료");
         log.info("결제 승인 완료");
 
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(response);
     }
 
     // ------- 수정 전 ----------

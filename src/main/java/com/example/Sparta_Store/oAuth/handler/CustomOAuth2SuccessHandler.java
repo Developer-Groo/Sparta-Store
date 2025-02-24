@@ -1,8 +1,8 @@
 package com.example.Sparta_Store.oAuth.handler;
 
 
-import com.example.Sparta_Store.config.jwt.JwtUtil;
-import com.example.Sparta_Store.config.jwt.UserRoleEnum;
+import com.example.Sparta_Store.oAuth.jwt.JwtUtil;
+import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

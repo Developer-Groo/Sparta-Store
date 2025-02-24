@@ -1,12 +1,12 @@
 package com.example.Sparta_Store.user.controller;
 
 import com.example.Sparta_Store.address.entity.AddressDto;
-import com.example.Sparta_Store.user.dto.CreateUserResponseDto;
-import com.example.Sparta_Store.user.dto.DeleteUserRequestDto;
-import com.example.Sparta_Store.user.dto.UpdateInfoRequestDto;
-import com.example.Sparta_Store.user.dto.UpdatePasswordRequestDto;
-import com.example.Sparta_Store.user.dto.UserRequestDto;
-import com.example.Sparta_Store.user.dto.UserResponseDto;
+import com.example.Sparta_Store.user.dto.response.CreateUserResponseDto;
+import com.example.Sparta_Store.user.dto.request.DeleteUserRequestDto;
+import com.example.Sparta_Store.user.dto.request.UpdateInfoRequestDto;
+import com.example.Sparta_Store.user.dto.request.UpdatePasswordRequestDto;
+import com.example.Sparta_Store.user.dto.request.UserRequestDto;
+import com.example.Sparta_Store.user.dto.response.UserResponseDto;
 import com.example.Sparta_Store.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
