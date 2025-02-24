@@ -8,10 +8,7 @@ public record CartItemResponseDto(
         String itemName,
         Integer quantity,
         Integer price
-
 ) {
-
-
     public static CartItemResponseDto toDto(CartItem cartItem) {
         return new CartItemResponseDto(
                 cartItem.getId(),
