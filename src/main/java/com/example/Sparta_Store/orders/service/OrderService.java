@@ -273,7 +273,7 @@ public class OrderService {
         );
         itemService.decreaseStock(orderItemList);
         // 주문상태 변경
-        order.updateOrderStatus(OrderStatus.CONFIRMED);
+        order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);
 
         log.info("상품 재고 감소 및 order 상태 변경 완료");
     }
