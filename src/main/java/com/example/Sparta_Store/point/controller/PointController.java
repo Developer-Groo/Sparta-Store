@@ -1,10 +1,10 @@
 package com.example.Sparta_Store.point.controller;
 
+import com.example.Sparta_Store.point.dto.PointTransactionResponseDto;
 import com.example.Sparta_Store.point.entity.Point;
-import com.example.Sparta_Store.point.entity.PointTransaction;
 import com.example.Sparta_Store.point.repository.PointTransactionRepository;
 import com.example.Sparta_Store.point.service.PointService;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class PointController {
     //사용자의 현재 포인트 조회
     @GetMapping("/{userId}")
     public ResponseEntity<Integer> getUserPoints(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")); //userid로 사용자 조회 및 예외처리
 
         Point point = pointService.getOrCreatePoint(user); // 포인트 정보를 가져오거나 없으면 만들기
@@ -36,14 +36,11 @@ public class PointController {
         return ResponseEntity.status(HttpStatus.OK).body(point.getBalance()); // 코드컨벤션에 맞춰 응답
     }
 
-    // 사용자의 포인트 사용 내역 조회
+    // 사용자의 포인트 내역 조회
     @GetMapping("/transactions/{userId}")
-    public ResponseEntity<List<PointTransaction>> getPointTransactions(@PathVariable Long userId) {
+    public ResponseEntity<List<PointTransactionResponseDto>> getPointTransactions(@PathVariable Long userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")); //userid로 사용자 조회 및 예외처리
-
-        List<PointTransaction> transactions = pointTransactionRepository.findByUser(user); // 포인트 변동 내역을 가져오기
+        List<PointTransactionResponseDto> transactions = pointService.getPointTransactions(userId); // 포인트 변동 내역을 가져오기
 
         return ResponseEntity.status(HttpStatus.OK).body(transactions);
     }

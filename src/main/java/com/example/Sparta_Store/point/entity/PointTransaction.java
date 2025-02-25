@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.point.entity;
 
 import com.example.Sparta_Store.point.TransactionType;
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,10 +29,10 @@ public class PointTransaction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
 
     @Column(name = "point_amount", nullable = false)
-    private int amount;  // 변동된 포인트 값
+    private Long amount;  // 변동된 포인트 값
 
     @Enumerated(EnumType.STRING)
     @Column(name = "transaction_type", nullable = false)
@@ -41,7 +41,7 @@ public class PointTransaction {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public PointTransaction(User user, int amount, TransactionType transactionType) {
+    public PointTransaction(Users user, Long amount, TransactionType transactionType) {
         this.user = user;
         this.amount = amount;
         this.transactionType = transactionType;

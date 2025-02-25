@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.point.entity;
 
-import com.example.Sparta_Store.user.entity.User;
+import com.example.Sparta_Store.user.entity.Users;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,25 +25,18 @@ public class Point {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Users user;
 
     @Column(name = "point_balance", nullable = false)
     private int balance;  // 현재 포인트 잔액
 
-    public Point(User user, int balance) {
+    public Point(Users user, int balance) {
         this.user = user;
         this.balance = balance;
     }
 
-    public void addPoints(int amount) {
+    public void addPoints(Long amount) {
         this.balance += amount;
-    }
-
-    public void usePoints(int amount) {
-        if (this.balance < amount) {
-            throw new IllegalArgumentException("포인트가 부족합니다.");
-        }
-        this.balance -= amount;
     }
 
 }
