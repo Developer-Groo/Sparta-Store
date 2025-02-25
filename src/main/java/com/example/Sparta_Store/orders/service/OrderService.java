@@ -89,12 +89,42 @@ public class OrderService {
         model.addAttribute("customerKey", customerKey);
     }
 
+    /**
+     * 주문서 페이지 -> 주문 생성 (결제전)
+     */
+    // Orders , OrderItem 생성
+    @Transactional
+    public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
+
+        List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
+
+        // order 엔티티 생성 호출
+        Orders order = createOrder(userId, requestDto);
+        log.info("Orders 생성 완료");
+
+        // orderItem 엔티티 생성 호출
+        createOrderItem(order, cartItemList);
+        log.info("OrderItems 생성 완료");
+
+        return order.getId();
+    }
+
     // orders 생성
     @Transactional
-    public Orders createOrder(Long userId, long totalPrice, Address address) {
+    public Orders createOrder(Long userId, CreateOrderRequestDto requestDto) {
         Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
+
+        List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
+
+        if (cartItemList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
+        }
+
+        long totalPrice = cartRedisService.getTotalPrice(cartItemList);
+
+        Address address = requestDto == null ? user.getAddress() : requestDto.address();
 
         Orders savedOrder = new Orders(user, totalPrice, address);
         ordersRepository.save(savedOrder);
@@ -107,6 +137,10 @@ public class OrderService {
     @Transactional
     public void createOrderItem(Orders order, List<CartItem> cartItemList) {
 
+        if (cartItemList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
+        }
+
         for (CartItem cartItem : cartItemList) {
             int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
             OrderItem savedOrderItem = new OrderItem(
@@ -118,45 +152,6 @@ public class OrderService {
             orderItemRepository.save(savedOrderItem);
         }
         ordersRepository.save(order);
-    }
-
-    /**
-     * 주문서 페이지 -> 주문 생성 (결제전)
-     */
-    // Orders , OrderItem 생성
-    @Transactional
-    public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
-        Users user = userRepository.findById(userId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
-        );
-
-        List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
-
-        long totalPrice = getTotalPrice(cartItemList);
-
-        Address address = requestDto == null ? user.getAddress() : requestDto.address();
-
-        // order 엔티티 생성 호출
-        Orders order = createOrder(userId, totalPrice, address);
-        log.info("Orders 생성 완료");
-
-        // orderItem 엔티티 생성 호출
-        createOrderItem(order, cartItemList);
-        log.info("OrderItems 생성 완료");
-
-        return order.getId();
-    }
-
-    // get totalPrice //TODO cartItem Repository
-    public long getTotalPrice(List<CartItem> cartItemList) {
-        long totalPrice = 0;
-
-        for (CartItem cartItem : cartItemList) {
-            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-            totalPrice += orderPrice;
-        }
-
-        return totalPrice;
     }
 
     /**
@@ -188,7 +183,8 @@ public class OrderService {
     public void isStatusUpdatable(OrderStatus originStatus, OrderStatus requestStatus) {
         if (requestStatus != OrderStatus.ORDER_CANCEL_REQUEST
             && requestStatus != OrderStatus.RETURN_REQUESTED
-            && requestStatus != OrderStatus.EXCHANGE_REQUESTED) {
+            && requestStatus != OrderStatus.EXCHANGE_REQUESTED
+            && requestStatus != OrderStatus.CONFIRMED) {
             throw new CustomException(OrdersErrorCode.ORDER_STATUS_CHANGE_FORBIDDEN);
         }
 
