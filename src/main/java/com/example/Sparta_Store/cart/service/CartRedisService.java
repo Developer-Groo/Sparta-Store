@@ -163,5 +163,17 @@ public class CartRedisService {
             .forEach(cartItem -> redisTemplate.delete(getCartItemKey(cart.getId())));
     }
 
+    // get totalPrice
+    public long getTotalPrice(List<CartItem> cartItemList) {
+        long totalPrice = 0;
+
+        for (CartItem cartItem : cartItemList) {
+            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
+            totalPrice += orderPrice;
+        }
+
+        return totalPrice;
+    }
+
 
 }
