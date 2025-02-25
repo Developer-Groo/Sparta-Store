@@ -3,10 +3,11 @@ package com.example.Sparta_Store.user.service;
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.address.entity.AddressDto;
 import com.example.Sparta_Store.config.PasswordEncoder;
-import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.user.dto.request.UserRequestDto;
 import com.example.Sparta_Store.user.dto.response.CreateUserResponseDto;
 import com.example.Sparta_Store.user.dto.response.UserResponseDto;
 import com.example.Sparta_Store.user.entity.Users;
+import com.example.Sparta_Store.user.exception.EmailAlreadyExistsException;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,24 +19,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public CreateUserResponseDto signUp(
-            String email,
-            String password,
-            String name,
-            Address address
-    ) {
-        String encodePassword = passwordEncoder.encode(password);
+    public CreateUserResponseDto signUp(UserRequestDto requestDto) {
+        String encodePassword = passwordEncoder.encode(requestDto.password());
 
-        if (userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("이미 존재하는 이메일 입니다.");
+        if (userRepository.findByEmail(requestDto.email()).isPresent()) {
+            throw new EmailAlreadyExistsException("이미 존재하는 이메일 입니다.");
         }
 
         Users user = new Users(
-                email,
+                requestDto.email(),
                 encodePassword,
-                name,
-                address,
-                UserRoleEnum.USER
+                requestDto.name(),
+                requestDto.address()
         );
 
         Users saveUser = userRepository.save(user);
@@ -98,5 +93,4 @@ public class UserService {
 
         return UserResponseDto.deleteUserSuccess();
     }
-
 }
