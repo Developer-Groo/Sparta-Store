@@ -1,8 +1,10 @@
 package com.example.Sparta_Store.orders.service;
 
+import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
+
 import com.example.Sparta_Store.address.entity.Address;
-import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.repository.CartRepository;
+import com.example.Sparta_Store.cart.service.CartRedisService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.exception.CustomException;
@@ -15,28 +17,21 @@ import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
-import com.example.Sparta_Store.orders.event.OrderConfirmedEvent;
 import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
-import com.example.Sparta_Store.point.entity.Point;
-import com.example.Sparta_Store.point.service.PointService;
 import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 @Slf4j(topic = "OrderService")
 @Service
@@ -50,43 +45,7 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final ItemService itemService;
-    private final ApplicationEventPublisher eventPublisher;
-
-    /**
-     * 주문서 페이지 -> 주문 생성 (결제전)
-     */
-    @Transactional
-    public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
-        Users user = userRepository.findById(userId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
-        );
-
-        // 카트 조회
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_CART)
-        );
-        Long cartId = cart.getId();
-
-        // 카트에 상품이 담겨있어야 주문 생성 가능
-        List<CartItem> cartItemList = cartItemRepository.findByCartId(cartId)
-            .filter(list -> !list.isEmpty()) // 리스트가 비어있지 않은 경우만 반환
-            .orElseThrow(() -> new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT)
-        );
-
-        long totalPrice = getTotalPrice(cartItemList);
-
-        Address address = requestDto == null ? user.getAddress() : requestDto.address();
-
-        // order 엔티티 생성 호출
-        String orderId = createOrder(userId, totalPrice, address);
-        log.info("Orders 생성 완료");
-
-        // orderItem 엔티티 생성 호출
-        createOrderItem(orderId, cartItemList);
-        log.info("OrderItem 생성 완료");
-
-        return orderId;
-    }
+    private final CartRedisService cartRedisService;
 
     public void getPaymentInfo(Model model, Long userId, String orderId) {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
@@ -99,14 +58,15 @@ public class OrderService {
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
         );
 
-        if(!order.getUser().equals(user)) {
+        if (!order.getUser().equals(user)) {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
         }
 
         // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
-        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
-        );
+        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order)
+            .orElseThrow(
+                () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
+            );
 
         long amount = order.getTotalPrice();
         int quantity = orderItemList.size();
@@ -118,11 +78,10 @@ public class OrderService {
         // 모델에 주문 정보를 추가
         model.addAttribute("orderId", orderId);
         model.addAttribute("amount", amount);
-        if(quantity == 1) {
+        if (quantity == 1) {
             model.addAttribute("orderName", orderName);
-        }
-        else {
-            model.addAttribute("orderName", orderName+" 외 "+(quantity-1)+"건");
+        } else {
+            model.addAttribute("orderName", orderName + " 외 " + (quantity - 1) + "건");
         }
         model.addAttribute("quantity", quantity);
         model.addAttribute("customerEmail", customerEmail);
@@ -130,26 +89,57 @@ public class OrderService {
         model.addAttribute("customerKey", customerKey);
     }
 
+    /**
+     * 주문서 페이지 -> 주문 생성 (결제전)
+     */
+    // Orders , OrderItem 생성
+    @Transactional
+    public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
+
+        List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
+
+        // order 엔티티 생성 호출
+        Orders order = createOrder(userId, requestDto);
+        log.info("Orders 생성 완료");
+
+        // orderItem 엔티티 생성 호출
+        createOrderItem(order, cartItemList);
+        log.info("OrderItems 생성 완료");
+
+        return order.getId();
+    }
+
     // orders 생성
     @Transactional
-    public String createOrder(Long userId, long totalPrice, Address address) {
+    public Orders createOrder(Long userId, CreateOrderRequestDto requestDto) {
         Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
 
+        List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
+
+        if (cartItemList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
+        }
+
+        long totalPrice = cartRedisService.getTotalPrice(cartItemList);
+
+        Address address = requestDto == null ? user.getAddress() : requestDto.address();
+
         Orders savedOrder = new Orders(user, totalPrice, address);
         ordersRepository.save(savedOrder);
 
-        // orderId 반환
-        return savedOrder.getId();
+        // order 반환
+        return savedOrder;
     }
 
     // orderItem 생성
     @Transactional
-    public void createOrderItem(String orderId, List<CartItem> cartItemList) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
+    public void createOrderItem(Orders order, List<CartItem> cartItemList) {
+
+        if (cartItemList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
+        }
 
         for (CartItem cartItem : cartItemList) {
             int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
@@ -164,21 +154,8 @@ public class OrderService {
         ordersRepository.save(order);
     }
 
-    // get totalPrice //TODO cartItem Repository
-    public long getTotalPrice(List<CartItem> cartItemList) {
-        long totalPrice = 0;
-
-        for (CartItem cartItem : cartItemList) {
-            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-            totalPrice += orderPrice;
-        }
-
-        return totalPrice;
-    }
-
     /**
-     * 주문 상태 변경
-     * - 주문취소는 주문완료 상태에서만 가능
+     * 주문 상태 변경 - 주문취소는 주문완료 상태에서만 가능
      */
     @Transactional
     public void updateOrderStatus(Long userId, String orderId, UpdateOrderStatusDto requestDto) {
@@ -187,7 +164,7 @@ public class OrderService {
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
         );
 
-        if(!order.getUser().getId().equals(userId)) {
+        if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
         }
 
@@ -199,11 +176,6 @@ public class OrderService {
 
         order.updateOrderStatus(requestStatus);
         log.info("주문상태 변경 완료 >> {}", requestDto.orderStatus());
-
-        // 구매확정으로 변경 시 이벤트 발생
-        if (requestStatus == OrderStatus.CONFIRMED) {
-            eventPublisher.publishEvent(new OrderConfirmedEvent(userId, order.getTotalPrice()));
-        }
 
     }
 
@@ -224,9 +196,7 @@ public class OrderService {
     }
 
     /**
-     * 자동 구매확정
-     * - 주문상태가 "DELIVERED" 이며, 업데이트일자가 5일 전인 주문의 상태를 구매확정으로 바꾼다.
-     * - 매일 자정에 실행
+     * 자동 구매확정 - 주문상태가 "DELIVERED" 이며, 업데이트일자가 5일 전인 주문의 상태를 구매확정으로 바꾼다. - 매일 자정에 실행
      */
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
@@ -240,19 +210,18 @@ public class OrderService {
     }
 
     /**
-     * 주문 리스트 조회
-     * - orders 조회
+     * 주문 리스트 조회 - orders 조회
      */
     public PageResult<OrderResponseDto> getOrders(Long userId, PageQuery pageQuery) {
-        Page<OrderResponseDto> orderList = ordersRepository.findByUserId(userId, pageQuery.toPageable())
+        Page<OrderResponseDto> orderList = ordersRepository.findByUserId(userId,
+                pageQuery.toPageable())
             .map(OrderResponseDto::toDto);
 
         return PageResult.from(orderList);
     }
 
     /**
-     * 주문 내역 상세 조회
-     * - orderItem 조회
+     * 주문 내역 상세 조회 - orderItem 조회
      */
     public PageResult<OrderItemResponseDto> getOrderItems(
         Long userId,
@@ -263,11 +232,12 @@ public class OrderService {
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
         );
 
-        if(!order.getUser().getId().equals(userId)) {
+        if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
         }
 
-        Page<OrderItemResponseDto> orderItemList = orderItemRepository.findByOrderId(orderId, pageQuery.toPageable())
+        Page<OrderItemResponseDto> orderItemList = orderItemRepository.findByOrderId(orderId,
+                pageQuery.toPageable())
             .map(OrderItemResponseDto::toDto);
 
         return PageResult.from(orderItemList);
@@ -275,14 +245,15 @@ public class OrderService {
 
     // 상품 재고 감소 및 order 상태 변경
     @Transactional
-    public void checkoutOrder(String orderId) {
+    public void completeOrder(String orderId) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
         );
         // 상품 재고 감소
-        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
-        );
+        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order)
+            .orElseThrow(
+                () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
+            );
         itemService.decreaseStock(orderItemList);
         // 주문상태 변경
         order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);

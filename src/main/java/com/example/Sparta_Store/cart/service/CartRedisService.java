@@ -39,7 +39,6 @@ public class CartRedisService {
     private final RedisService redisService;
     private final ZSetOperations<String, Object> zSetOperations;
 
-
     private String getCartKey(Long userId) {
         return "cart:" + userId;
     }
@@ -51,20 +50,24 @@ public class CartRedisService {
     @Transactional
     public CartResponseDto cartAddition(CartRequestDto responseDto, Long userId) {
 
-        Users user = userRepository.findById(userId).orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
-        Item item = itemRepository.findById(responseDto.itemId()).orElseThrow(() -> new CustomException(CartErrorCode.PRODUCT_NOT_FOUND));
+        Users user = userRepository.findById(userId)
+            .orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
+        Item item = itemRepository.findById(responseDto.itemId())
+            .orElseThrow(() -> new CustomException(CartErrorCode.PRODUCT_NOT_FOUND));
 
         String cartKey = getCartKey(userId);
 
         Cart cart = redisService.getObject(cartKey, Cart.class);
+
         if (cart.getId() == null) {
-           cart = cartRepository.saveAndFlush(new Cart(user));
+            cart = cartRepository.saveAndFlush(new Cart(user));
         }
 
         String cartItemKey = getCartItemKey(cart.getId());
         CartItem cartItem = redisService.getObject(cartItemKey, CartItem.class);
+
         if (cartItem.getId() == null) {
-           cartItem = cartItemRepository.saveAndFlush(new CartItem(cart, item, 0));
+            cartItem = cartItemRepository.saveAndFlush(new CartItem(cart, item, 0));
         }
 
         cartItem.updateQuantity(cartItem.getQuantity() + responseDto.quantity());
@@ -77,17 +80,16 @@ public class CartRedisService {
         redisTemplate.expire(cartItemKey, Duration.ofDays(1));
 
         return CartResponseDto.toDto(cart, List.of(cartItem));
-
     }
 
     public CartResponseDto shoppingCartList(Long userId) {
         String cartKey = getCartKey(userId);
 
         Cart cart = redisService.getObject(cartKey, Cart.class);
-        if (cart.getId() == null) {
-          throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
-        }
 
+        if (cart.getId() == null) {
+            throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
+        }
         return CartResponseDto.toDto(cart, cart.getCartItems());
     }
 
@@ -109,19 +111,20 @@ public class CartRedisService {
 
     // 상품 수량 변경
     @Transactional
-    public CartItemResponseDto cartItemUpdate(Long cartItemId, CartItemUpdateRequestDto requestDto, Long userId) {
+    public CartItemResponseDto cartItemUpdate(Long cartItemId, CartItemUpdateRequestDto requestDto,
+        Long userId) {
         log.info("user Id {}", userId);
 
         String cartKey = getCartKey(userId);
-
         Cart cart = redisService.getObject(cartKey, Cart.class);
 
         if (cart.getId() == null) {
-            throw  new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
+            throw new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
 
         String cartItemKey = getCartItemKey(cart.getId());
         CartItem cartItem = redisService.getObject(cartItemKey, CartItem.class);
+
         if (cartItem.getId() == null) {
             throw new CustomException(CartErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
@@ -133,6 +136,43 @@ public class CartRedisService {
         redisService.putObject(cartItemKey, cartItem);
 
         return CartItemResponseDto.toDto(cartItem);
+    }
+
+    public List<CartItem> getCartItemList(Long userId) {
+        String cartKey = getCartKey(userId);
+
+        Cart cart = redisService.getObject(cartKey, Cart.class);
+        if (cart.getId() == null) {
+            throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
+        }
+
+        return cart.getCartItems();
+    }
+
+    @Transactional
+    public void deleteCartItem(Long userId) {
+        String cartKey = getCartKey(userId);
+
+        Cart cart = redisService.getObject(cartKey, Cart.class);
+        if (cart.getId() == null) {
+            throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
+        }
+
+        List<CartItem> cartItemList = getCartItemList(userId);
+        cartItemList.stream()
+            .forEach(cartItem -> redisTemplate.delete(getCartItemKey(cart.getId())));
+    }
+
+    // get totalPrice
+    public long getTotalPrice(List<CartItem> cartItemList) {
+        long totalPrice = 0;
+
+        for (CartItem cartItem : cartItemList) {
+            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
+            totalPrice += orderPrice;
+        }
+
+        return totalPrice;
     }
 
 
