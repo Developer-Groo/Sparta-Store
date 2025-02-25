@@ -17,12 +17,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class LikesService {
 
     private final LikesRepository likesRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
+    @Transactional
     public void addLike(Long itemId, Long userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
