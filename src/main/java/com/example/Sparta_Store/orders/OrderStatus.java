@@ -11,7 +11,7 @@ public enum OrderStatus {
     PREPARING_SHIPMENT, // 배송준비중
     SHIPPING, // 배송중
     DELIVERED, //배송완료
-    CANCELED, //취소완료
+    CANCELLED, //취소완료
     RETURN_REQUESTED, // 반품요청
     EXCHANGE_REQUESTED, // 교환요청
     RETURNED, // 반품완료
@@ -30,7 +30,7 @@ public enum OrderStatus {
         Map.entry(PREPARING_SHIPMENT, ORDER_COMPLETED),
         Map.entry(SHIPPING, PREPARING_SHIPMENT),
         Map.entry(DELIVERED, SHIPPING),
-        Map.entry(CANCELED, ORDER_CANCEL_REQUEST),
+        Map.entry(CANCELLED, ORDER_CANCEL_REQUEST),
         Map.entry(RETURN_REQUESTED, DELIVERED),
         Map.entry(EXCHANGE_REQUESTED, DELIVERED),
         Map.entry(CONFIRMED, DELIVERED),
