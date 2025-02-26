@@ -3,16 +3,15 @@ package com.example.Sparta_Store.orders.service;
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.address.entity.Address;
-import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cart.service.CartRedisService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
-import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
+import com.example.Sparta_Store.orders.OrdersPaymentCancelledEvent;
 import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
@@ -27,9 +26,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
@@ -40,12 +41,11 @@ import org.springframework.ui.Model;
 public class OrderService {
 
     private final OrdersRepository ordersRepository;
-    private final CartRepository cartRepository;
     private final UserRepository userRepository;
-    private final CartItemRepository cartItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final ItemService itemService;
     private final CartRedisService cartRedisService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void getPaymentInfo(Model model, Long userId, String orderId) {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
@@ -196,6 +196,38 @@ public class OrderService {
     }
 
     /**
+     * 자동 결제취소
+     * - 주문생성 후, 10분 이상 '결제전' 상태가 지속된다면 자동으로 '결제취소'
+     * - orderItem 삭제는 비동기 이벤트리스너 처리
+     */
+    @Scheduled(cron = "0 */1 * * * *")
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void autoCancellationOrders() {
+        // 조건에 맞는 주문 리스트 조회
+        List<Orders> orderList = ordersRepository.findOrdersForAutoCancellation();
+
+        if (!orderList.isEmpty()) {
+            int cnt = 0;
+
+            // 주문 '결제취소' 상태변경
+            for (Orders order : orderList) {
+                try {
+                    order.updateOrderStatus(OrderStatus.PAYMENT_CANCELLED);
+                } catch (Exception e) {
+                    // 에러가 발생해도 롤백 x
+                    cnt++;
+                    log.error("주문 '결제취소' 상태 변경 Exception 감지 (orderId: {})", order.getId());
+                }
+            }
+
+            // orderItem 삭제 (비동기 이벤트리스너)
+            eventPublisher.publishEvent(new OrdersPaymentCancelledEvent(orderList));
+            log.info("자동 결제취소 완료, {}개의 주문 중, Exception 감지된 주문: {}개", orderList.size(), cnt);
+        }
+
+    }
+
+    /**
      * 자동 구매확정 - 주문상태가 "DELIVERED" 이며, 업데이트일자가 5일 전인 주문의 상태를 구매확정으로 바꾼다. - 매일 자정에 실행
      */
     @Scheduled(cron = "0 0 0 * * *")
@@ -204,9 +236,12 @@ public class OrderService {
         // 조건에 맞는 주문 리스트 조회
         List<Orders> orderList = ordersRepository.findOrdersForAutoConfirmation();
 
-        // 주문상태 변경
-        orderList.forEach(orders -> orders.updateOrderStatus(OrderStatus.CONFIRMED));
-        log.info("{} 기준, 총 {}개의 주문을 자동 구매확정 하였습니다. ", LocalDateTime.now(), orderList.size());
+        if (!orderList.isEmpty()) {
+            // 주문상태 변경
+            orderList.forEach(orders -> orders.updateOrderStatus(OrderStatus.CONFIRMED));
+            log.info("{} 기준, 총 {}개의 주문을 자동 구매확정 하였습니다. ", LocalDateTime.now(), orderList.size());
+        }
+
     }
 
     /**
@@ -216,7 +251,6 @@ public class OrderService {
         Page<OrderResponseDto> orderList = ordersRepository.findByUserId(userId,
                 pageQuery.toPageable())
             .map(OrderResponseDto::toDto);
-
         return PageResult.from(orderList);
     }
 
