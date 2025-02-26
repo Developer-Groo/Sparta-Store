@@ -23,6 +23,7 @@ import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -253,10 +254,25 @@ public class OrderService {
     /**
      * 주문 리스트 조회 - orders 조회
      */
-    public PageResult<OrderResponseDto> getOrders(Long userId, PageQuery pageQuery) {
-        Page<OrderResponseDto> orderList = ordersRepository.findByUserId(userId,
-                pageQuery.toPageable())
+    public PageResult<OrderResponseDto> getOrders(
+        Long userId,
+        LocalDate startDate,
+        LocalDate endDate,
+        OrderStatus orderStatus,
+        PageQuery pageQuery
+    ) {
+        LocalDateTime startOfDay = (startDate != null)? startDate.atStartOfDay() : null;
+        LocalDateTime endOfDay = (endDate != null)? endDate.atTime(23,59,59,999999) : null;
+
+        Page<OrderResponseDto> orderList = ordersRepository.findOrders(
+                userId,
+                startOfDay,
+                endOfDay,
+                orderStatus,
+                pageQuery.toPageable()
+            )
             .map(OrderResponseDto::toDto);
+
         return PageResult.from(orderList);
     }
 
