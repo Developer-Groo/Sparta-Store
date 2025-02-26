@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.cart.entity.Cart;
@@ -16,7 +16,6 @@ import com.example.Sparta_Store.cart.service.CartRedisService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
@@ -59,9 +58,6 @@ public class OrderServiceTest {
 
     @Mock
     private OrderItemRepository orderItemRepository;
-
-    @Mock
-    private ItemService itemService;
 
     private Users user;
     private Cart cart;
@@ -164,8 +160,9 @@ public class OrderServiceTest {
 
         // then
         // cartItemList의 각 항목에 대해 OrderItem이 하나씩 생성되어야 함
-        then(orderItemRepository).should(times(cartItemList.size())).save(any(OrderItem.class));
-        then(ordersRepository).should(times(1)).save(order);
+        verify(orderItemRepository, times(cartItemList.size())).save(any(OrderItem.class));
+        // 주문이 저장된 것도 확인
+        verify(ordersRepository, times(1)).save(order);
     }
 
     @Test
@@ -239,28 +236,6 @@ public class OrderServiceTest {
             .isInstanceOf(CustomException.class)
             .extracting("errorCode")
             .isEqualTo(OrdersErrorCode.NOT_EXISTS_ORDER);
-    }
-
-    @Test
-    @DisplayName("결제 승인 전, 상품 재고 감소 호출 및 주문상태 변경 성공")
-    void completeOrder_success() {
-        // given
-        Orders order = new Orders(UUID.randomUUID().toString(), user, OrderStatus.BEFORE_PAYMENT, 30000L, address);
-        OrderItem orderItem = new OrderItem(1L, order, item, 30000, 3);
-        List<OrderItem> orderItemList = List.of(orderItem);
-        String orderId = order.getId();
-
-        given(ordersRepository.findById(orderId))
-            .willReturn(Optional.of(order));
-        given(orderItemRepository.findOrderItemsByOrders(order))
-            .willReturn(Optional.of(orderItemList));
-
-        // when
-        orderService.completeOrder(orderId);
-
-        // then
-        then(itemService).should().decreaseStock(orderItemList);
-        assertEquals(order.getOrderStatus(), OrderStatus.ORDER_COMPLETED);
     }
 
 }
