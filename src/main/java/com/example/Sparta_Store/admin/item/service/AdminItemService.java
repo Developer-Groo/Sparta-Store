@@ -6,10 +6,15 @@ import com.example.Sparta_Store.admin.item.dto.responseDto.ItemUpdateResponseDto
 import com.example.Sparta_Store.admin.item.respository.AdminItemRepository;
 import com.example.Sparta_Store.admin.review.service.AdminReviewService;
 import com.example.Sparta_Store.category.entity.Category;
+import com.example.Sparta_Store.email.event.ItemRestockedEvent;
 import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.likes.service.LikesService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +23,8 @@ public class AdminItemService {
 
     private final AdminItemRepository adminItemRepository;
     private final AdminReviewService adminReviewService;
+    private final LikesService likesService;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public ItemRegisterResponseDto registerItem(
@@ -55,14 +62,21 @@ public class AdminItemService {
                 requestDto.category()
         );
 
-        return new ItemUpdateResponseDto(
-                item.getName(),
-                item.getImgUrl(),
-                item.getPrice(),
-                item.getDescription(),
-                item.getStockQuantity(),
-                item.getCategory().getId()
-        );
+        return ItemUpdateResponseDto.toDto(item);
+    }
+
+    @Transactional
+    public ItemUpdateResponseDto restockItem(Long id, int quantity) {
+        Item item = findById(id);
+        item.increaseStock(quantity);
+
+        List<String> usersEmail = likesService.getUserEmailsByItemId(item.getId());
+
+        if (!usersEmail.isEmpty()) {
+            publisher.publishEvent(ItemRestockedEvent.toEvent(item, usersEmail));
+        }
+
+        return ItemUpdateResponseDto.toDto(item);
     }
 
     @Transactional
