@@ -24,7 +24,6 @@ public class LoginThymeLeafController {
         return "/users/signUp";
     }
 
-
     @GetMapping("/users/main")
     public String mainPage() {
         return "/users/main";
