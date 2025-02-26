@@ -12,7 +12,7 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${EMAIL_USER_NAME}")
+    @Value("${NAVER_MAIL_USER_NAME}")
     private String EMAIL_SENDER;
 
     public void sendEmail(String to, String subject, String text) {

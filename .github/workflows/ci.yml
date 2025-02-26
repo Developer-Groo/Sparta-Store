@@ -11,6 +11,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      MYSQL_DB_PASSWORD: ${{ secrets.MYSQL_DB_PASSWORD }}
+      NAVER_MAIL_USER_NAME: ${{ secrets.NAVER_MAIL_USER_NAME }}
+      NAVER_MAIL_EMAIL_PASSWORD: ${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}
+      TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
+      TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
 
     steps:
       - name: Checkout Repository

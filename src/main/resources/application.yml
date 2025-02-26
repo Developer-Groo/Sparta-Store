@@ -8,8 +8,8 @@ spring:
         registration:
           google:
             redirect_uri: http://localhost:8080/login/oauth2/code/google
-            client-id: ${CLIENT_ID}
-            client-secret: ${CLIENT_SECRET}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
@@ -31,7 +31,7 @@ spring:
     url: jdbc:mysql://localhost:3306/SpartaStore
     username: root
     driver-class-name: com.mysql.cj.jdbc.Driver
-    password: ${DB_PASSWORD}
+    password: ${MYSQL_DB_PASSWORD}
 
   jackson:
     serialization:
@@ -42,8 +42,8 @@ spring:
   mail:
     host: smtp.naver.com
     port: 465
-    username: ${EMAIL_USER_NAME}
-    password: ${EMAIL_PASSWORD}
+    username: ${NAVER_MAIL_USER_NAME}
+    password: ${NAVER_MAIL_PASSWORD}
     properties:
       mail:
         smtp:
