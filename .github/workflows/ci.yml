@@ -23,6 +23,13 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
+      - name: Verify head branch is develop
+        run: |
+          if [ "${{ github.head_ref }}" != "develop" ]; then
+            echo "Error: PR must come from develop branch." && exit 1
+          fi
+          echo "PR originates from develop branch."
+
       - name: Checkout Repository
         uses: actions/checkout@v3
 
