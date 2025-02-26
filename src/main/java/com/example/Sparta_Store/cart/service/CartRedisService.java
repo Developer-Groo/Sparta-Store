@@ -51,9 +51,9 @@ public class CartRedisService {
     public CartResponseDto cartAddition(CartRequestDto responseDto, Long userId) {
 
         Users user = userRepository.findById(userId)
-            .orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
+                .orElseThrow(() -> new CustomException(CartErrorCode.NOT_EXISTS_USER));
         Item item = itemRepository.findById(responseDto.itemId())
-            .orElseThrow(() -> new CustomException(CartErrorCode.PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(CartErrorCode.PRODUCT_NOT_FOUND));
 
         String cartKey = getCartKey(userId);
 
@@ -112,7 +112,7 @@ public class CartRedisService {
     // 상품 수량 변경
     @Transactional
     public CartItemResponseDto cartItemUpdate(Long cartItemId, CartItemUpdateRequestDto requestDto,
-        Long userId) {
+                                              Long userId) {
         log.info("user Id {}", userId);
 
         String cartKey = getCartKey(userId);
@@ -160,7 +160,7 @@ public class CartRedisService {
 
         List<CartItem> cartItemList = getCartItemList(userId);
         cartItemList.stream()
-            .forEach(cartItem -> redisTemplate.delete(getCartItemKey(cart.getId())));
+                .forEach(cartItem -> redisTemplate.delete(getCartItemKey(cart.getId())));
     }
 
     // get totalPrice
@@ -174,6 +174,5 @@ public class CartRedisService {
 
         return totalPrice;
     }
-
 
 }

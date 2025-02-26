@@ -52,7 +52,7 @@ public class RedisService {
         }
     }
 
-    public <T> List<T> getObjectList (String key, Class<T> type) {
+    public <T> List<T> getObjectList(String key, Class<T> type) {
         try {
             Map<String, Object> objectMap = hashOperations.entries(key);
             return objectMap.values().stream().map(
@@ -63,10 +63,8 @@ public class RedisService {
         }
     }
 
-    public void delete (String key) {
+    public void delete(String key) {
         redisTemplate.delete(key);
     }
-
-
 
 }
