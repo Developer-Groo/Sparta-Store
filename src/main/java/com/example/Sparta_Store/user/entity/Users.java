@@ -4,10 +4,7 @@ import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -49,14 +46,14 @@ public class Users extends TimestampedEntity {
     @Column
     private UserRoleEnum role;
 
-    public Users(String email, String password, String name, Address address, UserRoleEnum role) {
+    public Users(String email, String password, String name, Address address) {
         this.isDeleted = false;
         this.email = email;
         this.password = password;
         this.name = name;
         this.address = address;
         this.customerKey = UUID.randomUUID().toString();
-        this.role = role;
+        this.role = UserRoleEnum.USER;
     }
 
     public Users(String provider, String providerId , String name, String email, Address address , UserRoleEnum role){
@@ -73,6 +70,16 @@ public class Users extends TimestampedEntity {
     public Users(String name, String email) {
         this.name = name;
         this.email = email;
+    }
+
+    public Users(String email, String password, String name, Address address,UserRoleEnum role) {
+        this.isDeleted = false;
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.address = address;
+        this.customerKey = UUID.randomUUID().toString();
+        this.role = role;
     }
 
     public void updateUserInfo(String name, Address address) {
