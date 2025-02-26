@@ -55,6 +55,13 @@ public class LikesService {
         return likesRepository.countByItemId(itemId);
     }
 
+    public List<String> getUserEmailsByItemId(Long itemId) {
+        List<Likes> likesList = likesRepository.findUserByItemId(itemId);
+        return likesList.stream()
+                .map(likes -> likes.getUser().getEmail())
+                .toList();
+    }
+
     // 찜 취소
     @Transactional
     public void removeLike(Long itemId, Long userId) {
