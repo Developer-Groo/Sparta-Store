@@ -1,8 +1,7 @@
 package com.example.Sparta_Store.point.controller;
 
-import com.example.Sparta_Store.point.dto.PointTransactionResponseDto;
+import com.example.Sparta_Store.point.dto.PointSummaryResponseDto;
 import com.example.Sparta_Store.point.entity.Point;
-import com.example.Sparta_Store.point.repository.PointTransactionRepository;
 import com.example.Sparta_Store.point.service.PointService;
 import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PointController {
 
-    private final PointTransactionRepository pointTransactionRepository;
     private final UserRepository userRepository;
     private final PointService pointService;
 
@@ -38,10 +36,10 @@ public class PointController {
 
     // 사용자의 포인트 내역 조회
     @GetMapping("/transactions/{userId}")
-    public ResponseEntity<List<PointTransactionResponseDto>> getPointTransactions(@PathVariable Long userId) {
+    public ResponseEntity<List<PointSummaryResponseDto>> getPointSummary(@PathVariable Long userId) {
 
-        List<PointTransactionResponseDto> transactions = pointService.getPointTransactions(userId); // 포인트 변동 내역을 가져오기
+        List<PointSummaryResponseDto> summary = pointService.getPointSummaries(userId); // 포인트 변동 내역을 가져오기
 
-        return ResponseEntity.status(HttpStatus.OK).body(transactions);
+        return ResponseEntity.status(HttpStatus.OK).body(summary);
     }
 }

@@ -23,10 +23,6 @@ public class LoginService {
                 () -> new IllegalArgumentException("등록된 사용자가 없습니다.")
         );
 
-        if (user.getIsDeleted()) {
-            throw new IllegalArgumentException("탈퇴한 회원입니다.");
-        }
-
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }

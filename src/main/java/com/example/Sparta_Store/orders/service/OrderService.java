@@ -17,6 +17,7 @@ import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
+import com.example.Sparta_Store.orders.event.OrderConfirmedEvent;
 import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.Users;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,7 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final ItemService itemService;
     private final CartRedisService cartRedisService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public void getPaymentInfo(Model model, Long userId, String orderId) {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
@@ -176,6 +179,11 @@ public class OrderService {
 
         order.updateOrderStatus(requestStatus);
         log.info("주문상태 변경 완료 >> {}", requestDto.orderStatus());
+
+        // 구매확정으로 변경 시 이벤트 발생
+        if (requestStatus == OrderStatus.CONFIRMED) {
+            eventPublisher.publishEvent(new OrderConfirmedEvent(userId, order.getTotalPrice()));
+        }
 
     }
 

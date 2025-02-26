@@ -1,12 +1,12 @@
 package com.example.Sparta_Store.point.service;
 
 import com.example.Sparta_Store.orders.event.OrderConfirmedEvent;
-import com.example.Sparta_Store.point.TransactionType;
-import com.example.Sparta_Store.point.dto.PointTransactionResponseDto;
+import com.example.Sparta_Store.point.SummaryType;
+import com.example.Sparta_Store.point.dto.PointSummaryResponseDto;
 import com.example.Sparta_Store.point.entity.Point;
-import com.example.Sparta_Store.point.entity.PointTransaction;
+import com.example.Sparta_Store.point.entity.PointSummary;
 import com.example.Sparta_Store.point.repository.PointRepository;
-import com.example.Sparta_Store.point.repository.PointTransactionRepository;
+import com.example.Sparta_Store.point.repository.PointSummaryRepository;
 import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -25,7 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class PointService {
 
     private final PointRepository pointRepository;
-    private final PointTransactionRepository pointTransactionRepository;
+    private final PointSummaryRepository pointSummaryRepository;
     private final UserRepository userRepository;
 
     // 주문 확정 이벤트를 감지하여 포인트 적립
@@ -47,8 +47,8 @@ public class PointService {
         point.addPoints(earnedPoints); // 기존 포인트에 추가
         pointRepository.save(point); // 변경 내용 저장
 
-        PointTransaction transaction = new PointTransaction(user, earnedPoints, TransactionType.EARNED); // 포인트 변동 내역 기록
-        pointTransactionRepository.save(transaction); // 내용 저장
+        PointSummary summary = new PointSummary(user, earnedPoints, SummaryType.EARNED); // 포인트 변동 내역 기록
+        pointSummaryRepository.save(summary); // 내용 저장
 
     }
 
@@ -64,14 +64,14 @@ public class PointService {
 
     // 포인트 적립 내역 조회 (DTO 변환 포함)
     @Transactional
-    public List<PointTransactionResponseDto> getPointTransactions(Long userId) {
+    public List<PointSummaryResponseDto> getPointSummaries(Long userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저 정보를 찾을 수 없습니다."));
 
-        List<PointTransaction> transactions = pointTransactionRepository.findByUser(user); // user조회
+        List<PointSummary> summaries = pointSummaryRepository.findByUser(user); // user조회
 
-        return transactions.stream()
-                .map(PointTransactionResponseDto::toEntity) // DTO 변환
+        return summaries.stream()
+                .map(PointSummaryResponseDto::toEntity) // DTO 변환
                 .collect(Collectors.toList());
     }
 }
