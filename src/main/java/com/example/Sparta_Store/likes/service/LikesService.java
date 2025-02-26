@@ -17,12 +17,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class LikesService {
 
     private final LikesRepository likesRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
+    @Transactional
     public void addLike(Long itemId, Long userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
@@ -51,6 +53,13 @@ public class LikesService {
 
     public Long getLikeCount(Long itemId) {
         return likesRepository.countByItemId(itemId);
+    }
+
+    public List<String> getUserEmailsByItemId(Long itemId) {
+        List<Likes> likesList = likesRepository.findUserByItemId(itemId);
+        return likesList.stream()
+                .map(likes -> likes.getUser().getEmail())
+                .toList();
     }
 
     // 찜 취소

@@ -114,6 +114,10 @@ public class Item extends TimestampedEntity {
         this.stockQuantity -= quantity;
     }
 
+    public void increaseStock(int quantity) {
+        this.stockQuantity += quantity;
+    }
+
     public void updateSalesSummary(SalesSummary salesSummary) {
         this.salesSummary = salesSummary;
         salesSummary.updateItem(this);

@@ -38,6 +38,21 @@ spring:
       write-dates-as-timestamps: false  # LocalDateTime을 ISO-8601 문자열로 변환
     date-format: yyyy-MM-dd HH:mm:ss  # 기본 날짜 형식 지정
     time-zone: Asia/Seoul  # 한국 시간대 적용
+
+  mail:
+    host: smtp.naver.com
+    port: 465
+    username: ${EMAIL_USER_NAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          starttls:
+            enable: true
+
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
