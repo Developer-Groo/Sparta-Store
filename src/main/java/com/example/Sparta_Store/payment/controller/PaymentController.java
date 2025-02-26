@@ -1,24 +1,27 @@
 package com.example.Sparta_Store.payment.controller;
 
 import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
-import com.example.Sparta_Store.cart.service.CartRedisService;
-import com.example.Sparta_Store.cart.service.CartService;
 import com.example.Sparta_Store.orders.service.OrderService;
+import com.example.Sparta_Store.payment.PaymentApprovedEvent;
 import com.example.Sparta_Store.payment.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Slf4j(topic = "PaymentController")
 @Controller
@@ -30,9 +33,8 @@ public class PaymentController {
     private String clientKey;
     private final PaymentService paymentService;
     private final OrderService orderService;
-    private final CartService cartService;
     private final AdminOrderService adminOrderService;
-    private final CartRedisService cartRedisService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 결제창 생성
@@ -60,8 +62,6 @@ public class PaymentController {
             return "redirect:/fail.html?message=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8);
 
         }
-
-
         model.addAttribute("clientKey", clientKey);
 
         return "payment/checkout";
@@ -74,7 +74,7 @@ public class PaymentController {
     public ResponseEntity<JSONObject> confirmPayment(HttpServletRequest request, @RequestBody String jsonBody) throws Exception {
         Long userId = (Long) request.getAttribute("id");
 
-        log.info("결제 승인 요청됨 >> ", jsonBody);
+        log.info("결제 승인 요청됨 >> {}", jsonBody);
         JSONParser parser = new JSONParser();
         JSONObject jsonObject = (JSONObject) parser.parse(jsonBody);
 
@@ -82,7 +82,7 @@ public class PaymentController {
         try{
             response = paymentService.confirmPayment(userId, jsonBody);
         } catch (Exception e) {
-            log.info("결제 승인 API 호출 전, 에러 발생: {}", e.getMessage());
+            log.info("결제 승인 에러 발생: {}", e.getMessage());
 
             String orderId = (String) jsonObject.get("orderId");
             adminOrderService.orderCancelled(orderId);
@@ -93,14 +93,18 @@ public class PaymentController {
                     .body(jsonResponse);
         }
 
-        // Payment approvedAt, method 저장
-        paymentService.approvedPayment(response);
+        try {
+            // Payment approvedAt, method 저장
+            paymentService.approvedPayment(response);
+        } catch (Exception e) {
+            String paymentKey = response.get("paymentKey").toString();
+            log.warn("Payment approvedAt, method 업데이트 중, 예외 발생 (paymentKey = {}): {}", paymentKey, e.getMessage());
+        }
 
-        // CartItem 초기화 TODO 이벤트리스너
-        cartRedisService.deleteCartItem(userId);
-        log.info("CartItem 초기화 완료");
+        // CartItem 초기화 비동기 이벤트 발행
+        eventPublisher.publishEvent(new PaymentApprovedEvent(userId));
+
         log.info("결제 승인 완료");
-
         return ResponseEntity.status(HttpStatus.OK)
                 .body(response);
     }
