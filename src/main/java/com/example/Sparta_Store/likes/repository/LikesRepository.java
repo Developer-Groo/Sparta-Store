@@ -3,6 +3,7 @@ package com.example.Sparta_Store.likes.repository;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.likes.entity.Likes;
 import com.example.Sparta_Store.user.entity.Users;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,7 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     @Query("SELECT DISTINCT l.item.id FROM Likes l")
     List<Long> findDistinctItemIds();
+
+    @EntityGraph(attributePaths = {"user"})
+    List<Likes> findUserByItemId(Long itemId);
 }

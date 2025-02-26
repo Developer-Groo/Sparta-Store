@@ -36,6 +36,20 @@ spring:
       host: localhost
       port: 6379
 
+  mail:
+    host: smtp.naver.com
+    port: 465
+    username: ${EMAIL_USER_NAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          starttls:
+            enable: true
+
 jwt:
   secret:
    key: ${JWT_SECRET_KEY}
