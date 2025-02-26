@@ -1,15 +1,18 @@
 package com.example.Sparta_Store.admin.item.controller;
 
 import com.example.Sparta_Store.admin.item.dto.requestDto.ItemRegisterRequestDto;
+import com.example.Sparta_Store.admin.item.dto.requestDto.ItemRestockRequestDto;
 import com.example.Sparta_Store.admin.item.dto.requestDto.ItemUpdateRequestDto;
 import com.example.Sparta_Store.admin.item.dto.responseDto.ItemRegisterResponseDto;
 import com.example.Sparta_Store.admin.item.dto.responseDto.ItemUpdateResponseDto;
 import com.example.Sparta_Store.admin.item.service.AdminItemService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/admin/item")
 @RequiredArgsConstructor
@@ -33,11 +36,18 @@ public class AdminItemController {
     }
 
     @PatchMapping("/updateItem/{id}")
-    public ResponseEntity<ItemUpdateResponseDto> updateItem(@PathVariable Long id, @RequestBody ItemUpdateRequestDto requestDto) {
+    public ResponseEntity<ItemUpdateResponseDto> updateItem(@PathVariable Long id, ItemUpdateRequestDto requestDto) {
         ItemUpdateResponseDto updateResponseDto = adminItemService.updateItem(id,requestDto);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(updateResponseDto);
+    }
+
+    @PostMapping("/update/{id}/quantity")
+    public ResponseEntity<ItemUpdateResponseDto> restockItem(@PathVariable("id") Long id, @RequestBody ItemRestockRequestDto dto) {
+        log.info("컨트롤러");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(adminItemService.restockItem(id, dto.quantity()));
     }
 
     @DeleteMapping("/{id}")
