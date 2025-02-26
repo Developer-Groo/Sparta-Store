@@ -20,6 +20,7 @@ jobs:
       TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
       TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
       - name: Checkout Repository
@@ -43,3 +44,24 @@ jobs:
 
       - name: Build and Run Tests with Gradle
         run: ./gradlew clean build
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${DOCKER_USERNAME}/spartastore-image:latest .
+
+      - name: Run container for testing
+        run: |
+          docker run -d --name test-container -p 8080:8080 \ 
+            -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
+            -e GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" \
+            -e MYSQL_DB_PASSWORD="${MYSQL_DB_PASSWORD}" \
+            -e NAVER_MAIL_USER_NAME="${NAVER_MAIL_USER_NAME}" \
+            -e NAVER_MAIL_EMAIL_PASSWORD="${NAVER_MAIL_EMAIL_PASSWORD}" \
+            -e TOSS_CLIENT_KEY="${TOSS_CLIENT_KEY}" \
+            -e TOSS_SECRET_KEY="${TOSS_SECRET_KEY}" \
+            -e JWT_SECRET_KEY="${JWT_SECRET_KEY}" \
+          ${DOCKER_USERNAME}/spartastore-image:latest
+          sleep 10
+          docker ps
+          docker logs test-container
+          docker stop test-container && docker rm test-container
