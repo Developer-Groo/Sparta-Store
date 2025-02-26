@@ -61,7 +61,7 @@ jobs:
             -e TOSS_SECRET_KEY="${TOSS_SECRET_KEY}" \
             -e JWT_SECRET_KEY="${JWT_SECRET_KEY}" \
           "${DOCKER_USERNAME}/sparta_store-image:latest"
-          sleep 10
+          sleep 5
           docker ps
           docker logs test-container
           docker stop test-container && docker rm test-container
