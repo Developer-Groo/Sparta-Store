@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.orders.controller;
 
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
+import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
@@ -9,8 +10,10 @@ import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.LocalDate;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -58,10 +62,23 @@ public class OrderController {
      * 주문 리스트 조회 API
      */
     @GetMapping()
-    public ResponseEntity<PageResult<OrderResponseDto>> getOrders(HttpServletRequest request, PageQuery pageQuery) {
+    public ResponseEntity<PageResult<OrderResponseDto>> getOrders(
+        HttpServletRequest request,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+        @RequestParam(required = false) OrderStatus orderStatus,
+        PageQuery pageQuery
+    ) {
         Long userId = (Long) request.getAttribute("id");
 
-        return ResponseEntity.status(HttpStatus.OK).body(orderService.getOrders(userId, pageQuery));
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(orderService.getOrders(
+                userId,
+                startDate,
+                endDate,
+                orderStatus,
+                pageQuery
+            ));
     }
 
     /**

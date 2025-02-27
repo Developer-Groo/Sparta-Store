@@ -1,27 +1,32 @@
 package com.example.Sparta_Store.orderItem.repository;
 
-import com.example.Sparta_Store.orderItem.entity.OrderItem;
-import com.example.Sparta_Store.util.QuerydslUtil;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
-
 import static com.example.Sparta_Store.item.entity.QItem.item;
 import static com.example.Sparta_Store.orderItem.entity.QOrderItem.orderItem;
 import static com.example.Sparta_Store.orders.entity.QOrders.orders;
 import static com.example.Sparta_Store.user.entity.QUsers.users;
 
+import com.example.Sparta_Store.orderItem.entity.OrderItem;
+import com.example.Sparta_Store.util.QuerydslUtil;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import java.util.List;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
 
     private final JPAQueryFactory queryFactory;
+    private final EntityManager entityManager;
 
     @Override
     public Page<OrderItem> findByOrderId(String orderId, Pageable pageable) {
@@ -59,6 +64,14 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
         return queryFactory.select(orderItem.count()).from(orderItem)
             .where(orderItem.orders.id.eq(orderId))
             .fetchOne();
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrderItemsByOrderId(String orderId) {
+        queryFactory.delete(orderItem)
+            .where(orderItem.orders.id.eq(orderId))
+            .execute();
     }
 
 }

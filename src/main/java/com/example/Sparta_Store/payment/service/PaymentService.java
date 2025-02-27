@@ -17,6 +17,8 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,6 +61,7 @@ public class PaymentService {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
+        // ------ 결제 승인 전처리
         // 데이터 검증
         checkData(userId, orderId, amount);
 
@@ -78,7 +81,6 @@ public class PaymentService {
 
         if(response.containsKey("error")) { // 승인 실패 CASE
             log.info("결제 승인 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
-            adminOrderService.orderCancelled(orderId);
             updateAborted(paymentKey);
 
             throw new RuntimeException(response.get("message").toString());
@@ -133,6 +135,11 @@ public class PaymentService {
 
     // 승인 완료 approvedAt, method 저장
     @Transactional
+    @Retryable(
+        value = { CustomException.class },
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
     public void approvedPayment(JSONObject response) {
         String paymentKey = response.get("paymentKey").toString();
         String date = response.get("approvedAt").toString();
