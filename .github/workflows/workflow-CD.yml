@@ -14,3 +14,6 @@ jobs:
   depoly:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # CI가 성공했을 때만 실행
     runs-on: ubuntu-latest
+    steps:
+      - name: Confirm Ci -> Cd Triggered
+        run: echo "CD workflow has been triggered."
