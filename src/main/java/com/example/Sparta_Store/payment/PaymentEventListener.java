@@ -23,7 +23,7 @@ public class PaymentEventListener {
             cartRedisService.deleteCartItem(userId);
             log.info("장바구니 초기화 완료 (userId = {})", userId);
         } catch (Exception e) {
-            log.warn("장바구니 초기화 중 예외 발생 (userId = {}): {}", userId, e.getMessage());
+            log.error("장바구니 초기화 중 예외 발생 (userId = {}): {}", userId, e.getMessage());
         }
     }
 
