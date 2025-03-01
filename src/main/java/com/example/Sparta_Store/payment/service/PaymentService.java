@@ -1,16 +1,25 @@
 package com.example.Sparta_Store.payment.service;
 
-import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
 import com.example.Sparta_Store.email.event.OrderStatusUpdatedEvent;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.entity.Orders;
+import com.example.Sparta_Store.orders.event.OrderCancelledEvent;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.orders.service.OrderService;
-import com.example.Sparta_Store.payment.PaymentApprovedEvent;
 import com.example.Sparta_Store.payment.entity.Payment;
+import com.example.Sparta_Store.payment.event.PaymentApprovedEvent;
 import com.example.Sparta_Store.payment.exception.PaymentErrorCode;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -25,12 +34,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "PaymentService")
@@ -41,7 +44,6 @@ public class PaymentService {
     private final OrderService orderService;
     private final OrdersRepository ordersRepository;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final AdminOrderService adminOrderService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Value("${TOSS_SECRET_KEY}")
@@ -178,16 +180,50 @@ public class PaymentService {
     // Payment isCancelled = true
     // Order PAYMENT_CANCELLED 로 주문상태 변경
     @Transactional
-    public void paymentCancelled(JSONObject response) {
-        String orderId = response.get("orderId").toString();
-        String paymentKey = response.get("paymentKey").toString();
+    public void paymentCancelled(String orderId, String paymentKey, String cancelReason, long cancelAmount)
+        throws Exception {
 
+        Orders order = ordersRepository.findById(orderId).orElseThrow(
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
+        );
         Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
             () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
 
+        // ----------------- 결제 취소 API 호출 --------------------
+        log.info("결제 취소 API 호출");
+        JSONObject response = cancelPaymentTossAPI(secretKey, paymentKey, cancelReason, cancelAmount);
+
+        // 취소 실패 CASE
+        if(response.containsKey("error")) {
+            log.error("결제 취소 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
+            throw new CustomException(PaymentErrorCode.PAYMENT_CANCELLATION_FAILED);
+        }
+
+        // 취소 성공 CASE
+        log.info("결제 취소 완료 (orderId: {})", orderId);
+
+        try {
+            payment.updateCancelled();
+        } catch (Exception e) {
+            log.error("Payment isCancelled 업데이트 중, 예외 발생 (paymentKey = {})", paymentKey, e);
+        }
+
+        // 이메일 전송 비동기 이벤트 발행
+        eventPublisher.publishEvent(OrderStatusUpdatedEvent.toEvent(order));
+
+        // 상품 재고 복구 비동기 이벤트 발행
+        eventPublisher.publishEvent(OrderCancelledEvent.toEvent(order));
+    }
+
+    // 승인 취소 완료 isCancelled = true
+    @Transactional
+    public void updateCancelled(String paymentKey) {
+        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
+        );
         payment.updateCancelled();
-        adminOrderService.orderCancelled(orderId);
+        log.info("Payment({}) isCancelled = {}", payment.getPaymentKey(), payment.isCancelled());
     }
 
     /**
@@ -206,9 +242,16 @@ public class PaymentService {
 
     // 토스페이먼츠 결제 취소 API 호출
     @Transactional
-    public JSONObject cancelPaymentTossAPI(String secretKey, String paymentKey, String cancleReason) throws Exception {
+    public JSONObject cancelPaymentTossAPI(
+        String secretKey,
+        String paymentKey,
+        String cancelReason,
+        long cancelAmount
+    ) throws Exception {
+
         JSONObject cancelRequestData = new JSONObject();
-        cancelRequestData.put("cancelReason", cancleReason);
+        cancelRequestData.put("cancelReason", cancelReason);
+        cancelRequestData.put("cancelAmount", cancelAmount);
 
         JSONObject response = sendRequest(
             cancelRequestData,
