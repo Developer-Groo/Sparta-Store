@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.payment;
+package com.example.Sparta_Store.payment.event;
 
 import com.example.Sparta_Store.cart.service.CartRedisService;
 import lombok.RequiredArgsConstructor;
