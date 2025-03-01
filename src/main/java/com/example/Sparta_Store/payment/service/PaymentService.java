@@ -1,11 +1,13 @@
 package com.example.Sparta_Store.payment.service;
 
 import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
+import com.example.Sparta_Store.email.event.OrderStatusUpdatedEvent;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.orders.service.OrderService;
+import com.example.Sparta_Store.payment.PaymentApprovedEvent;
 import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.payment.exception.PaymentErrorCode;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
@@ -17,6 +19,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,7 @@ public class PaymentService {
     private final OrdersRepository ordersRepository;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final AdminOrderService adminOrderService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
@@ -61,30 +65,47 @@ public class PaymentService {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        // ------ 결제 승인 전처리
+        Orders order = ordersRepository.findById(orderId).orElseThrow(
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
+        );
+
         // 데이터 검증
         checkData(userId, orderId, amount);
-
         if (!checkBeforePayment(orderId)) {
             throw new CustomException(PaymentErrorCode.MUST_BE_BEFORE_PAYMENT);
         }
 
         // 상품 재고 감소 및 주문 CONFIRMED 상태 변경
-        orderService.completeOrder(orderId); //
+        orderService.completeOrder(orderId);
 
         // Payment 엔티티 생성
         createPayment(jsonObject);
 
-        // 결제 승인 API 호출
+        // ----------------- 결제 승인 API 호출 --------------------
         log.info("결제 승인 API 호출");
         JSONObject response = confirmPaymentTossAPI(secretKey, jsonBody);
 
-        if(response.containsKey("error")) { // 승인 실패 CASE
-            log.info("결제 승인 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
+        // 승인 실패 CASE
+        if(response.containsKey("error")) {
+            log.error("결제 승인 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
             updateAborted(paymentKey);
 
             throw new RuntimeException(response.get("message").toString());
         }
+
+        // 승인 성공 CASE
+        // Payment approvedAt, method 저장
+        log.info("결제 승인 완료 (orderId: {})", orderId);
+        try {
+            approvedPayment(response);
+        } catch (Exception e) {
+            log.error("Payment approvedAt, method 업데이트 중, 예외 발생 (paymentKey = {})", paymentKey, e);
+        }
+
+        // CartItem 초기화 비동기 이벤트 발행
+        eventPublisher.publishEvent(new PaymentApprovedEvent(userId));
+        // 이메일 전송 비동기 이벤트 발행
+        eventPublisher.publishEvent(OrderStatusUpdatedEvent.toEvent(order));
 
         return response;
     }
@@ -149,9 +170,9 @@ public class PaymentService {
             () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
         payment.approvedPayment(date, method);
-        log.info("Payment({}) approvedAt = {}", payment.getPaymentKey(), payment.getApprovedAt());
+        log.info("Payment 업데이트 완료 (paymentId: {}, approvedAt: {}, method: {}",
+            payment.getPaymentKey(), payment.getApprovedAt(), payment.getMethod());
     }
-
 
     // 결제 취소
     // Payment isCancelled = true
