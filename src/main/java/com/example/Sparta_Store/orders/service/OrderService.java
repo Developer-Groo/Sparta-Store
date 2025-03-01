@@ -11,12 +11,12 @@ import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.orders.OrdersPaymentCancelledEvent;
 import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.event.OrderConfirmedEvent;
+import com.example.Sparta_Store.orders.event.OrdersPaymentCancelledEvent;
 import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.Users;
@@ -171,19 +171,17 @@ public class OrderService {
         }
 
         OrderStatus originStatus = order.getOrderStatus();
-
         OrderStatus requestStatus = OrderStatus.of(requestDto.orderStatus());
 
         isStatusUpdatable(originStatus, requestStatus); // 주문상태 변경 가능 여부
-
         order.updateOrderStatus(requestStatus);
-        log.info("주문상태 변경 완료 >> {}", requestDto.orderStatus());
 
         // 구매확정으로 변경 시 이벤트 발생
         if (requestStatus == OrderStatus.CONFIRMED) {
             eventPublisher.publishEvent(new OrderConfirmedEvent(userId, order.getTotalPrice()));
         }
 
+        log.info("주문상태 변경 완료 >> {}: {}", orderId, requestDto.orderStatus());
     }
 
     // 주문상태 변경 가능 여부
