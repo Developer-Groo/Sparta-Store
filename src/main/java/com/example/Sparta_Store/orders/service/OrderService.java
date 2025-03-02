@@ -3,8 +3,10 @@ package com.example.Sparta_Store.orders.service;
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.address.entity.Address;
+import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cart.service.CartRedisService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
+import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
@@ -48,6 +50,8 @@ public class OrderService {
     private final ItemService itemService;
     private final CartRedisService cartRedisService;
     private final ApplicationEventPublisher eventPublisher;
+    private final CartItemRepository cartItemRepository;
+    private final CartRepository cartRepository;
 
     public void getPaymentInfo(Model model, Long userId, String orderId) {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
@@ -99,7 +103,6 @@ public class OrderService {
     public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
 
         List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
-
         // order 엔티티 생성 호출
         Orders order = createOrder(userId, requestDto);
         log.info("Orders 생성 완료");
@@ -117,7 +120,6 @@ public class OrderService {
         Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
-
         List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
 
         if (cartItemList.isEmpty()) {
@@ -125,7 +127,6 @@ public class OrderService {
         }
 
         long totalPrice = cartRedisService.getTotalPrice(cartItemList);
-
         Address address = requestDto == null ? user.getAddress() : requestDto.address();
 
         Orders savedOrder = new Orders(user, totalPrice, address);
@@ -143,17 +144,14 @@ public class OrderService {
             throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
 
-        for (CartItem cartItem : cartItemList) {
-            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-            OrderItem savedOrderItem = new OrderItem(
-                order,
-                cartItem.getItem(),
-                orderPrice,
-                cartItem.getQuantity()
-            );
-            orderItemRepository.save(savedOrderItem);
-        }
-        ordersRepository.save(order);
+        List<OrderItem> orderItemList = cartItemList.stream()
+                .map(cartItem -> new OrderItem(
+                    order,
+                    cartItem.getItem(),
+                    (cartItem.getItem().getPrice()) * (cartItem.getQuantity()),
+                    cartItem.getQuantity())
+                ).toList();
+        orderItemRepository.saveAll(orderItemList);
     }
 
     /**
