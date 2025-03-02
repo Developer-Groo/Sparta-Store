@@ -180,8 +180,12 @@ public class PaymentService {
     // Payment isCancelled = true
     // Order PAYMENT_CANCELLED 로 주문상태 변경
     @Transactional
-    public void paymentCancelled(String orderId, String paymentKey, String cancelReason, long cancelAmount)
-        throws Exception {
+    public void paymentCancelled(
+        String orderId,
+        String paymentKey,
+        String cancelReason,
+        long cancelAmount
+    ) throws Exception {
 
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
@@ -189,6 +193,10 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
             () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
+
+        if (payment.isCancelled()) {
+            throw new CustomException(PaymentErrorCode.ALREADY_CANCELLED);
+        }
 
         // ----------------- 결제 취소 API 호출 --------------------
         log.info("결제 취소 API 호출");
