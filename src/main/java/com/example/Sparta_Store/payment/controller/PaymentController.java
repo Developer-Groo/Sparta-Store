@@ -3,6 +3,7 @@ package com.example.Sparta_Store.payment.controller;
 import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.service.PaymentService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +42,7 @@ public class PaymentController {
         HttpServletRequest request,
         @PathVariable("orderId") String orderId,
         Model model
-    ) {
+    ) throws JsonProcessingException {
         Long userId = (Long) request.getAttribute("id");
 
         // 결제 정보 불러오기
@@ -77,13 +78,11 @@ public class PaymentController {
         JSONObject response;
 
         Long userId = (Long) request.getAttribute("id");
-        String orderId = (String) jsonObject.get("orderId");
 
         try{
             response = paymentService.confirmPayment(userId, jsonBody);
         } catch (Exception e) {
             log.error("결제 승인 에러 발생: {}", e.getMessage());
-//            adminOrderService.orderCancelled(orderId);
 
             JSONObject jsonResponse = new JSONObject();
             jsonResponse.put("message", e.getMessage());

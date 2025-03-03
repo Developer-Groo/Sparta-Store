@@ -22,6 +22,8 @@ import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -50,8 +52,10 @@ public class OrderService {
     private final CartRedisService cartRedisService;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    public void getPaymentInfo(Model model, Long userId, String orderId) {
+    public void getPaymentInfo(Model model, Long userId, String orderId)
+        throws JsonProcessingException {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
         // 주문서를 작성한 후, 로그인 정보가 바뀌었을 상황 대비
         Users user = userRepository.findById(userId).orElseThrow(
@@ -59,7 +63,8 @@ public class OrderService {
         );
 
         String key = getOrderKey(orderId);
-        Orders order = (Orders) redisTemplate.opsForHash().get(key, "order");
+        String orderJson = (String) redisTemplate.opsForHash().get(key, "order");
+        Orders order = objectMapper.readValue(orderJson, Orders.class);
 
         if (order == null) {
             throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER);
@@ -69,14 +74,24 @@ public class OrderService {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
         }
 
-        List<Object> orderItemJsonList = redisTemplate.opsForList().range(getOrderItemKey(orderId), 0, -1);
-        if (orderItemJsonList == null || orderItemJsonList.isEmpty()) {
-            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM);
-        }
+        List<Object> objectList = redisTemplate.opsForList().range(getOrderItemKey(orderId), 0, -1);
+
+        List<OrderItem> orderItemList = objectList.stream()
+            .map(obj -> {
+                try {
+                    String json = obj.toString();  // Object → String 변환
+                    return objectMapper.readValue(json, OrderItem.class); // JSON → OrderItem 변환
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException("Redis에서 OrderItem 변환 실패", e);
+                }
+            })
+            .toList();
+
+
 
         long amount = order.getTotalPrice();
-        int quantity = orderItemJsonList.size();
-        String orderName = ((OrderItem) orderItemJsonList.get(0)).getItem().getName();
+        int quantity = orderItemList.size();
+        String orderName = (orderItemList.get(0)).getItem().getName();
         String customerEmail = user.getEmail();
         String customerName = user.getName();
         String customerKey = user.getCustomerKey();
@@ -131,8 +146,13 @@ public class OrderService {
 
         Orders order = new Orders(user, totalPrice, address);
         String key = getOrderKey(order.getId());
+        try { // 직렬화
+            String orderJson = objectMapper.writeValueAsString(order);
+            redisTemplate.opsForHash().put(key, "order", orderJson);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Order 객체 JSON 변환 실패", e);
+        }
 
-        redisTemplate.opsForHash().put(key, "order", order);
         String createdAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         redisTemplate.opsForHash().put(key, "createdAt", createdAt);
 
@@ -161,46 +181,47 @@ public class OrderService {
         String key = "order:" + order.getId() + ":items";
 
         orderItemList.forEach(orderItem -> {
-            redisTemplate.opsForList().rightPush(key, orderItem);
+            try { // 직렬화
+                String json = objectMapper.writeValueAsString(orderItem);
+                redisTemplate.opsForList().rightPush(key, json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Redis에 OrderItem 저장 실패", e);
+            }
         });
 
         redisTemplate.expire(key, 10, TimeUnit.MINUTES);
     }
-    
+
     // MySQL orders 생성 (결제 완료된 주문)
     @Transactional
-    public void mysqlOrder(String orderId) {
-        String key = getOrderKey(orderId);  // Redis의 키
-
-        // 'orderId'에 해당하는 데이터를 가져오기
-        Object orderObject = redisTemplate.opsForHash().get(key, "order");
-        Orders order = (Orders) orderObject;
-        if (order == null) {
-            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER);
-        }
-
+    public void mysqlOrder(Orders order) {
         ordersRepository.save(order);
     }
-    
+
     // MySQL orderItem 생성 (결제 완료된 주문)
     @Transactional
     public void mysqlOrderItem(String orderId) {
         String key = getOrderItemKey(orderId);
 
-        List<Object> orderItemJsonList = redisTemplate.opsForList().range(key, 0, -1);
-        if (orderItemJsonList == null || orderItemJsonList.isEmpty()) {
-            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM);
-        }
+        List<Object> objectList = redisTemplate.opsForList().range(key, 0, -1);
 
-        List<OrderItem> orderItemLists = orderItemJsonList.stream()
+        List<OrderItem> orderItemList = objectList.stream()
             .map(obj -> {
-                return (OrderItem) obj;
+                try { // 역직렬화
+                    String json = obj.toString();
+                    return objectMapper.readValue(json, OrderItem.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException("Redis에서 OrderItem 변환 실패", e);
+                }
             })
             .toList();
 
+        if (orderItemList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM);
+        }
+
         // 3. MySQL에 저장
-        log.info("size{}", orderItemLists.size());
-        orderItemRepository.saveAll(orderItemLists);
+        orderItemRepository.saveAll(orderItemList);
     }
 
     /**

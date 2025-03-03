@@ -11,6 +11,8 @@ import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.payment.event.PaymentApprovedEvent;
 import com.example.Sparta_Store.payment.exception.PaymentErrorCode;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,21 +49,30 @@ public class PaymentService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ApplicationEventPublisher eventPublisher;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final String ORDER_PREFIX = "order:";
+    private final ObjectMapper objectMapper;
 
     @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
 
+    public Orders getOrder(String orderId) {
+        String key = "order:" + orderId;
+        String orderJson = (String) redisTemplate.opsForHash().get(key, "order");
+        try {
+            return objectMapper.readValue(orderJson, Orders.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Order JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
+        }
+
+    }
+
     // 결제전, 주문상태 확인
-    public boolean checkBeforePayment(String orderId) {
-//        Map<Object, Object> orderMap = redisTemplate.opsForHash().entries(ORDER_PREFIX + orderId);
-        Orders order = (Orders) redisTemplate.opsForHash().get(ORDER_PREFIX + orderId, "order");
+    public boolean checkBeforePayment(String orderId) throws JsonProcessingException {
+        Orders order = getOrder(orderId);
         if (order == null) {
             throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
         }
 
         return order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT);
-//        return orderMap.get("orderStatus").toString().equals("BEFORE_PAYMENT");
     }
 
     // 결제 승인
@@ -74,7 +85,7 @@ public class PaymentService {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        Orders order = (Orders) redisTemplate.opsForHash().get(ORDER_PREFIX + orderId, "order");
+        Orders order = getOrder(orderId);
         if (order == null) {
             throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
         }
@@ -87,10 +98,16 @@ public class PaymentService {
 
         // 상태 변경
         order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);
-        redisTemplate.opsForHash().put(ORDER_PREFIX + orderId, "order", order); // redis 데이터도 업데이트
+        // redis 데이터도 업데이트
+        try {
+            String orderJson = objectMapper.writeValueAsString(order);
+            redisTemplate.opsForHash().put("order:" + orderId, "order", orderJson);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Order 객체 JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
+        }
 
         // MySQL 저장
-        orderService.mysqlOrder(orderId);
+        orderService.mysqlOrder(order);
         orderService.mysqlOrderItem(orderId);
 
         // 상품 재고 감소
