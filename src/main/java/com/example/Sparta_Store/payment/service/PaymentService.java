@@ -107,8 +107,8 @@ public class PaymentService {
         }
 
         // MySQL 저장
-        orderService.mysqlOrder(order);
-        orderService.mysqlOrderItem(orderId);
+        orderService.createMysqlOrder(order);
+        orderService.createMysqlOrderItem(orderId);
 
         // 상품 재고 감소
         orderService.completeOrder(orderId);

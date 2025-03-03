@@ -81,7 +81,7 @@ public class OrderServiceTest {
 
     @Test
     @DisplayName("주문 생성 성공 - 기본 배송지")
-    void createOrder_defaultAddress_success() {
+    void createRedisOrder_defaultAddress_success() {
         // given
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
@@ -95,7 +95,7 @@ public class OrderServiceTest {
         CreateOrderRequestDto requestDto = null;
 
         // when
-        Orders order = orderService.createOrder(user.getId(), requestDto);
+        Orders order = orderService.createRedisOrder(user.getId(), requestDto);
 
         // then
         assertNotNull(order);
@@ -106,7 +106,7 @@ public class OrderServiceTest {
 
     @Test
     @DisplayName("주문 생성 성공 - 신규 배송지")
-    void createOrder_newAddress_success() {
+    void createRedisOrder_newAddress_success() {
         // given
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
@@ -120,7 +120,7 @@ public class OrderServiceTest {
         CreateOrderRequestDto requestDto = new CreateOrderRequestDto(new Address("서울시", "테스트길", "12121"));
 
         // when
-        Orders order = orderService.createOrder(user.getId(), requestDto);
+        Orders order = orderService.createRedisOrder(user.getId(), requestDto);
 
         // then
         assertNotNull(order);
@@ -131,7 +131,7 @@ public class OrderServiceTest {
 
     @Test
     @DisplayName("주문 생성 실패 - 장바구니에 담긴 상품 없음")
-    void createOrder_notExistsCartItem_fail() {
+    void createRedisOrder_notExistsCartItem_fail() {
         // given
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
@@ -141,7 +141,7 @@ public class OrderServiceTest {
         CreateOrderRequestDto requestDto = null;
 
         // when & then
-        assertThatThrownBy(() -> orderService.createOrder(user.getId(), requestDto))
+        assertThatThrownBy(() -> orderService.createRedisOrder(user.getId(), requestDto))
             .isInstanceOf(CustomException.class)
             .extracting("errorCode")
             .isEqualTo(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
@@ -149,12 +149,12 @@ public class OrderServiceTest {
 
     @Test
     @DisplayName("주문 아이템 생성 성공")
-    void createOrderItem_success() {
+    void createRedisOrderItem_success() {
         // given
         Orders order = new Orders(user, 50000L, user.getAddress());
 
         // when
-        orderService.createOrderItem(order, cartItemList);
+        orderService.createRedisOrderItem(order, cartItemList);
 
         // then
         // cartItemList의 각 항목에 대해 OrderItem이 하나씩 생성되어야 함
@@ -163,13 +163,13 @@ public class OrderServiceTest {
 
     @Test
     @DisplayName("주문 아이템 생성 실패 - 장바구니에 담긴 상품 없음")
-    void createOrderItem_notExistsCartItem_fail() {
+    void createRedisOrderItem_notExistsCartItem_fail() {
         // given
         Orders order = new Orders(user, 50000L, user.getAddress());
         List<CartItem> cartItems = new ArrayList<>();
 
         // when & then
-        assertThatThrownBy(() -> orderService.createOrderItem(order, cartItems))
+        assertThatThrownBy(() -> orderService.createRedisOrderItem(order, cartItems))
             .isInstanceOf(CustomException.class)
             .extracting("errorCode")
             .isEqualTo(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);

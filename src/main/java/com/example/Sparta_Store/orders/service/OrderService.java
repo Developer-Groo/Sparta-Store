@@ -87,8 +87,6 @@ public class OrderService {
             })
             .toList();
 
-
-
         long amount = order.getTotalPrice();
         int quantity = orderItemList.size();
         String orderName = (orderItemList.get(0)).getItem().getName();
@@ -119,11 +117,11 @@ public class OrderService {
 
         List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
         // order 엔티티 생성 호출
-        Orders order = createOrder(userId, requestDto);
+        Orders order = createRedisOrder(userId, requestDto);
         log.info("Orders 생성 완료");
 
         // orderItem 엔티티 생성 호출
-        createOrderItem(order, cartItemList);
+        createRedisOrderItem(order, cartItemList);
         log.info("OrderItems 생성 완료");
 
         return order.getId();
@@ -131,7 +129,7 @@ public class OrderService {
 
     // Redis order 생성 (임시 주문)
     @Transactional
-    public Orders createOrder(Long userId, CreateOrderRequestDto requestDto) {
+    public Orders createRedisOrder(Long userId, CreateOrderRequestDto requestDto) {
         Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
@@ -164,7 +162,7 @@ public class OrderService {
     
     // Redis orderItem 생성 (임시 주문아이템)
     @Transactional
-    public void createOrderItem(Orders order, List<CartItem> cartItemList) {
+    public void createRedisOrderItem(Orders order, List<CartItem> cartItemList) {
 
         if (cartItemList.isEmpty()) {
             throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
@@ -194,13 +192,13 @@ public class OrderService {
 
     // MySQL orders 생성 (결제 완료된 주문)
     @Transactional
-    public void mysqlOrder(Orders order) {
+    public void createMysqlOrder(Orders order) {
         ordersRepository.save(order);
     }
 
     // MySQL orderItem 생성 (결제 완료된 주문)
     @Transactional
-    public void mysqlOrderItem(String orderId) {
+    public void createMysqlOrderItem(String orderId) {
         String key = getOrderItemKey(orderId);
 
         List<Object> objectList = redisTemplate.opsForList().range(key, 0, -1);
