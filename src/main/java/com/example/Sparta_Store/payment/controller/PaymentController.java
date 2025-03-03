@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -84,7 +83,7 @@ public class PaymentController {
             response = paymentService.confirmPayment(userId, jsonBody);
         } catch (Exception e) {
             log.error("결제 승인 에러 발생: {}", e.getMessage());
-            adminOrderService.orderCancelled(orderId);
+//            adminOrderService.orderCancelled(orderId);
 
             JSONObject jsonResponse = new JSONObject();
             jsonResponse.put("message", e.getMessage());

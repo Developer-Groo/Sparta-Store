@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -17,7 +18,6 @@ import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
-import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
@@ -101,6 +101,7 @@ public class OrderServiceTest {
         assertNotNull(order);
         assertEquals(user, order.getUser());
         assertEquals(user.getAddress(), order.getAddress());
+        assertEquals(order.getOrderStatus(), OrderStatus.BEFORE_PAYMENT);
     }
 
     @Test
@@ -125,6 +126,7 @@ public class OrderServiceTest {
         assertNotNull(order);
         assertEquals(user, order.getUser());
         assertEquals(requestDto.address(), order.getAddress());
+        assertEquals(order.getOrderStatus(), OrderStatus.BEFORE_PAYMENT);
     }
 
     @Test
@@ -150,19 +152,13 @@ public class OrderServiceTest {
     void createOrderItem_success() {
         // given
         Orders order = new Orders(user, 50000L, user.getAddress());
-        given(ordersRepository.save(any(Orders.class)))  // 주문 저장
-            .willReturn(order);
-        given(orderItemRepository.save(any(OrderItem.class)))
-            .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         orderService.createOrderItem(order, cartItemList);
 
         // then
         // cartItemList의 각 항목에 대해 OrderItem이 하나씩 생성되어야 함
-        verify(orderItemRepository, times(cartItemList.size())).save(any(OrderItem.class));
-        // 주문이 저장된 것도 확인
-        verify(ordersRepository, times(1)).save(order);
+        verify(orderItemRepository, times(cartItemList.size())).saveAll(anyList());
     }
 
     @Test

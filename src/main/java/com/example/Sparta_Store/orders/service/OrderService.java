@@ -3,10 +3,8 @@ package com.example.Sparta_Store.orders.service;
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.address.entity.Address;
-import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cart.service.CartRedisService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
-import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
@@ -18,7 +16,6 @@ import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.orders.dto.response.OrderResponseDto;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.event.OrderConfirmedEvent;
-import com.example.Sparta_Store.orders.event.OrdersPaymentCancelledEvent;
 import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.Users;
@@ -27,14 +24,16 @@ import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
@@ -50,8 +49,7 @@ public class OrderService {
     private final ItemService itemService;
     private final CartRedisService cartRedisService;
     private final ApplicationEventPublisher eventPublisher;
-    private final CartItemRepository cartItemRepository;
-    private final CartRepository cartRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public void getPaymentInfo(Model model, Long userId, String orderId) {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
@@ -60,23 +58,25 @@ public class OrderService {
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
 
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
+        String key = getOrderKey(orderId);
+        Orders order = (Orders) redisTemplate.opsForHash().get(key, "order");
 
-        if (!order.getUser().equals(user)) {
+        if (order == null) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER);
+        }
+
+        if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
         }
 
-        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
-        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order)
-            .orElseThrow(
-                () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
-            );
+        List<Object> orderItemJsonList = redisTemplate.opsForList().range(getOrderItemKey(orderId), 0, -1);
+        if (orderItemJsonList == null || orderItemJsonList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM);
+        }
 
         long amount = order.getTotalPrice();
-        int quantity = orderItemList.size();
-        String orderName = orderItemList.get(0).getItem().getName();
+        int quantity = orderItemJsonList.size();
+        String orderName = ((OrderItem) orderItemJsonList.get(0)).getItem().getName();
         String customerEmail = user.getEmail();
         String customerName = user.getName();
         String customerKey = user.getCustomerKey();
@@ -96,7 +96,7 @@ public class OrderService {
     }
 
     /**
-     * 주문서 페이지 -> 주문 생성 (결제전)
+     * 주문서 페이지 -> Redis 임시 주문 생성 (결제전)
      */
     // Orders , OrderItem 생성
     @Transactional
@@ -114,7 +114,7 @@ public class OrderService {
         return order.getId();
     }
 
-    // orders 생성
+    // Redis order 생성 (임시 주문)
     @Transactional
     public Orders createOrder(Long userId, CreateOrderRequestDto requestDto) {
         Users user = userRepository.findById(userId).orElseThrow(
@@ -129,14 +129,20 @@ public class OrderService {
         long totalPrice = cartRedisService.getTotalPrice(cartItemList);
         Address address = requestDto == null ? user.getAddress() : requestDto.address();
 
-        Orders savedOrder = new Orders(user, totalPrice, address);
-        ordersRepository.save(savedOrder);
+        Orders order = new Orders(user, totalPrice, address);
+        String key = getOrderKey(order.getId());
+
+        redisTemplate.opsForHash().put(key, "order", order);
+        String createdAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        redisTemplate.opsForHash().put(key, "createdAt", createdAt);
+
+        redisTemplate.expire(key, 10, TimeUnit.MINUTES);
 
         // order 반환
-        return savedOrder;
+        return order;
     }
-
-    // orderItem 생성
+    
+    // Redis orderItem 생성 (임시 주문아이템)
     @Transactional
     public void createOrderItem(Orders order, List<CartItem> cartItemList) {
 
@@ -151,7 +157,50 @@ public class OrderService {
                     (cartItem.getItem().getPrice()) * (cartItem.getQuantity()),
                     cartItem.getQuantity())
                 ).toList();
-        orderItemRepository.saveAll(orderItemList);
+
+        String key = "order:" + order.getId() + ":items";
+
+        orderItemList.forEach(orderItem -> {
+            redisTemplate.opsForList().rightPush(key, orderItem);
+        });
+
+        redisTemplate.expire(key, 10, TimeUnit.MINUTES);
+    }
+    
+    // MySQL orders 생성 (결제 완료된 주문)
+    @Transactional
+    public void mysqlOrder(String orderId) {
+        String key = getOrderKey(orderId);  // Redis의 키
+
+        // 'orderId'에 해당하는 데이터를 가져오기
+        Object orderObject = redisTemplate.opsForHash().get(key, "order");
+        Orders order = (Orders) orderObject;
+        if (order == null) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER);
+        }
+
+        ordersRepository.save(order);
+    }
+    
+    // MySQL orderItem 생성 (결제 완료된 주문)
+    @Transactional
+    public void mysqlOrderItem(String orderId) {
+        String key = getOrderItemKey(orderId);
+
+        List<Object> orderItemJsonList = redisTemplate.opsForList().range(key, 0, -1);
+        if (orderItemJsonList == null || orderItemJsonList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM);
+        }
+
+        List<OrderItem> orderItemLists = orderItemJsonList.stream()
+            .map(obj -> {
+                return (OrderItem) obj;
+            })
+            .toList();
+
+        // 3. MySQL에 저장
+        log.info("size{}", orderItemLists.size());
+        orderItemRepository.saveAll(orderItemLists);
     }
 
     /**
@@ -196,38 +245,6 @@ public class OrderService {
             throw new CustomException(OrdersErrorCode.ORDER_STATUS_INVALID_TRANSITION);
 
         }
-    }
-
-    /**
-     * 자동 결제취소
-     * - 주문생성 후, 10분 이상 '결제전' 상태가 지속된다면 자동으로 '결제취소'
-     * - orderItem 삭제는 비동기 이벤트리스너 처리
-     */
-    @Scheduled(cron = "0 */1 * * * *")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void autoCancellationOrders() {
-        // 조건에 맞는 주문 리스트 조회
-        List<Orders> orderList = ordersRepository.findOrdersForAutoCancellation();
-
-        if (!orderList.isEmpty()) {
-            int cnt = 0;
-
-            // 주문 '결제취소' 상태변경
-            for (Orders order : orderList) {
-                try {
-                    order.updateOrderStatus(OrderStatus.PAYMENT_CANCELLED);
-                } catch (Exception e) {
-                    // 에러가 발생해도 롤백 x
-                    cnt++;
-                    log.error("주문 '결제취소' 상태 변경 Exception 감지 (orderId: {})", order.getId());
-                }
-            }
-
-            // orderItem 삭제 (비동기 이벤트리스너)
-            eventPublisher.publishEvent(new OrdersPaymentCancelledEvent(orderList));
-            log.info("자동 결제취소 완료, {}개의 주문 중, Exception 감지된 주문: {}개", orderList.size(), cnt);
-        }
-
     }
 
     /**
@@ -295,22 +312,29 @@ public class OrderService {
         return PageResult.from(orderItemList);
     }
 
-    // 상품 재고 감소 및 order 상태 변경
+    // 상품 재고 감소
     @Transactional
     public void completeOrder(String orderId) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
         );
+
         // 상품 재고 감소
         List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order)
             .orElseThrow(
                 () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
             );
-        itemService.decreaseStock(orderItemList);
-        // 주문상태 변경
-        order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);
 
-        log.info("상품 재고 감소 및 order 상태 변경 완료");
+        itemService.decreaseStock(orderItemList);
+        log.info("상품 재고 감소 완료");
     }
 
+    // Redis get order key
+    public String getOrderKey(String orderId) {
+        return "order:" + orderId;
+    }
+
+    public String getOrderItemKey(String orderId) {
+        return "order:" + orderId + ":items";
+    }
 }

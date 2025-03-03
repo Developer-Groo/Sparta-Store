@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -45,16 +46,22 @@ public class PaymentService {
     private final OrdersRepository ordersRepository;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ApplicationEventPublisher eventPublisher;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final String ORDER_PREFIX = "order:";
 
     @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
 
     // 결제전, 주문상태 확인
     public boolean checkBeforePayment(String orderId) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
-        );
+//        Map<Object, Object> orderMap = redisTemplate.opsForHash().entries(ORDER_PREFIX + orderId);
+        Orders order = (Orders) redisTemplate.opsForHash().get(ORDER_PREFIX + orderId, "order");
+        if (order == null) {
+            throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
+        }
+
         return order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT);
+//        return orderMap.get("orderStatus").toString().equals("BEFORE_PAYMENT");
     }
 
     // 결제 승인
@@ -67,17 +74,26 @@ public class PaymentService {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
-        );
+        Orders order = (Orders) redisTemplate.opsForHash().get(ORDER_PREFIX + orderId, "order");
+        if (order == null) {
+            throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
+        }
 
         // 데이터 검증
-        checkData(userId, orderId, amount);
+        checkData(userId, order, amount);
         if (!checkBeforePayment(orderId)) {
             throw new CustomException(PaymentErrorCode.MUST_BE_BEFORE_PAYMENT);
         }
 
-        // 상품 재고 감소 및 주문 CONFIRMED 상태 변경
+        // 상태 변경
+        order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);
+        redisTemplate.opsForHash().put(ORDER_PREFIX + orderId, "order", order); // redis 데이터도 업데이트
+
+        // MySQL 저장
+        orderService.mysqlOrder(orderId);
+        orderService.mysqlOrderItem(orderId);
+
+        // 상품 재고 감소
         orderService.completeOrder(orderId);
 
         // Payment 엔티티 생성
@@ -132,10 +148,7 @@ public class PaymentService {
     }
 
     // user, orderId, amount 일치 검증
-    public void checkData(Long userId, String orderId, long amount) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
-        );
+    public void checkData(Long userId, Orders order, long amount) {
         if(!order.getUser().getId().equals(userId)) {
             throw new CustomException(PaymentErrorCode.USER_MISMATCH);
         }
