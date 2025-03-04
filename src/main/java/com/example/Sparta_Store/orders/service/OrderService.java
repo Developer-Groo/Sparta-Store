@@ -159,7 +159,7 @@ public class OrderService {
         // order 반환
         return order;
     }
-    
+
     // Redis orderItem 생성 (임시 주문아이템)
     @Transactional
     public void createRedisOrderItem(Orders order, List<CartItem> cartItemList) {
