@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -18,7 +20,6 @@ import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
-import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.dto.request.CreateOrderRequestDto;
 import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
@@ -27,10 +28,13 @@ import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +43,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -57,7 +64,16 @@ public class OrderServiceTest {
     private OrdersRepository ordersRepository;
 
     @Mock
-    private OrderItemRepository orderItemRepository;
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private HashOperations<String, Object, Object> hashOperations;
+
+    @Mock
+    private ListOperations<String, Object> listOperations;
 
     private Users user;
     private Cart cart;
@@ -76,60 +92,71 @@ public class OrderServiceTest {
         cart = new Cart(1L, user, cartItemList);
         cartItem = new CartItem(1L, cart, item, 2);
         cartItemList.add(cartItem);
-
     }
 
     @Test
-    @DisplayName("주문 생성 성공 - 기본 배송지")
-    void createOrder_defaultAddress_success() {
+    @DisplayName("레디스 주문 생성 성공 - 기본 배송지")
+    void createRedisOrder_defaultAddress_success() throws JsonProcessingException {
         // given
+        given(redisTemplate.opsForHash()).willReturn(hashOperations);
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
             .willReturn(cartItemList);
         given(cartRedisService.getTotalPrice(cartItemList))
             .willReturn(totalPrice);
-        given(ordersRepository.save(any(Orders.class)))
-            .willAnswer(invocation -> invocation.getArgument(0));
+        given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
 
         CreateOrderRequestDto requestDto = null;
 
         // when
-        Orders order = orderService.createOrder(user.getId(), requestDto);
+        Orders order = orderService.createRedisOrder(user.getId(), requestDto);
 
         // then
         assertNotNull(order);
         assertEquals(user, order.getUser());
         assertEquals(user.getAddress(), order.getAddress());
+        assertEquals(Long.valueOf(order.getTotalPrice()), Long.valueOf(totalPrice));
+        assertEquals(OrderStatus.BEFORE_PAYMENT, order.getOrderStatus());
+
+        verify(hashOperations, times(1)).put(anyString(), eq("order"), eq("orderJson"));
+        verify(hashOperations, times(1)).put(anyString(), eq("createdAt"), anyString());
+        verify(redisTemplate, times(1)).expire(anyString(), eq(10L), eq(TimeUnit.MINUTES));
     }
 
     @Test
-    @DisplayName("주문 생성 성공 - 신규 배송지")
-    void createOrder_newAddress_success() {
+    @DisplayName("레디스 주문 생성 성공 - 신규 배송지")
+    void createRedisOrder_newAddress_success() throws JsonProcessingException {
         // given
+        given(redisTemplate.opsForHash()).willReturn(hashOperations);
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
             .willReturn(cartItemList);
         given(cartRedisService.getTotalPrice(cartItemList))
             .willReturn(totalPrice);
-        given(ordersRepository.save(any(Orders.class)))
-            .willAnswer(invocation -> invocation.getArgument(0));
+        given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
 
         CreateOrderRequestDto requestDto = new CreateOrderRequestDto(new Address("서울시", "테스트길", "12121"));
 
         // when
-        Orders order = orderService.createOrder(user.getId(), requestDto);
+        Orders order = orderService.createRedisOrder(user.getId(), requestDto);
 
         // then
         assertNotNull(order);
         assertEquals(user, order.getUser());
         assertEquals(requestDto.address(), order.getAddress());
+        assertEquals(Long.valueOf(order.getTotalPrice()), Long.valueOf(totalPrice));
+        assertEquals(OrderStatus.BEFORE_PAYMENT, order.getOrderStatus());
+
+        verify(hashOperations, times(1)).put(anyString(), eq("order"), eq("orderJson"));
+        verify(hashOperations, times(1)).put(anyString(), eq("createdAt"), anyString());
+        verify(redisTemplate, times(1)).expire(anyString(), eq(10L), eq(TimeUnit.MINUTES));
     }
 
     @Test
-    @DisplayName("주문 생성 실패 - 장바구니에 담긴 상품 없음")
-    void createOrder_notExistsCartItem_fail() {
+    @DisplayName("레디스 주문 생성 실패 - 장바구니에 담긴 상품 없음")
+    void createRedisOrder_notExistsCartItem_fail() {
         // given
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
@@ -139,41 +166,54 @@ public class OrderServiceTest {
         CreateOrderRequestDto requestDto = null;
 
         // when & then
-        assertThatThrownBy(() -> orderService.createOrder(user.getId(), requestDto))
+        assertThatThrownBy(() -> orderService.createRedisOrder(user.getId(), requestDto))
             .isInstanceOf(CustomException.class)
             .extracting("errorCode")
             .isEqualTo(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
     }
 
     @Test
-    @DisplayName("주문 아이템 생성 성공")
-    void createOrderItem_success() {
+    @DisplayName("MySQL 결제 완료된 주문 생성 성공")
+    void createMysqlOrder_success() {
         // given
         Orders order = new Orders(user, 50000L, user.getAddress());
-        given(ordersRepository.save(any(Orders.class)))  // 주문 저장
-            .willReturn(order);
-        given(orderItemRepository.save(any(OrderItem.class)))
-            .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        orderService.createOrderItem(order, cartItemList);
+        orderService.createMysqlOrder(order);
 
         // then
-        // cartItemList의 각 항목에 대해 OrderItem이 하나씩 생성되어야 함
-        verify(orderItemRepository, times(cartItemList.size())).save(any(OrderItem.class));
-        // 주문이 저장된 것도 확인
-        verify(ordersRepository, times(1)).save(order);
+        verify(ordersRepository, times(1)).save(eq(order));
     }
 
     @Test
-    @DisplayName("주문 아이템 생성 실패 - 장바구니에 담긴 상품 없음")
-    void createOrderItem_notExistsCartItem_fail() {
+    @DisplayName("레디스 주문 아이템 생성 성공")
+    void createRedisOrderItem_success() throws JsonProcessingException {
+        // given
+        given(redisTemplate.opsForList()).willReturn(listOperations);
+        Orders order = new Orders(user, 10000L, user.getAddress());
+
+        doAnswer(invocation -> {
+            OrderItem orderItem = invocation.getArgument(0);
+            return new ObjectMapper().writeValueAsString(orderItem);
+        }).when(objectMapper).writeValueAsString(any(OrderItem.class));
+
+        // when
+        orderService.createRedisOrderItem(order, cartItemList);
+
+        // then
+        verify(listOperations, times(cartItemList.size())).rightPush(anyString(), anyString());
+        verify(redisTemplate, times(1)).expire(anyString(), eq(10L), eq(TimeUnit.MINUTES));
+    }
+
+    @Test
+    @DisplayName("레디스 주문 아이템 생성 실패 - 장바구니에 담긴 상품 없음")
+    void createRedisOrderItem_notExistsCartItem_fail() {
         // given
         Orders order = new Orders(user, 50000L, user.getAddress());
         List<CartItem> cartItems = new ArrayList<>();
 
         // when & then
-        assertThatThrownBy(() -> orderService.createOrderItem(order, cartItems))
+        assertThatThrownBy(() -> orderService.createRedisOrderItem(order, cartItems))
             .isInstanceOf(CustomException.class)
             .extracting("errorCode")
             .isEqualTo(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);

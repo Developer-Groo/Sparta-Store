@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.orders;
+package com.example.Sparta_Store.orders.event;
 
 import com.example.Sparta_Store.orders.entity.Orders;
 import java.util.List;
