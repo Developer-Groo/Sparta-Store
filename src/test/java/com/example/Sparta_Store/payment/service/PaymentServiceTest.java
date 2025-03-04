@@ -22,7 +22,6 @@ import com.example.Sparta_Store.payment.exception.PaymentErrorCode;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
 import com.example.Sparta_Store.user.entity.Users;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,8 +34,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 
 @ExtendWith(MockitoExtension.class)
 public class PaymentServiceTest {
@@ -52,15 +49,6 @@ public class PaymentServiceTest {
 
     @Mock
     OrderService orderService;
-
-    @Mock
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Mock
-    private HashOperations<String, Object, Object> hashOperations;
-
-    @Mock
-    private ObjectMapper objectMapper;
 
     private Users user;
     private Orders order;
