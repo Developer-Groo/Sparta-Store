@@ -54,20 +54,9 @@ public class PaymentService {
     @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
 
-    public Orders getOrder(String orderId) {
-        String key = "order:" + orderId;
-        String orderJson = (String) redisTemplate.opsForHash().get(key, "order");
-        try {
-            return objectMapper.readValue(orderJson, Orders.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Order JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
-        }
-
-    }
-
     // 결제전, 주문상태 확인
     public boolean checkBeforePayment(String orderId) throws JsonProcessingException {
-        Orders order = getOrder(orderId);
+        Orders order = orderService.getOrder(orderId);
         if (order == null) {
             throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
         }
@@ -85,7 +74,7 @@ public class PaymentService {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        Orders order = getOrder(orderId);
+        Orders order = orderService.getOrder(orderId);
         if (order == null) {
             throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
         }

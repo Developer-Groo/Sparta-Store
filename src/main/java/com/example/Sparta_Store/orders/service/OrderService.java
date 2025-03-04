@@ -356,4 +356,15 @@ public class OrderService {
     public String getOrderItemKey(String orderId) {
         return "order:" + orderId + ":items";
     }
+
+    public Orders getOrder(String orderId) {
+        String key = "order:" + orderId;
+        String orderJson = (String) redisTemplate.opsForHash().get(key, "order");
+        try {
+            return objectMapper.readValue(orderJson, Orders.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Order JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
+        }
+
+    }
 }
