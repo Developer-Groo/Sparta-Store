@@ -28,13 +28,12 @@ public class LikesService {
     public void addLike(Long itemId, Long userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdWithLock(itemId)
                 .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
 
         if(likesRepository.findByUserAndItem(user, item).isPresent()) {
             throw new CustomException(LikesErrorCode.PRODUCT_ALREADY_WISHLIST);
         }
-
         likesRepository.save(new Likes(user, item));
     }
 

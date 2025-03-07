@@ -49,7 +49,7 @@ class LikesServiceTest {
     void setUp() {
         user = new Users("test@test.com", "password", "테스트1", null, null);
         item = new Item(1L, "상품2", "img.jpa", 1000, null, null, null, null);
-        likes = new Likes(1L, user, item);
+        likes = new Likes(1L, user, item,1,1);
     }
 
     @Test
@@ -58,7 +58,7 @@ class LikesServiceTest {
         // given
         given(userRepository.findById(1L))
                 .willReturn(Optional.of(user));
-        given(itemRepository.findById(1L))
+        given(itemRepository.findByIdWithLock(1L))
                 .willReturn(Optional.of(item));
         given(likesRepository.findByUserAndItem(user,item))
                 .willReturn(Optional.empty());
@@ -73,7 +73,7 @@ class LikesServiceTest {
         // given
         given(userRepository.findById(1L))
                 .willReturn(Optional.of(user));
-        given(itemRepository.findById(1L))
+        given(itemRepository.findByIdWithLock(1L))
                 .willReturn(Optional.of(item));
         given(likesRepository.findByUserAndItem(user,item))
                 .willReturn(Optional.of(likes));

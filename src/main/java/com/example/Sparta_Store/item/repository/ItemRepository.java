@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long>, ItemQueryRepository {
 
@@ -18,4 +19,8 @@ public interface ItemRepository extends JpaRepository<Item, Long>, ItemQueryRepo
                     "where i.id in :itemIds"
     )
     List<Item> findAllByIdWithLock(@Param("itemIds") List<Long> itemIds);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select i from Item i where i.id = :id")
+    Optional<Item> findByIdWithLock(Long id);
 }
