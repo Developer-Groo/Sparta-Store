@@ -46,6 +46,16 @@ public class CouponController {
         return ResponseEntity.status(HttpStatus.OK).body(couponService.getRandomCoupon(userId, couponName));
     }
 
+    @GetMapping("/testV2")
+    public ResponseEntity<String> getRandomCouponV2(@RequestParam Long userId, @RequestParam String couponName) {
+        LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
+        if (!isTimeInRange(now, now.with(LocalTime.NOON), now.with(LocalTime.MAX))) { // 12:00:00 ~ 23:59:59
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("쿠폰 발급 가능 시간이 아닙니다.");
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(couponService.getRandomCouponV2(userId, couponName));
+    }
+
     public static boolean isTimeInRange(LocalTime now, LocalTime start, LocalTime end) {
         return now.isAfter(start) && now.isBefore(end);
     }
