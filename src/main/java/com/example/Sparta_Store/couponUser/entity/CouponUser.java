@@ -38,7 +38,7 @@ public class CouponUser extends TimestampedEntity {
     @Column(name = "expiration_date", nullable = false)
     private LocalDateTime expirationDate;
 
-    public CouponUser(
+    private CouponUser(
         String name,
         String content,
         Long userId,
@@ -49,5 +49,19 @@ public class CouponUser extends TimestampedEntity {
         this.userId = userId;
         this.isUsed = false;
         this.expirationDate = expirationDate;
+    }
+
+    public static CouponUser toEntity(
+        String name,
+        String content,
+        Long userId,
+        LocalDateTime expirationDate
+    ) {
+        return new CouponUser(
+            name,
+            content,
+            userId,
+            expirationDate
+        );
     }
 }
