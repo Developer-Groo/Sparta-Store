@@ -1,5 +1,7 @@
 package com.example.Sparta_Store.orders.repository;
 
+import static com.example.Sparta_Store.orders.OrderStatus.BEFORE_PAYMENT;
+import static com.example.Sparta_Store.orders.OrderStatus.PAYMENT_CANCELLED;
 import static com.example.Sparta_Store.orders.entity.QOrders.orders;
 
 import com.example.Sparta_Store.orders.OrderStatus;
@@ -22,8 +24,18 @@ public class OrdersQueryRepositoryImpl implements OrdersQueryRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Orders> findByUserId(Long userId, Pageable pageable) {
-        JPAQuery<Orders> result = queryFactory.selectFrom(orders).where(userIdEquals(userId));
+    public Page<Orders> findOrders(
+        Long userId,
+        LocalDateTime startOfDate,
+        LocalDateTime endOfDate,
+        OrderStatus orderStatus,
+        Pageable pageable
+    ) {
+        JPAQuery<Orders> result = queryFactory.selectFrom(orders).where(
+            userIdEquals(userId).and(orders.orderStatus.notIn(BEFORE_PAYMENT, PAYMENT_CANCELLED)),
+            (statusEquals(orderStatus)),
+            createdAtBetween(startOfDate, endOfDate)
+        );
 
         return QuerydslUtil.fetchPage(result, orders, pageable);
     }
@@ -32,6 +44,24 @@ public class OrdersQueryRepositoryImpl implements OrdersQueryRepository {
     private BooleanExpression userIdEquals(Long userId) {
         return userId != null ? orders.user.id.eq(userId) : null;
     }
+    // 주문상태 조건 검색
+    private BooleanExpression statusEquals(OrderStatus orderStatus) {
+        return orderStatus != null ? orders.orderStatus.eq(orderStatus) : null;
+    }
+    // 주문날짜 조건 검색
+    private BooleanExpression createdAtBetween(LocalDateTime startOfDate, LocalDateTime endOfDate) {
+        if (startOfDate == null && endOfDate == null) {
+            return null;
+        } if (startOfDate != null && endOfDate != null) {
+            return orders.createdAt.between(startOfDate, endOfDate);
+        } else if (startOfDate != null) {
+            return orders.createdAt.goe(startOfDate);
+        } else {
+            return orders.createdAt.loe(endOfDate);
+        }
+    }
+
+    //TODO 서버가 배포된 환경에서는 시간대가 다를 수 있음 -> UTC 또는 원하는 시간대로 고정
 
     /**
      * 주문 상태가 "배송완료" 이며, 업데이트 날짜가 조회시점보다 5일 이상 지난 주문 조회
@@ -43,6 +73,19 @@ public class OrdersQueryRepositoryImpl implements OrdersQueryRepository {
         return queryFactory.selectFrom(orders)
             .where(orders.orderStatus.eq(OrderStatus.DELIVERED)
                 .and(orders.updatedAt.loe(fiveDaysAgo)))
+            .fetch();
+    }
+
+    /**
+     * 생성된 지 10분 이상이 지난 주문 중에서 '결제전' 상태인 주문 조회
+     */
+    @Override
+    public List<Orders> findOrdersForAutoCancellation() {
+        LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
+
+        return queryFactory.selectFrom(orders)
+            .where(orders.orderStatus.eq(OrderStatus.BEFORE_PAYMENT)
+                .and(orders.createdAt.loe(tenMinutesAgo)))
             .fetch();
     }
 

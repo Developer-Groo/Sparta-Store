@@ -15,15 +15,16 @@ import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.redis.RedisService;
 import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
+import java.time.Duration;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -150,7 +151,14 @@ public class CartRedisService {
     }
 
     @Transactional
+    @Retryable(
+        value = { CustomException.class },
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
     public void deleteCartItem(Long userId) {
+        log.info("장바구니 초기화 호출 (userId: {})", userId);
+
         String cartKey = getCartKey(userId);
 
         Cart cart = redisService.getObject(cartKey, Cart.class);

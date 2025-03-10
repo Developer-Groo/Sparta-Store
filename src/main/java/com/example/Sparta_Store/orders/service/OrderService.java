@@ -3,10 +3,8 @@ package com.example.Sparta_Store.orders.service;
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.address.entity.Address;
-import com.example.Sparta_Store.cart.repository.CartRepository;
 import com.example.Sparta_Store.cart.service.CartRedisService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
-import com.example.Sparta_Store.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orderItem.dto.response.OrderItemResponseDto;
@@ -24,12 +22,18 @@ import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,38 +46,50 @@ import org.springframework.ui.Model;
 public class OrderService {
 
     private final OrdersRepository ordersRepository;
-    private final CartRepository cartRepository;
     private final UserRepository userRepository;
-    private final CartItemRepository cartItemRepository;
     private final OrderItemRepository orderItemRepository;
     private final ItemService itemService;
     private final CartRedisService cartRedisService;
     private final ApplicationEventPublisher eventPublisher;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    public void getPaymentInfo(Model model, Long userId, String orderId) {
+    public void getPaymentInfo(Model model, Long userId, String orderId)
+        throws JsonProcessingException {
         // 요청을 보낸 user와 order 주인이 동일한지 검증
         // 주문서를 작성한 후, 로그인 정보가 바뀌었을 상황 대비
         Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
 
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
+        String key = getOrderKey(orderId);
+        String orderJson = (String) redisTemplate.opsForHash().get(key, "order");
+        Orders order = objectMapper.readValue(orderJson, Orders.class);
 
-        if (!order.getUser().equals(user)) {
+        if (order == null) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER);
+        }
+
+        if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
         }
 
-        // model에 amount, quantity, orderName, customerEmail, customerName, customerKey 정보 추가
-        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order)
-            .orElseThrow(
-                () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
-            );
+        List<Object> objectList = redisTemplate.opsForList().range(getOrderItemKey(orderId), 0, -1);
+
+        List<OrderItem> orderItemList = objectList.stream()
+            .map(obj -> {
+                try {
+                    String json = obj.toString();  // Object → String 변환
+                    return objectMapper.readValue(json, OrderItem.class); // JSON → OrderItem 변환
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException("Redis에서 OrderItem 변환 실패", e);
+                }
+            })
+            .toList();
 
         long amount = order.getTotalPrice();
         int quantity = orderItemList.size();
-        String orderName = orderItemList.get(0).getItem().getName();
+        String orderName = (orderItemList.get(0)).getItem().getName();
         String customerEmail = user.getEmail();
         String customerName = user.getName();
         String customerKey = user.getCustomerKey();
@@ -93,32 +109,30 @@ public class OrderService {
     }
 
     /**
-     * 주문서 페이지 -> 주문 생성 (결제전)
+     * 주문서 페이지 -> Redis 임시 주문 생성 (결제전)
      */
     // Orders , OrderItem 생성
     @Transactional
     public String checkoutOrder(Long userId, CreateOrderRequestDto requestDto) {
 
         List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
-
         // order 엔티티 생성 호출
-        Orders order = createOrder(userId, requestDto);
+        Orders order = createRedisOrder(userId, requestDto);
         log.info("Orders 생성 완료");
 
         // orderItem 엔티티 생성 호출
-        createOrderItem(order, cartItemList);
+        createRedisOrderItem(order, cartItemList);
         log.info("OrderItems 생성 완료");
 
         return order.getId();
     }
 
-    // orders 생성
+    // Redis order 생성 (임시 주문)
     @Transactional
-    public Orders createOrder(Long userId, CreateOrderRequestDto requestDto) {
+    public Orders createRedisOrder(Long userId, CreateOrderRequestDto requestDto) {
         Users user = userRepository.findById(userId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
         );
-
         List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
 
         if (cartItemList.isEmpty()) {
@@ -126,35 +140,86 @@ public class OrderService {
         }
 
         long totalPrice = cartRedisService.getTotalPrice(cartItemList);
-
         Address address = requestDto == null ? user.getAddress() : requestDto.address();
 
-        Orders savedOrder = new Orders(user, totalPrice, address);
-        ordersRepository.save(savedOrder);
+        Orders order = new Orders(user, totalPrice, address);
+        String key = getOrderKey(order.getId());
+        try { // 직렬화
+            String orderJson = objectMapper.writeValueAsString(order);
+            redisTemplate.opsForHash().put(key, "order", orderJson);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Order 객체 JSON 변환 실패", e);
+        }
+
+        String createdAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        redisTemplate.opsForHash().put(key, "createdAt", createdAt);
+
+        redisTemplate.expire(key, 10, TimeUnit.MINUTES);
 
         // order 반환
-        return savedOrder;
+        return order;
     }
 
-    // orderItem 생성
+    // Redis orderItem 생성 (임시 주문아이템)
     @Transactional
-    public void createOrderItem(Orders order, List<CartItem> cartItemList) {
+    public void createRedisOrderItem(Orders order, List<CartItem> cartItemList) {
 
         if (cartItemList.isEmpty()) {
             throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
         }
 
-        for (CartItem cartItem : cartItemList) {
-            int orderPrice = (cartItem.getItem().getPrice()) * (cartItem.getQuantity());
-            OrderItem savedOrderItem = new OrderItem(
-                order,
-                cartItem.getItem(),
-                orderPrice,
-                cartItem.getQuantity()
-            );
-            orderItemRepository.save(savedOrderItem);
-        }
+        List<OrderItem> orderItemList = cartItemList.stream()
+                .map(cartItem -> new OrderItem(
+                    order,
+                    cartItem.getItem(),
+                    (cartItem.getItem().getPrice()) * (cartItem.getQuantity()),
+                    cartItem.getQuantity())
+                ).toList();
+
+        String key = "order:" + order.getId() + ":items";
+
+        orderItemList.forEach(orderItem -> {
+            try { // 직렬화
+                String json = objectMapper.writeValueAsString(orderItem);
+                redisTemplate.opsForList().rightPush(key, json);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Redis에 OrderItem 저장 실패", e);
+            }
+        });
+
+        redisTemplate.expire(key, 10, TimeUnit.MINUTES);
+    }
+
+    // MySQL orders 생성 (결제 완료된 주문)
+    @Transactional
+    public void createMysqlOrder(Orders order) {
         ordersRepository.save(order);
+    }
+
+    // MySQL orderItem 생성 (결제 완료된 주문)
+    @Transactional
+    public void createMysqlOrderItem(String orderId) {
+        String key = getOrderItemKey(orderId);
+
+        List<Object> objectList = redisTemplate.opsForList().range(key, 0, -1);
+
+        List<OrderItem> orderItemList = objectList.stream()
+            .map(obj -> {
+                try { // 역직렬화
+                    String json = obj.toString();
+                    return objectMapper.readValue(json, OrderItem.class);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException("Redis에서 OrderItem 변환 실패", e);
+                }
+            })
+            .toList();
+
+        if (orderItemList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM);
+        }
+
+        // 3. MySQL에 저장
+        orderItemRepository.saveAll(orderItemList);
     }
 
     /**
@@ -172,19 +237,17 @@ public class OrderService {
         }
 
         OrderStatus originStatus = order.getOrderStatus();
-
         OrderStatus requestStatus = OrderStatus.of(requestDto.orderStatus());
 
         isStatusUpdatable(originStatus, requestStatus); // 주문상태 변경 가능 여부
-
         order.updateOrderStatus(requestStatus);
-        log.info("주문상태 변경 완료 >> {}", requestDto.orderStatus());
 
         // 구매확정으로 변경 시 이벤트 발생
         if (requestStatus == OrderStatus.CONFIRMED) {
             eventPublisher.publishEvent(new OrderConfirmedEvent(userId, order.getTotalPrice()));
         }
 
+        log.info("주문상태 변경 완료 >> {}: {}", orderId, requestDto.orderStatus());
     }
 
     // 주문상태 변경 가능 여부
@@ -212,17 +275,34 @@ public class OrderService {
         // 조건에 맞는 주문 리스트 조회
         List<Orders> orderList = ordersRepository.findOrdersForAutoConfirmation();
 
-        // 주문상태 변경
-        orderList.forEach(orders -> orders.updateOrderStatus(OrderStatus.CONFIRMED));
-        log.info("{} 기준, 총 {}개의 주문을 자동 구매확정 하였습니다. ", LocalDateTime.now(), orderList.size());
+        if (!orderList.isEmpty()) {
+            // 주문상태 변경
+            orderList.forEach(orders -> orders.updateOrderStatus(OrderStatus.CONFIRMED));
+            log.info("{} 기준, 총 {}개의 주문을 자동 구매확정 하였습니다. ", LocalDateTime.now(), orderList.size());
+        }
+
     }
 
     /**
      * 주문 리스트 조회 - orders 조회
      */
-    public PageResult<OrderResponseDto> getOrders(Long userId, PageQuery pageQuery) {
-        Page<OrderResponseDto> orderList = ordersRepository.findByUserId(userId,
-                pageQuery.toPageable())
+    public PageResult<OrderResponseDto> getOrders(
+        Long userId,
+        LocalDate startDate,
+        LocalDate endDate,
+        OrderStatus orderStatus,
+        PageQuery pageQuery
+    ) {
+        LocalDateTime startOfDay = (startDate != null)? startDate.atStartOfDay() : null;
+        LocalDateTime endOfDay = (endDate != null)? endDate.atTime(23,59,59,999999) : null;
+
+        Page<OrderResponseDto> orderList = ordersRepository.findOrders(
+                userId,
+                startOfDay,
+                endOfDay,
+                orderStatus,
+                pageQuery.toPageable()
+            )
             .map(OrderResponseDto::toDto);
 
         return PageResult.from(orderList);
@@ -251,22 +331,40 @@ public class OrderService {
         return PageResult.from(orderItemList);
     }
 
-    // 상품 재고 감소 및 order 상태 변경
+    // 상품 재고 감소
     @Transactional
     public void completeOrder(String orderId) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
         );
+
         // 상품 재고 감소
         List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order)
             .orElseThrow(
                 () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
             );
-        itemService.decreaseStock(orderItemList);
-        // 주문상태 변경
-        order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);
 
-        log.info("상품 재고 감소 및 order 상태 변경 완료");
+        itemService.decreaseStock(orderItemList);
+        log.info("상품 재고 감소 완료");
     }
 
+    // Redis get order key
+    public String getOrderKey(String orderId) {
+        return "order:" + orderId;
+    }
+
+    public String getOrderItemKey(String orderId) {
+        return "order:" + orderId + ":items";
+    }
+
+    public Orders getOrder(String orderId) {
+        String key = "order:" + orderId;
+        String orderJson = (String) redisTemplate.opsForHash().get(key, "order");
+        try {
+            return objectMapper.readValue(orderJson, Orders.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Order JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
+        }
+
+    }
 }
