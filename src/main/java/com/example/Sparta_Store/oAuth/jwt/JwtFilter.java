@@ -45,7 +45,7 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        if(requestURI.contains("items") && request.getMethod().equals("GET")) {
+        if(requestURI.contains("items") || requestURI.contains("popularItems") && request.getMethod().equals("GET")) {
             filterChain.doFilter(request,response);
             return;
         }

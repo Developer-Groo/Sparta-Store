@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,5 +33,11 @@ public class PopularItemController {
         List<LikesDto> response = popularItemService.getMostPopularLikedItems();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // 카테고리별 검색순위
+    @GetMapping("/{category}")
+    public List<String> getScore(@PathVariable String category){
+        return popularItemService.getCategoryRanking(category);
     }
 }
