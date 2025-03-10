@@ -25,7 +25,6 @@ repositories {
 
 dependencies {
 
-    implementation 'org.redisson:redisson-spring-boot-starter:3.17.0'
     // Spring
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -71,12 +70,15 @@ dependencies {
     //JSON simple
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 
-    //redis
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	//redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.redisson:redisson-spring-boot-starter:3.17.0'
+
+    // RabbitMQ
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
 }
 
 tasks.named('test') {

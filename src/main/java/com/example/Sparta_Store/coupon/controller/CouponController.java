@@ -1,13 +1,14 @@
 package com.example.Sparta_Store.coupon.controller;
 
 import com.example.Sparta_Store.coupon.service.CouponService;
+import com.example.Sparta_Store.rabbitmq.RabbitMqService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,11 +19,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class CouponController {
 
     private final CouponService couponService;
+    private final RabbitMqService rabbitMqService;
 
     /**
      * 랜덤 쿠폰 발급
      */
-    @GetMapping
+    @PostMapping
     public ResponseEntity<String> getRandomCoupon(HttpServletRequest request, @RequestParam String couponName) {
         LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
         if (!isTimeInRange(now, now.with(LocalTime.NOON), now.with(LocalTime.MAX))) { // 12:00:00 ~ 23:59:59
@@ -36,7 +38,7 @@ public class CouponController {
 
 
     // ------- TEST 용
-    @GetMapping("/test")
+    @PostMapping("/test")
     public ResponseEntity<String> getRandomCouponV2(@RequestParam Long userId, @RequestParam String couponName) {
         LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
 //        if (!isTimeInRange(now, now.with(LocalTime.NOON), now.with(LocalTime.MAX))) { // 12:00:00 ~ 23:59:59
