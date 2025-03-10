@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.coupon.service;
 
-import com.example.Sparta_Store.couponUser.entity.CouponUser;
-import com.example.Sparta_Store.couponUser.repository.CouponUserRepository;
+import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
+import com.example.Sparta_Store.IssuedCoupon.repository.IssuedCouponRepository;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CouponService {
 
-    private final CouponUserRepository couponUserRepository;
+    private final IssuedCouponRepository couponUserRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final RabbitTemplate rabbitTemplate;
 
@@ -75,16 +75,13 @@ public class CouponService {
             // 발급 이력이 있거나 쿠폰이 소진된 경우
             Boolean isMember = redisTemplate.opsForSet().isMember(key, String.valueOf(userId));
             if (Boolean.TRUE.equals(isMember)) {
-//                log.error("user: {} 이미 발급받은 쿠폰입니다.", userId);
                 return "이미 발급받은 쿠폰입니다.";
             } else {
-//                log.error("user: {} 쿠폰이 모두 소진되었습니다.", userId);
                 return "쿠폰이 모두 소진되었습니다.";
             }
         }
         // 발급 이력 저장 - RabbitMQ 메시지 전송
         sendCouponIssuanceMessage(userId, couponName, selectedCoupon);
-//        saveCouponUser(userId, couponName, selectedCoupon);
 
         log.info("user: {}, 받은 쿠폰: {}", userId, selectedCoupon);
         return selectedCoupon + "쿠폰이 발급되었습니다.";
@@ -95,9 +92,9 @@ public class CouponService {
     public void saveCouponUser(Long userId, String couponName, String selectedCoupon) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         LocalDateTime expirationDate = now.with(LocalTime.MAX);
-        CouponUser couponUser = CouponUser.toEntity(couponName, selectedCoupon, userId, expirationDate);
+        IssuedCoupon issuedCoupon = IssuedCoupon.toEntity(couponName, selectedCoupon, userId, expirationDate);
 
-        couponUserRepository.save(couponUser);
+        couponUserRepository.save(issuedCoupon);
     }
 
     // 쿠폰 발급 이력 DB 저장 메시지큐 전송

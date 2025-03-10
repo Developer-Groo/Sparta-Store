@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.couponUser.entity;
+package com.example.Sparta_Store.IssuedCoupon.entity;
 
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import jakarta.persistence.Column;
@@ -16,18 +16,18 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class CouponUser extends TimestampedEntity {
+public class IssuedCoupon extends TimestampedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "coupon_user_id", nullable = false)
+    @Column(name = "issued_coupon_id", nullable = false)
     private Long id;
 
     @Column(name = "coupon_name", nullable = false)
     private String name; // 쿠폰명
 
-    @Column(name = "content", nullable = false)
-    private String content; // 10%
+    @Column(name = "amount", nullable = false)
+    private String amount; // 쿠폰 금액
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -38,30 +38,34 @@ public class CouponUser extends TimestampedEntity {
     @Column(name = "expiration_date", nullable = false)
     private LocalDateTime expirationDate;
 
-    private CouponUser(
+    private IssuedCoupon(
         String name,
         String content,
         Long userId,
         LocalDateTime expirationDate
     ) {
         this.name = name;
-        this.content = content;
+        this.amount = content;
         this.userId = userId;
         this.isUsed = false;
         this.expirationDate = expirationDate;
     }
 
-    public static CouponUser toEntity(
+    public static IssuedCoupon toEntity(
         String name,
         String content,
         Long userId,
         LocalDateTime expirationDate
     ) {
-        return new CouponUser(
+        return new IssuedCoupon(
             name,
             content,
             userId,
             expirationDate
         );
+    }
+
+    public void updateIsUsed() {
+        this.isUsed = true;
     }
 }
