@@ -385,16 +385,4 @@ public class OrderService {
             throw new RuntimeException("Order JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
         }
     }
-
-    public long getAmount(List<CartItem> cartItemList, CreateOrderRequestDto requestDto) {
-        long amount = cartRedisService.getTotalPrice(cartItemList);
-        if (requestDto.issuedCouponId() != null) {
-            IssuedCoupon coupon = issuedCouponRepository.findById(requestDto.issuedCouponId()).orElseThrow(
-                () -> new CustomException(OrdersErrorCode.NOT_EXISTS_COUPON)
-            );
-            long discountAmount = Long.parseLong(coupon.getAmount());
-            amount = Math.max(amount - discountAmount, 100); // 최소 결제 금액 100원
-        }
-        return amount;
-    }
 }
