@@ -1,7 +1,6 @@
 package com.example.Sparta_Store.coupon.controller;
 
 import com.example.Sparta_Store.coupon.service.CouponService;
-import com.example.Sparta_Store.rabbitmq.RabbitMqService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class CouponController {
 
     private final CouponService couponService;
-    private final RabbitMqService rabbitMqService;
 
     /**
      * 랜덤 쿠폰 발급
