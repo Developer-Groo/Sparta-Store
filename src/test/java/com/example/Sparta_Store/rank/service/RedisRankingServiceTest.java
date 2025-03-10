@@ -1,9 +1,9 @@
 package com.example.Sparta_Store.rank.service;
 
-import com.example.Sparta_Store.category.entity.Category;
 import com.example.Sparta_Store.ranking.RedisRankingRepository;
 import com.example.Sparta_Store.ranking.RedisRankingService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -11,9 +11,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.mockito.Mockito.*;
@@ -34,6 +32,7 @@ public class RedisRankingServiceTest {
     }
 
     @Test
+    @DisplayName("아이템 레디스에 저장안된경우 생성")
     public void testAddToRedis_NewItem() {
         //given
         Long itemId = 1L;
@@ -55,6 +54,7 @@ public class RedisRankingServiceTest {
     }
 
     @Test
+    @DisplayName("레디스 캐시의 데이터값 초기화")
     public void testClearRedisCache() {
         // Given
         Set<String> categories = new HashSet<>();
