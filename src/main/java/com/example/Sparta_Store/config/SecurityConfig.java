@@ -32,7 +32,7 @@ public class SecurityConfig {
             .addFilterBefore(jwtFilter, SecurityContextHolderAwareRequestFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/users/signUp", "/users/login", "/login", "/css/**", "/oauth2/**", "/auth/login", "/style.css").permitAll() // 회원가입, 로그인, CSS 파일 요청 허용
-                .requestMatchers(HttpMethod.GET, "/items", "/items/**").permitAll() // 아이템 조회 허용
+                .requestMatchers(HttpMethod.GET, "/items", "/items/**","/cache/items/**").permitAll() // 아이템 조회 허용
                 .requestMatchers("/admin/**").hasRole("ADMIN") //admin 이 붙은것은 ADMIN 이 존재해야만 통과 나머지는 누구나 가능하게 했습니다.
                 .anyRequest().authenticated()
             )

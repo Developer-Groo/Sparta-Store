@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.item.dto.response;
 
 import com.example.Sparta_Store.item.entity.Item;
+import java.io.Serializable;
 
 public record ItemResponseDto(
         Long id,
@@ -9,7 +10,7 @@ public record ItemResponseDto(
         int price,
         String description,
         int totalSales
-) {
+) implements Serializable { // 레디스를 사용하기 위한 직렬화 추가
 
     public static ItemResponseDto toDto(Item item) {
         return new ItemResponseDto(
