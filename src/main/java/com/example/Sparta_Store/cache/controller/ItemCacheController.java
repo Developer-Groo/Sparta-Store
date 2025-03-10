@@ -21,17 +21,17 @@ public class ItemCacheController {
 
     private final ItemCacheService itemCacheService;
 
-    // 🔹 상품 검색 API (캐싱 적용)
+    //  상품 검색 API (캐싱 적용)
     @GetMapping("/search")
     public ResponseEntity<PageResult<ItemResponseDto>> getSearchItems(
-            @RequestParam boolean inStock,
-            @RequestParam String keyword,
+            @RequestParam(name = "inStock", defaultValue = "false") boolean inStock,
+            @RequestParam(name = "keyword") String keyword,
             @ModelAttribute PageQuery pageQuery) {
         PageResult<ItemResponseDto> items = itemCacheService.getSearchItems(inStock, keyword, pageQuery);
         return ResponseEntity.status(HttpStatus.OK).body(items);
     }
 
-    // 🔹 캐시 삭제 API (관리용)
+    //  캐시 삭제 API (관리용)
     @DeleteMapping("/clear")
     public ResponseEntity<String> clearItemCache() {
         itemCacheService.clearItemCache();
