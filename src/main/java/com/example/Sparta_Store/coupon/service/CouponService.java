@@ -59,9 +59,8 @@ public class CouponService {
         String.class
     );
 
-//    @Transactional
     public String getRandomCoupon(Long userId, String couponName) {
-        String key = couponName + ":issuedUser";
+        String key = "issuedUser:" + couponName;
 
         // Lua 스크립트 실행
         String selectedCoupon = redisTemplate.execute(
@@ -84,7 +83,7 @@ public class CouponService {
         sendCouponIssuanceMessage(userId, couponName, selectedCoupon);
 
         log.info("user: {}, 받은 쿠폰: {}", userId, selectedCoupon);
-        return selectedCoupon + "쿠폰이 발급되었습니다.";
+        return selectedCoupon + "원 할인 쿠폰이 발급되었습니다.";
     }
 
     // 쿠폰 발급 이력 DB 저장
