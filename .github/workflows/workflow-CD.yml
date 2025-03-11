@@ -67,7 +67,7 @@ jobs:
         run: |
           GREEN_INSTANCE_ID=$(aws ec2 run-instances \
             --image-id ${{ secrets.EC2_IMAGE_ID }} \
-            --instance-type t2.micro \
+            --instance-type t3.micro \
             --key-name ${{ secrets.AWS_KEY_PAIR }} \
             --security-group-ids ${{ secrets.AWS_SECURITY_GROUP_ID }} \
             --subnet-id ${{ secrets.AWS_SUBNET_ID }} \
