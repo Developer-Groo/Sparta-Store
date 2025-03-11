@@ -16,7 +16,7 @@ public class RabbitMqService {
     private final CouponService couponService;
 
     // Queue에서 메시지를 구독 (Consumer)
-    @RabbitListener(queues = "${rabbitmq.queue.name}")
+    @RabbitListener(queues = "${rabbitmq.queue.name}", concurrency = "4")
     public void receiveCouponIssuanceMessage(Map<String, Object> message) {
         try {
             Long userId = Long.valueOf(message.get("userId").toString());
@@ -29,5 +29,6 @@ public class RabbitMqService {
             throw new AmqpRejectAndDontRequeueException("쿠폰 발급 이력 저장 실패", e);
         }
     }
+
 
 }

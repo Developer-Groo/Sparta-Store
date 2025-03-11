@@ -42,7 +42,7 @@ public class CouponService {
      */
     private static final RedisScript<String> COUPON_SCRIPT = new DefaultRedisScript<>(
         "local count = redis.call('SCARD', KEYS[1]) " +
-            "if count < 400 then " +
+            "if count < 1000 then " +
             "    if redis.call('SADD', KEYS[1], ARGV[1]) == 1 then " +
             "        local coupon = redis.call('RPOP', KEYS[2]) " +
             "        if coupon then " +

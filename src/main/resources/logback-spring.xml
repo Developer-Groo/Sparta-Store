@@ -9,7 +9,7 @@
       <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
     </encoder>
   </appender>
-  <appender name="COUPON_USER_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+  <appender name="ISSUED_COUPON_LOG_FILE" class="ch.qos.logback.core.FileAppender">
     <file>logs/issuedCoupon.log</file>
     <encoder>
       <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
@@ -23,7 +23,7 @@
 
   <!-- RabbitMqService의 ERROR 레벨 이상의 로그 기록 -->
   <logger name="RabbitMqService" level="error">
-    <appender-ref ref="COUPON_USER_LOG_FILE"/>
+    <appender-ref ref="ISSUED_COUPON_LOG_FILE"/>
   </logger>
 
   <!-- 최상위 로거 설정 (콘솔에 INFO 이상의 로그만 출력) -->
