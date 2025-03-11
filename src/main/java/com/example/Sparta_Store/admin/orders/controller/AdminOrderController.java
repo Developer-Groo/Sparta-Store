@@ -28,7 +28,11 @@ public class AdminOrderController {
         @PathVariable("orderId") String orderId,
         @Valid @RequestBody UpdateOrderStatusDto requestDto
     ) {
-        adminOrderService.updateOrderStatus(orderId, requestDto);
+        try {
+            adminOrderService.updateOrderStatus(orderId, requestDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", e.getMessage()));
+        }
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "주문상태 변경이 완료되었습니다."));
     }
 }
