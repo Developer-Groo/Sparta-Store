@@ -1,24 +1,31 @@
 #!/bin/bash
 set -e
 
-# Session manager 설치
-sudo yum install -y amazon-ssm-agent
+# 업데이트 및 필수 패키지 설치
+sudo apt update -y
+sudo apt upgrade -y
+sudo apt install -y unzip curl awscli
+
+# AWS SSM Agent 설치 (Ubuntu 22.04)
+if ! command -v amazon-ssm-agent &> /dev/null; then
+    sudo snap install amazon-ssm-agent --classic
+fi
 sudo systemctl enable amazon-ssm-agent
 sudo systemctl start amazon-ssm-agent
 
 # Docker 설치
-sudo yum update -y
-sudo amazon-linux-extras enable docker
-sudo yum install -y docker
-sudo service docker start
-sudo usermod -aG docker ec2-user
+sudo apt install -y docker.io
+sudo systemctl enable docker
+sudo systemctl start docker
+sudo usermod -aG docker ubuntu  # 'ubuntu' 계정을 Docker 그룹에 추가
 
-# CodeDeploy Agent 설치
-cd /home/ec2-user
+# AWS CodeDeploy Agent 설치
+cd /home/ubuntu
 wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install
 chmod +x ./install
 sudo ./install auto
-sudo service codedeploy-agent start
+sudo systemctl enable codedeploy-agent
+sudo systemctl start codedeploy-agent
 
 # 환경변수 로드
 ECR_REPO_URI="${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/sparta-store-repo"
