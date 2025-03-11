@@ -7,7 +7,7 @@ spring:
       client:
         registration:
           google:
-            redirect_uri: http://test-alb-2020180693.ap-northeast-2.elb.amazonaws.com/login/oauth2/code/google
+            redirect_uri: ${GOOGLE_REDIRECT_URI}
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
@@ -24,11 +24,11 @@ spring:
 
   data:
     redis:
-      host: redis-cluster.ib8zkq.ng.0001.apn2.cache.amazonaws.com:6379
+      host: ${REDIS_HOST}
       port: 6379
 
   datasource:
-    url: database-1.cvgqsc2wipms.ap-northeast-2.rds.amazonaws.com
+    url: ${MYSQL_URL}
     username: admin
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: ${MYSQL_DB_PASSWORD}

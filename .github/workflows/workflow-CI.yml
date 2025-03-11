@@ -16,7 +16,10 @@ jobs:
     env:
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
       MYSQL_DB_PASSWORD: ${{ secrets.MYSQL_DB_PASSWORD }}
+      MYSQL_URL: ${{ secrets.MYSQL_URL }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
       NAVER_MAIL_USER_NAME: ${{ secrets.NAVER_MAIL_USER_NAME }}
       NAVER_MAIL_EMAIL_PASSWORD: ${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}
       TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
@@ -56,7 +59,10 @@ jobs:
           docker run -d --name test-container -p 8080:8080 \
             -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
             -e GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" \
+            -e GOOGLE_REDIRECT_URI="${GOOGLE_REDIRECT_URI}" \
             -e MYSQL_DB_PASSWORD="${MYSQL_DB_PASSWORD}" \
+            -e MYSQL_URL="${MYSQL_URL}" \
+            -e REDIS_HOST="${REDIS_HOST}"
             -e NAVER_MAIL_USER_NAME="${NAVER_MAIL_USER_NAME}" \
             -e NAVER_MAIL_EMAIL_PASSWORD="${NAVER_MAIL_EMAIL_PASSWORD}" \
             -e TOSS_CLIENT_KEY="${TOSS_CLIENT_KEY}" \

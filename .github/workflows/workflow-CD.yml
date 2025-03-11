@@ -1,4 +1,4 @@
-name: CD-Pipeline
+name: CD-Pipeline Blue/Green Deployment
 
 on:
   push:
@@ -14,6 +14,137 @@ jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # CI가 성공했을 때만 실행
     runs-on: ubuntu-latest
+    env:
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+      MYSQL_DB_PASSWORD: ${{ secrets.MYSQL_DB_PASSWORD }}
+      MYSQL_URL: ${{ secrets.MYSQL_URL }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      NAVER_MAIL_USER_NAME: ${{ secrets.NAVER_MAIL_USER_NAME }}
+      NAVER_MAIL_EMAIL_PASSWORD: ${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}
+      TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
+      TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
     steps:
-      - name: Confirm Ci -> Cd Triggered
-        run: echo "CD workflow has been triggered."
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Get ALB Listener ARN
+        run: |
+          LISTENER_ARN=$(aws elbv2 describe-listeners \
+            --load-balancer-arn ${{ secrets.AWS_ALB_ARN }} \
+            --query 'Listeners[?Port==`80`].ListenerArn' --output text)
+          
+          echo "LISTENER_ARN=$LISTENER_ARN" >> $GITHUB_ENV
+
+      - name: Get Current Green Target Group ARN (Convert to Blue)
+        run: |
+          GREEN_TG_ARN=$(aws elbv2 describe-target-groups \
+            --names "green-target-group" \
+            --query 'TargetGroups[0].TargetGroupArn' --output text)
+          
+          BLUE_TG_ARN=$(aws elbv2 describe-target-groups \
+            --names "blue-target-group" \
+            --query 'TargetGroups[0].TargetGroupArn' --output text)
+          
+          echo "GREEN_TG_ARN=$GREEN_TG_ARN" >> $GITHUB_ENV
+          echo "BLUE_TG_ARN=$BLUE_TG_ARN" >> $GITHUB_ENV
+
+          echo "Current Green Target Group: $GREEN_TG_ARN"
+          echo "Current Blue Target Group: $BLUE_TG_ARN"
+
+      - name: Launch New Green Instance
+        run: |
+          GREEN_INSTANCE_ID=$(aws ec2 run-instances \
+            --image-id ${{ secrets.EC2_IMAGE_ID }} \
+            --instance-type t2.micro \
+            --key-name ${{ secrets.AWS_KEY_PAIR }} \
+            --security-group-ids ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --subnet-id ${{ secrets.AWS_SUBNET_ID }} \
+            --iam-instance-profile Name=${{ secrets.AWS_IAM_NAME }} \
+            --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=green-instance}]' \
+            --user-data file://scripts/deploy.sh \
+            --query 'Instances[0].InstanceId' \
+            --output text)
+          
+          echo "GREEN_INSTANCE_ID=$GREEN_INSTANCE_ID" >> $GITHUB_ENV
+          echo "New Green instance launched: $GREEN_INSTANCE_ID"
+
+      - name: Register New Instance to Green Target Group
+        run: |
+          aws elbv2 register-targets \
+            --target-group-arn $GREEN_TG_ARN \
+            --targets Id=$GREEN_INSTANCE_ID
+
+          echo "New Green instance registered to Green Target Group"
+
+      - name: Wait for Green Instance Health Check
+        run: |
+          for i in {1..10}; do
+            STATUS=$(aws elbv2 describe-target-health \
+              --target-group-arn $GREEN_TG_ARN \
+              --query 'TargetHealthDescriptions[0].TargetHealth.State' \
+              --output text)
+
+            if [ "$STATUS" == "healthy" ]; then
+              echo "Green instance is healthy!"
+              exit 0
+            fi
+            echo "Waiting for Green instance to become healthy... ($i/10)"
+            sleep 10
+          done
+
+          echo "Green instance health check failed!"
+          exit 1
+
+      - name: Switch Traffic to Green Target Group
+        run: |
+          aws elbv2 modify-listener \
+           --listener-arn $LISTENER_ARN \
+           --default-actions Type=forward,TargetGroupArn=$GREEN_TG_ARN
+            
+          echo "ALB listener updated: Now forwarding traffic to Green Target Group"
+
+      - name: Deregister Old Instance from Blue Target Group
+        run: |
+          OLD_INSTANCE_ID=$(aws elbv2 describe-target-health \
+            --target-group-arn $BLUE_TG_ARN \
+            --query 'TargetHealthDescriptions[0].Target.Id' \
+            --output text)
+            
+            if [ "$OLD_INSTANCE_ID" != "None" ]; then
+              aws elbv2 deregister-targets \
+                --target-group-arn $BLUE_TG_ARN \
+                --targets Id=$OLD_INSTANCE_ID
+            
+              echo "Old Blue instance ($OLD_INSTANCE_ID) removed from Blue Target Group"
+            fi
+
+      - name: Terminate Old Blue Instance
+        run: |
+          if [ "$OLD_INSTANCE_ID" != "None" ]; then
+            aws ec2 terminate-instances --instance-ids $OLD_INSTANCE_ID
+            echo "Old Blue instance ($OLD_INSTANCE_ID) terminated"
+          fi
+
+      - name: Swap Blue and Green Target Groups
+        run: |
+          TEMP=$GREEN_TG_ARN
+          GREEN_TG_ARN=$BLUE_TG_ARN
+          BLUE_TG_ARN=$TEMP
+            
+          echo "New Green Target Group: $GREEN_TG_ARN"
+          echo "New Blue Target Group: $BLUE_TG_ARN"
+            
+          echo "GREEN_TG_ARN=$GREEN_TG_ARN" >> $GITHUB_ENV
+          echo "BLUE_TG_ARN=$BLUE_TG_ARN" >> $GITHUB_ENV
