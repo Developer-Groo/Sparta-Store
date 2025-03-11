@@ -4,7 +4,7 @@ set -e
 # 환경변수 로드
 ECR_REPO_URI="${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/sparta-store-repo"
 CONTAINER_NAME="sparta-app"
-PORT=8080
+PORT=80
 
 # AWS ECR 로그인
 aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
