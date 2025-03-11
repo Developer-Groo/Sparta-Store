@@ -54,6 +54,9 @@ jobs:
         run: |
           docker build -t ${DOCKER_USERNAME}/sparta_store-image:latest .
 
+      - name: List build/libs directory
+        run: ls -la build/libs
+
       - name: Run container for testing
         run: |
           docker run -d --name test-container -p 8080:8080 \
