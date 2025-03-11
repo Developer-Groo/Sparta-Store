@@ -21,7 +21,7 @@ public class RabbitMqService {
         try {
             Long userId = Long.valueOf(message.get("userId").toString());
             String couponName = message.get("couponName").toString();
-            String selectedCoupon = message.get("selectedCoupon").toString();
+            Long selectedCoupon = Long.parseLong(message.get("selectedCoupon").toString());
 
             couponService.saveCouponUser(userId, couponName, selectedCoupon);
         } catch (Exception e) {
@@ -29,6 +29,4 @@ public class RabbitMqService {
             throw new AmqpRejectAndDontRequeueException("쿠폰 발급 이력 저장 실패", e);
         }
     }
-
-
 }
