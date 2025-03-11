@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.orders.entity;
 
+import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.orders.OrderStatus;
@@ -36,12 +37,25 @@ public class Orders extends TimestampedEntity {
     @Column(name = "address", nullable = false)
     private Address address;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "issued_coupon_id")
+    private IssuedCoupon issuedCoupon;
+
     public Orders(Users user, long totalPrice, Address address) {
         this.id = UUID.randomUUID().toString();
         this.user = user;
         this.orderStatus = OrderStatus.BEFORE_PAYMENT;
         this.totalPrice = totalPrice;
         this.address = address;
+    }
+
+    public Orders(Users user, long totalPrice, Address address, IssuedCoupon issuedCoupon) {
+        this.id = UUID.randomUUID().toString();
+        this.user = user;
+        this.orderStatus = OrderStatus.BEFORE_PAYMENT;
+        this.totalPrice = totalPrice;
+        this.address = address;
+        this.issuedCoupon = issuedCoupon;
     }
 
     public void updateOrderStatus(OrderStatus orderStatus) {

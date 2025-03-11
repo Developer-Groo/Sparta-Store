@@ -1,5 +1,7 @@
 package com.example.Sparta_Store.payment.service;
 
+import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
+import com.example.Sparta_Store.IssuedCoupon.repository.IssuedCouponRepository;
 import com.example.Sparta_Store.email.event.OrderStatusUpdatedEvent;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.orders.OrderStatus;
@@ -50,12 +52,13 @@ public class PaymentService {
     private final ApplicationEventPublisher eventPublisher;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final IssuedCouponRepository issuedCouponRepository;
 
     @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
 
     // 결제전, 주문상태 확인
-    public boolean checkBeforePayment(String orderId) throws JsonProcessingException {
+    public boolean checkBeforePayment(String orderId) {
         Orders order = orderService.getOrder(orderId);
         if (order == null) {
             throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
@@ -87,6 +90,7 @@ public class PaymentService {
 
         // 상태 변경
         order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);
+
         // redis 데이터도 업데이트
         try {
             String orderJson = objectMapper.writeValueAsString(order);
@@ -98,6 +102,13 @@ public class PaymentService {
         // MySQL 저장
         orderService.createMysqlOrder(order);
         orderService.createMysqlOrderItem(orderId);
+
+        // 쿠폰 사용처리
+        if (order.getIssuedCoupon() != null) {
+            IssuedCoupon coupon = order.getIssuedCoupon();
+            coupon.updateIsUsed();
+            issuedCouponRepository.save(coupon);
+        }
 
         // 상품 재고 감소
         orderService.completeOrder(orderId);

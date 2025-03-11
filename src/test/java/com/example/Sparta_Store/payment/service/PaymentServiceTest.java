@@ -57,7 +57,7 @@ public class PaymentServiceTest {
     void setUp() {
         user = new Users(1L, UUID.randomUUID().toString(), "테스트", "email@test.com", "Pw1234!!!",
             null, false, null, null, UserRoleEnum.USER);
-        order = new Orders("testOrderId", user, OrderStatus.BEFORE_PAYMENT, 10000L, null);
+        order = new Orders("testOrderId", user, OrderStatus.BEFORE_PAYMENT, 10000L, null, null);
     }
 
     @Test

@@ -12,6 +12,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
+import com.example.Sparta_Store.IssuedCoupon.repository.IssuedCouponRepository;
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.service.CartRedisService;
@@ -75,6 +77,9 @@ public class OrderServiceTest {
     @Mock
     private ListOperations<String, Object> listOperations;
 
+    @Mock
+    private IssuedCouponRepository issuedCouponRepository;
+
     private Users user;
     private Cart cart;
     private CartItem cartItem;
@@ -82,9 +87,11 @@ public class OrderServiceTest {
     private Address address;
     private Item item;
     private long totalPrice;
+    private IssuedCoupon issuedCoupon;
 
     @BeforeEach
     void setUp() {
+        issuedCoupon = new IssuedCoupon(1L, "randomCoupon", "1000", 1L, false, null);
         address = new Address("경기도", "테스트길", "12345");
         user = new Users(1L, UUID.randomUUID().toString(), "테스트유저", "email@test.com", "Pw1234!!!", address, false, null, null, UserRoleEnum.USER);
         item = new Item(1L, "상품1", "img1@test.com", 10000, "상품1입니다.", 100, null, null);
@@ -92,6 +99,7 @@ public class OrderServiceTest {
         cart = new Cart(1L, user, cartItemList);
         cartItem = new CartItem(1L, cart, item, 2);
         cartItemList.add(cartItem);
+        totalPrice = 20000L;
     }
 
     @Test
@@ -137,7 +145,7 @@ public class OrderServiceTest {
             .willReturn(totalPrice);
         given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
 
-        CreateOrderRequestDto requestDto = new CreateOrderRequestDto(new Address("서울시", "테스트길", "12121"));
+        CreateOrderRequestDto requestDto = new CreateOrderRequestDto(new Address("서울시", "테스트길", "12121"), null);
 
         // when
         Orders order = orderService.createRedisOrder(user.getId(), requestDto);
@@ -147,6 +155,66 @@ public class OrderServiceTest {
         assertEquals(user, order.getUser());
         assertEquals(requestDto.address(), order.getAddress());
         assertEquals(Long.valueOf(order.getTotalPrice()), Long.valueOf(totalPrice));
+        assertEquals(OrderStatus.BEFORE_PAYMENT, order.getOrderStatus());
+
+        verify(hashOperations, times(1)).put(anyString(), eq("order"), eq("orderJson"));
+        verify(hashOperations, times(1)).put(anyString(), eq("createdAt"), anyString());
+        verify(redisTemplate, times(1)).expire(anyString(), eq(10L), eq(TimeUnit.MINUTES));
+    }
+
+    @Test
+    @DisplayName("레디스 주문 생성 성공 - 쿠폰 적용")
+    void createRedisOrder_use_coupon_success() throws JsonProcessingException {
+        // given
+        given(redisTemplate.opsForHash()).willReturn(hashOperations);
+        given(userRepository.findById(1L))
+            .willReturn(Optional.of(user));
+        given(cartRedisService.getCartItemList(1L))
+            .willReturn(cartItemList);
+        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(totalPrice);
+        given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
+        given(issuedCouponRepository.couponToUse(1L, 1L))
+            .willReturn(issuedCoupon);
+
+        CreateOrderRequestDto requestDto = new CreateOrderRequestDto(new Address("서울시", "테스트길", "12121"), 1L);
+
+        // when
+        Orders order = orderService.createRedisOrder(user.getId(), requestDto);
+
+        // then
+        assertNotNull(order);
+        assertEquals((long) order.getTotalPrice(), totalPrice-Long.parseLong(issuedCoupon.getAmount()));
+        assertEquals(OrderStatus.BEFORE_PAYMENT, order.getOrderStatus());
+
+        verify(hashOperations, times(1)).put(anyString(), eq("order"), eq("orderJson"));
+        verify(hashOperations, times(1)).put(anyString(), eq("createdAt"), anyString());
+        verify(redisTemplate, times(1)).expire(anyString(), eq(10L), eq(TimeUnit.MINUTES));
+    }
+
+    @Test
+    @DisplayName("레디스 주문 생성 성공 - 쿠폰 적용 후 최소주문금액 100원")
+    void createRedisOrder_use_coupon2_success() throws JsonProcessingException {
+        // given
+        given(redisTemplate.opsForHash()).willReturn(hashOperations);
+        given(userRepository.findById(1L))
+            .willReturn(Optional.of(user));
+        given(cartRedisService.getCartItemList(1L))
+            .willReturn(cartItemList);
+        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(totalPrice=1000L);
+        given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
+        given(issuedCouponRepository.couponToUse(1L, 1L))
+            .willReturn(issuedCoupon);
+
+        CreateOrderRequestDto requestDto = new CreateOrderRequestDto(new Address("서울시", "테스트길", "12121"), 1L);
+
+        // when
+        Orders order = orderService.createRedisOrder(user.getId(), requestDto);
+
+        // then
+        assertNotNull(order);
+        assertEquals((long) order.getTotalPrice(), 100);
         assertEquals(OrderStatus.BEFORE_PAYMENT, order.getOrderStatus());
 
         verify(hashOperations, times(1)).put(anyString(), eq("order"), eq("orderJson"));
@@ -251,7 +319,7 @@ public class OrderServiceTest {
     @DisplayName("주문 상태 변경 성공")
     void updateOrderStatus_success() {
         // given
-        Orders order = new Orders(UUID.randomUUID().toString(), user, OrderStatus.ORDER_COMPLETED, 30000L, address);
+        Orders order = new Orders(UUID.randomUUID().toString(), user, OrderStatus.ORDER_COMPLETED, 30000L, address, null);
         given(ordersRepository.findById(order.getId())).willReturn(Optional.of(order));
 
         UpdateOrderStatusDto requestDto = new UpdateOrderStatusDto("ORDER_CANCEL_REQUEST");
