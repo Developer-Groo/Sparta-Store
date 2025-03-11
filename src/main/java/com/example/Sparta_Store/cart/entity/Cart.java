@@ -46,4 +46,9 @@ public class Cart extends TimestampedEntity {
     public Collection<CartItem> getCartItems () {
         return this.cartItems.values();
     }
+
+
+    public void removeCartItem(Long itemId) {
+        cartItems.remove(itemId);
+    }
 }

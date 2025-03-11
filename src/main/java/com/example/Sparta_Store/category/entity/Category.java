@@ -14,7 +14,7 @@ import java.util.List;
 
 @Getter
 @Entity
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -43,4 +43,6 @@ public class Category {
     public void addChildren(Category... childrenCategories) {
         children.addAll(List.of(childrenCategories));
     }
+
+    public Long getCategoryId(){ return this.getId();}
 }
