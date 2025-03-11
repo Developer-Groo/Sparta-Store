@@ -77,9 +77,13 @@ jobs:
           docker logs test-container
           docker stop test-container && docker rm test-container
 
+      - name: Check Docker images before pushing
+        run: docker images
+
       - name: Push Docker image to ECR
         run: |
           aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com
+          docker images | grep "sparta_store-image" || exit 1
           docker tag ${DOCKER_USERNAME}/sparta_store-image:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/sparta-store-repo:latest
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/sparta-store-repo:latest
         env:

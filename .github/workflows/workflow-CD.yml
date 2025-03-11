@@ -86,17 +86,6 @@ jobs:
           aws ec2 wait instance-running --instance-ids $GREEN_INSTANCE_ID
           echo "EC2 instance is now running!"
 
-      - name: Copy deploy.sh to EC2
-        run: |
-          scp -i ${{ secrets.AWS_KEY_PAIR_PATH }} \
-              scripts/deploy.sh \
-              ubuntu@$(aws ec2 describe-instances --instance-ids $GREEN_INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text):/home/ubuntu/deploy.sh
-
-      - name: Execute deploy.sh on EC2
-        run: |
-          ssh -i ${{ secrets.AWS_KEY_PAIR_PATH }} ubuntu@$(aws ec2 describe-instances --instance-ids $GREEN_INSTANCE_ID --query 'Reservations[0].Instances[0].PublicIpAddress' --output text) \
-          'chmod +x /home/ubuntu/deploy.sh && sudo /home/ubuntu/deploy.sh'
-
       - name: Register New Instance to Green Target Group
         run: |
           aws elbv2 register-targets \
