@@ -358,7 +358,7 @@ public class OrderService {
                 throw new CustomException(OrdersErrorCode.NOT_EXISTS_COUPON);
             }
 
-            long discountAmount = Long.parseLong(coupon.getAmount());
+            long discountAmount = coupon.getAmount();
             amount = Math.max(amount - discountAmount, 100); // 최소 결제 금액 100원
 
             return new Orders(user, amount, address, coupon);
