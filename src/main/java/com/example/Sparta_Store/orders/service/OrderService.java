@@ -2,6 +2,8 @@ package com.example.Sparta_Store.orders.service;
 
 import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
 
+import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
+import com.example.Sparta_Store.IssuedCoupon.repository.IssuedCouponRepository;
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.cart.service.CartRedisService;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
@@ -53,6 +55,7 @@ public class OrderService {
     private final ApplicationEventPublisher eventPublisher;
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
+    private final IssuedCouponRepository issuedCouponRepository;
 
     public void getPaymentInfo(Model model, Long userId, String orderId)
         throws JsonProcessingException {
@@ -130,19 +133,9 @@ public class OrderService {
     // Redis order 생성 (임시 주문)
     @Transactional
     public Orders createRedisOrder(Long userId, CreateOrderRequestDto requestDto) {
-        Users user = userRepository.findById(userId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
-        );
-        List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
 
-        if (cartItemList.isEmpty()) {
-            throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
-        }
+        Orders order = createOrder(userId, requestDto);
 
-        long totalPrice = cartRedisService.getTotalPrice(cartItemList);
-        Address address = requestDto == null ? user.getAddress() : requestDto.address();
-
-        Orders order = new Orders(user, totalPrice, address);
         String key = getOrderKey(order.getId());
         try { // 직렬화
             String orderJson = objectMapper.writeValueAsString(order);
@@ -348,6 +341,32 @@ public class OrderService {
         log.info("상품 재고 감소 완료");
     }
 
+    public Orders createOrder(Long userId, CreateOrderRequestDto requestDto) {
+        Users user = userRepository.findById(userId).orElseThrow(
+            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_USER)
+        );
+        List<CartItem> cartItemList = cartRedisService.getCartItemList(userId);
+        if (cartItemList.isEmpty()) {
+            throw new CustomException(OrdersErrorCode.NOT_EXISTS_CART_PRODUCT);
+        }
+        Address address = requestDto.address() == null ? user.getAddress() : requestDto.address();
+
+        long amount = cartRedisService.getTotalPrice(cartItemList);
+        if (requestDto.issuedCouponId() != null) {
+            IssuedCoupon coupon = issuedCouponRepository.couponToUse(userId, requestDto.issuedCouponId());
+            if (coupon == null) {
+                throw new CustomException(OrdersErrorCode.NOT_EXISTS_COUPON);
+            }
+
+            long discountAmount = Long.parseLong(coupon.getAmount());
+            amount = Math.max(amount - discountAmount, 100); // 최소 결제 금액 100원
+
+            return new Orders(user, amount, address, coupon);
+        } else {
+            return new Orders(user, amount, address);
+        }
+    }
+
     // Redis get order key
     public String getOrderKey(String orderId) {
         return "order:" + orderId;
@@ -365,6 +384,5 @@ public class OrderService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Order JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
         }
-
     }
 }
