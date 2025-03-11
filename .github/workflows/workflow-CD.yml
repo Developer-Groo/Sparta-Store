@@ -80,6 +80,12 @@ jobs:
           echo "GREEN_INSTANCE_ID=$GREEN_INSTANCE_ID" >> $GITHUB_ENV
           echo "New Green instance launched: $GREEN_INSTANCE_ID"
 
+      - name: Wait for EC2 Instance to be Running
+        run: |
+          echo "Waiting for EC2 instance to reach 'running' state..."
+          aws ec2 wait instance-running --instance-ids $GREEN_INSTANCE_ID
+          echo "EC2 instance is now running!"
+
       - name: Register New Instance to Green Target Group
         run: |
           aws elbv2 register-targets \
