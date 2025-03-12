@@ -39,24 +39,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Deploy to EC2
+
+      - name: Store environment variables in AWS SSM
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-          export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
-          export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
-          export GOOGLE_REDIRECT_URI="${{ secrets.GOOGLE_REDIRECT_URI }}"
-          export MYSQL_DB_PASSWORD="${{ secrets.MYSQL_DB_PASSWORD }}"
-          export MYSQL_URL="${{ secrets.MYSQL_URL }}"
-          export REDIS_HOST="${{ secrets.REDIS_HOST }}"
-          export NAVER_MAIL_USER_NAME="${{ secrets.NAVER_MAIL_USER_NAME }}"
-          export NAVER_MAIL_EMAIL_PASSWORD="${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}"
-          export TOSS_CLIENT_KEY="${{ secrets.TOSS_CLIENT_KEY }}"
-          export TOSS_SECRET_KEY="${{ secrets.TOSS_SECRET_KEY }}"
-          export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
-          export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
-            
-          bash /home/ubuntu/deploy.sh
-          EOF
+          aws ssm put-parameter --name "GOOGLE_CLIENT_ID" --value "${{ secrets.GOOGLE_CLIENT_ID }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "GOOGLE_CLIENT_SECRET" --value "${{ secrets.GOOGLE_CLIENT_SECRET }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "GOOGLE_REDIRECT_URI" --value "${{ secrets.GOOGLE_REDIRECT_URI }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "MYSQL_DB_PASSWORD" --value "${{ secrets.MYSQL_DB_PASSWORD }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "MYSQL_URL" --value "${{ secrets.MYSQL_URL }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "REDIS_HOST" --value "${{ secrets.REDIS_HOST }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "NAVER_MAIL_USER_NAME" --value "${{ secrets.NAVER_MAIL_USER_NAME }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "NAVER_MAIL_EMAIL_PASSWORD" --value "${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "TOSS_CLIENT_KEY" --value "${{ secrets.TOSS_CLIENT_KEY }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "TOSS_SECRET_KEY" --value "${{ secrets.TOSS_SECRET_KEY }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "JWT_SECRET_KEY" --value "${{ secrets.JWT_SECRET_KEY }}" --type "SecureString" --overwrite
 
       - name: Get ALB Listener ARN
         run: |

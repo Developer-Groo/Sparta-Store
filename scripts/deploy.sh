@@ -49,6 +49,33 @@ sudo ./install auto
 sudo systemctl enable codedeploy-agent || true
 sudo systemctl start codedeploy-agent || true
 
+## AWS SSM Parameter Store에서 환경변수 가져오기
+GOOGLE_CLIENT_ID=$(aws ssm get-parameter --name "GOOGLE_CLIENT_ID" --with-decryption --query "Parameter.Value" --output text)
+export GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET=$(aws ssm get-parameter --name "GOOGLE_CLIENT_SECRET" --with-decryption --query "Parameter.Value" --output text)
+export GOOGLE_CLIENT_SECRET
+GOOGLE_REDIRECT_URI=$(aws ssm get-parameter --name "GOOGLE_REDIRECT_URI" --with-decryption --query "Parameter.Value" --output text)
+export GOOGLE_REDIRECT_URI
+MYSQL_DB_PASSWORD=$(aws ssm get-parameter --name "MYSQL_DB_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+export MYSQL_DB_PASSWORD
+MYSQL_URL=$(aws ssm get-parameter --name "MYSQL_URL" --with-decryption --query "Parameter.Value" --output text)
+export MYSQL_URL
+REDIS_HOST=$(aws ssm get-parameter --name "REDIS_HOST" --with-decryption --query "Parameter.Value" --output text)
+export REDIS_HOST
+NAVER_MAIL_USER_NAME=$(aws ssm get-parameter --name "NAVER_MAIL_USER_NAME" --with-decryption --query "Parameter.Value" --output text)
+export NAVER_MAIL_USER_NAME
+NAVER_MAIL_EMAIL_PASSWORD=$(aws ssm get-parameter --name "NAVER_MAIL_EMAIL_PASSWORD" --with-decryption --query "Parameter.Value" --output text)
+export NAVER_MAIL_EMAIL_PASSWORD
+TOSS_CLIENT_KEY=$(aws ssm get-parameter --name "TOSS_CLIENT_KEY" --with-decryption --query "Parameter.Value" --output text)
+export TOSS_CLIENT_KEY
+TOSS_SECRET_KEY=$(aws ssm get-parameter --name "TOSS_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+export TOSS_SECRET_KEY
+JWT_SECRET_KEY=$(aws ssm get-parameter --name "JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text)
+export JWT_SECRET_KEY
+
+echo "Loaded environment variables from AWS SSM Parameter Store"
+
+
 # AWS 계정 ID 가져오기 (환경변수 설정)
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 export AWS_ACCOUNT_ID
