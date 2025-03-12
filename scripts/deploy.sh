@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 # 업데이트 및 필수 패키지 설치
 sudo apt update -y
@@ -10,8 +9,14 @@ sudo apt install -y unzip curl awscli
 if ! command -v amazon-ssm-agent &> /dev/null; then
     sudo snap install amazon-ssm-agent --classic
 fi
-sudo systemctl enable amazon-ssm-agent
-sudo systemctl start amazon-ssm-agent
+
+# SSM Agent 실행
+if systemctl list-units --full -all | grep -q "snap.amazon-ssm-agent.amazon-ssm-agent.service"; then
+    sudo systemctl restart snap.amazon-ssm-agent.amazon-ssm-agent.service || true
+    sudo systemctl enable snap.amazon-ssm-agent.amazon-ssm-agent.service || true
+else
+    echo "amazon-ssm-agent 서비스가 정상적으로 설치되지 않았습니다."
+fi
 
 # Docker 설치
 sudo apt install -y docker.io
@@ -21,11 +26,14 @@ sudo usermod -aG docker ubuntu  # 'ubuntu' 계정을 Docker 그룹에 추가
 
 # AWS CodeDeploy Agent 설치
 cd /home/ubuntu
-wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install
+if ! wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install -O install; then
+    echo "CodeDeploy Agent 다운로드 실패. 대체 URL 시도..."
+    curl -O https://aws-codedeploy-ap-northeast-2.s3.amazonaws.com/latest/install
+fi
 chmod +x ./install
 sudo ./install auto
-sudo systemctl enable codedeploy-agent
-sudo systemctl start codedeploy-agent
+sudo systemctl enable codedeploy-agent || true
+sudo systemctl start codedeploy-agent || true
 
 # 환경변수 로드
 ECR_REPO_URI="${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/sparta-store-repo"
