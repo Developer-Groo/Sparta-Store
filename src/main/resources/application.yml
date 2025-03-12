@@ -28,7 +28,7 @@ spring:
       port: 6379
 
   datasource:
-    url: ${MYSQL_URL}
+    url: jdbc:mysql://${MYSQL_URL}
     username: ${DB_USERNAME}
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: ${MYSQL_DB_PASSWORD}
