@@ -61,8 +61,6 @@ public class OrdersQueryRepositoryImpl implements OrdersQueryRepository {
         }
     }
 
-    //TODO 서버가 배포된 환경에서는 시간대가 다를 수 있음 -> UTC 또는 원하는 시간대로 고정
-
     /**
      * 주문 상태가 "배송완료" 이며, 업데이트 날짜가 조회시점보다 5일 이상 지난 주문 조회
      */
@@ -73,19 +71,6 @@ public class OrdersQueryRepositoryImpl implements OrdersQueryRepository {
         return queryFactory.selectFrom(orders)
             .where(orders.orderStatus.eq(OrderStatus.DELIVERED)
                 .and(orders.updatedAt.loe(fiveDaysAgo)))
-            .fetch();
-    }
-
-    /**
-     * 생성된 지 10분 이상이 지난 주문 중에서 '결제전' 상태인 주문 조회
-     */
-    @Override
-    public List<Orders> findOrdersForAutoCancellation() {
-        LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
-
-        return queryFactory.selectFrom(orders)
-            .where(orders.orderStatus.eq(OrderStatus.BEFORE_PAYMENT)
-                .and(orders.createdAt.loe(tenMinutesAgo)))
             .fetch();
     }
 

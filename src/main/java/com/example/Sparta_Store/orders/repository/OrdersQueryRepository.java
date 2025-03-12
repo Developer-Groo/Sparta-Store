@@ -19,6 +19,4 @@ public interface OrdersQueryRepository {
 
     List<Orders> findOrdersForAutoConfirmation();
 
-    List<Orders> findOrdersForAutoCancellation();
-
 }

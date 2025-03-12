@@ -73,16 +73,4 @@ public class AdminOrderService {
         }
     }
 
-    /**
-     * 결제 취소 상태 변경
-     */
-    @Transactional
-    public void orderCancelled(String orderId) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
-
-        order.updateOrderStatus(OrderStatus.PAYMENT_CANCELLED);
-        log.info("주문번호 {} 결제취소 완료 >> {}", orderId, order.getOrderStatus());
-    }
 }
