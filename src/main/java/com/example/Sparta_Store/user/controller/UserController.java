@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @PatchMapping("/password") // localhost:8080/users/delete?id=1 로 사용
-    public ResponseEntity<UserResponseDto> updateUserPassword(@RequestParam Long id, @RequestBody UpdatePasswordRequestDto dto) { // securityConfig를 사용안하기 위해 param id 로 대체 json으로 oldPassword와 newPassword 를 받고 string을 반환하겠다
+    public ResponseEntity<UserResponseDto> updateUserPassword(@RequestParam(name = "id") Long id, @RequestBody UpdatePasswordRequestDto dto) { // securityConfig를 사용안하기 위해 param id 로 대체 json으로 oldPassword와 newPassword 를 받고 string을 반환하겠다
 
         UserResponseDto response = userService.updatePassword(
                 id,
@@ -53,7 +53,7 @@ public class UserController {
     }
 
     @PatchMapping("/info") // localhost:8080/users/info?id=1 사용 파람을 사용햇기에 ?id=1 이 추가댐
-    public ResponseEntity<UserResponseDto> updateUserInfo(@RequestParam Long id , @RequestBody UpdateInfoRequestDto dto) { // 위와 같음
+    public ResponseEntity<UserResponseDto> updateUserInfo(@RequestParam(name = "id") Long id , @RequestBody UpdateInfoRequestDto dto) { // 위와 같음
 
         UserResponseDto response = userService.updateInfo(
                 id,

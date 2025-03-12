@@ -25,7 +25,7 @@ public class PointController {
 
     //사용자의 현재 포인트 조회
     @GetMapping("/{userId}")
-    public ResponseEntity<Integer> getUserPoints(@PathVariable Long userId) {
+    public ResponseEntity<Integer> getUserPoints(@PathVariable("userId") Long userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다.")); //userid로 사용자 조회 및 예외처리
 
@@ -36,7 +36,7 @@ public class PointController {
 
     // 사용자의 포인트 내역 조회
     @GetMapping("/transactions/{userId}")
-    public ResponseEntity<List<PointSummaryResponseDto>> getPointSummary(@PathVariable Long userId) {
+    public ResponseEntity<List<PointSummaryResponseDto>> getPointSummary(@PathVariable("userId") Long userId) {
 
         List<PointSummaryResponseDto> summary = pointService.getPointSummaries(userId); // 포인트 변동 내역을 가져오기
 
