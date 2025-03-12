@@ -1,12 +1,14 @@
-name: CI Pipeline
+name: CI-Pipeline
 
 on:
   push:
     branches:
       - release_v1.0.0
+      - develop
   pull_request:
     branches:
       - release_v1.0.0
+      - develop
 
 jobs:
   build:
