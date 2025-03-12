@@ -37,7 +37,7 @@ public class Payment {
     @Column(name = "is_aborted")
     private boolean isAborted;
 
-    public Payment(
+    private Payment(
         String paymentKey,
         Orders order,
         Long amount
@@ -47,6 +47,18 @@ public class Payment {
         this.amount = amount;
         this.isCancelled = false;
         this.isAborted = false;
+    }
+
+    public static Payment toEntity(
+        String paymentKey,
+        Orders order,
+        Long amount
+    ) {
+        return new Payment(
+            paymentKey,
+            order,
+            amount
+        );
     }
 
     public void updateCancelled() {

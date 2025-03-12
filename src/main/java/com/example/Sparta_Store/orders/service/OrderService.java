@@ -162,7 +162,7 @@ public class OrderService {
         }
 
         List<OrderItem> orderItemList = cartItemList.stream()
-                .map(cartItem -> new OrderItem(
+                .map(cartItem -> OrderItem.toEntity(
                     order,
                     cartItem.getItem(),
                     (cartItem.getItem().getPrice()) * (cartItem.getQuantity()),
@@ -204,8 +204,7 @@ public class OrderService {
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException("Redis에서 OrderItem 변환 실패", e);
                 }
-            })
-            .toList();
+            }).toList();
 
         if (orderItemList.isEmpty()) {
             throw new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM);
@@ -221,9 +220,7 @@ public class OrderService {
     @Transactional
     public void updateOrderStatus(Long userId, String orderId, UpdateOrderStatusDto requestDto) {
 
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
+        Orders order = getOrder(orderId);
 
         if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
@@ -273,7 +270,6 @@ public class OrderService {
             orderList.forEach(orders -> orders.updateOrderStatus(OrderStatus.CONFIRMED));
             log.info("{} 기준, 총 {}개의 주문을 자동 구매확정 하였습니다. ", LocalDateTime.now(), orderList.size());
         }
-
     }
 
     /**
@@ -295,8 +291,7 @@ public class OrderService {
                 endOfDay,
                 orderStatus,
                 pageQuery.toPageable()
-            )
-            .map(OrderResponseDto::toDto);
+            ).map(OrderResponseDto::toDto);
 
         return PageResult.from(orderList);
     }
@@ -309,16 +304,13 @@ public class OrderService {
         String orderId,
         PageQuery pageQuery
     ) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
+        Orders order = getOrder(orderId);
 
         if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(OrdersErrorCode.USER_MISMATCH);
         }
 
-        Page<OrderItemResponseDto> orderItemList = orderItemRepository.findByOrderId(orderId,
-                pageQuery.toPageable())
+        Page<OrderItemResponseDto> orderItemList = orderItemRepository.findByOrderId(orderId, pageQuery.toPageable())
             .map(OrderItemResponseDto::toDto);
 
         return PageResult.from(orderItemList);
@@ -327,13 +319,10 @@ public class OrderService {
     // 상품 재고 감소
     @Transactional
     public void completeOrder(String orderId) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
+        Orders order = getOrder(orderId);
 
         // 상품 재고 감소
-        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order)
-            .orElseThrow(
+        List<OrderItem> orderItemList = orderItemRepository.findOrderItemsByOrders(order).orElseThrow(
                 () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER_ITEM)
             );
 
@@ -361,9 +350,9 @@ public class OrderService {
             long discountAmount = coupon.getAmount();
             amount = Math.max(amount - discountAmount, 100); // 최소 결제 금액 100원
 
-            return new Orders(user, amount, address, coupon);
+            return Orders.createOrderWithCoupon(user, amount, address, coupon);
         } else {
-            return new Orders(user, amount, address);
+            return Orders.createOrderWithoutCoupon(user, amount, address);
         }
     }
 
@@ -376,7 +365,7 @@ public class OrderService {
         return "order:" + orderId + ":items";
     }
 
-    public Orders getOrder(String orderId) {
+    public Orders getRedisOrder(String orderId) {
         String key = "order:" + orderId;
         String orderJson = (String) redisTemplate.opsForHash().get(key, "order");
         try {
@@ -385,4 +374,12 @@ public class OrderService {
             throw new RuntimeException("Order JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
         }
     }
+
+    public Orders getOrder(String orderId) {
+        return ordersRepository.findById(orderId).orElseThrow(
+            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
+        );
+    }
+
+
 }
