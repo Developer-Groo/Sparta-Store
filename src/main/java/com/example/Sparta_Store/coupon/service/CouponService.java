@@ -42,21 +42,12 @@ public class CouponService {
      */
     private static final RedisScript<String> COUPON_SCRIPT = new DefaultRedisScript<>(
         "local count = redis.call('SCARD', KEYS[1]) " +
-            "if count < 1000 then " +
-            "    if redis.call('SADD', KEYS[1], ARGV[1]) == 1 then " +
-            "        local min_coupon = redis.call('ZRANGEBYSCORE', KEYS[2], 1, '+inf', 'LIMIT', 0, 1) " +
-            "        local selected_coupon = min_coupon[1] " +
-            "        local new_score = redis.call('ZINCRBY', KEYS[2], -1, selected_coupon) " +
-            "        if tonumber(new_score) <= 0 then " +
-            "            redis.call('ZREM', KEYS[2], selected_coupon) " +
-            "        end " +
-            "        return selected_coupon " +
-            "    else " +
-            "        return 'ALREADY_ISSUED' " + // 이미 발급된 사용자
-            "    end " +
-            "else " +
-            "    return 'COUPON_EXHAUSTED' " + // 1000개 이상일 경우 쿠폰 소진
-            "end",
+            "if count >= 1000 then return 'COUPON_EXHAUSTED' end " +
+            "if redis.call('SISMEMBER', KEYS[1], ARGV[1]) == 1 then return 'ALREADY_ISSUED' end " +
+            "local coupon = redis.call('RPOP', KEYS[2]) " +
+            "if not coupon then return 'COUPON_EXHAUSTED' end " +
+            "redis.call('SADD', KEYS[1], ARGV[1]) " +
+            "return coupon",
         String.class
     );
 
