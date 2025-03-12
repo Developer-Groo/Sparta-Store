@@ -99,6 +99,9 @@ jobs:
 
           echo "New Green instance registered to Green Target Group"
 
+      - name: Wait before checking Green Instance Health Check
+        run: sleep 60
+
       - name: Wait for Green Instance Health Check
         run: |
           for i in {1..10}; do
@@ -112,7 +115,7 @@ jobs:
               exit 0
             fi
             echo "Waiting for Green instance to become healthy... ($i/10)"
-            sleep 10
+            sleep 50
           done
 
           echo "Green instance health check failed!"
