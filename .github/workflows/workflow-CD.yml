@@ -14,6 +14,19 @@ jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # CI가 성공했을 때만 실행
     runs-on: ubuntu-latest
+    env:
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
+      MYSQL_DB_PASSWORD: ${{ secrets.MYSQL_DB_PASSWORD }}
+      MYSQL_URL: ${{ secrets.MYSQL_URL }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      NAVER_MAIL_USER_NAME: ${{ secrets.NAVER_MAIL_USER_NAME }}
+      NAVER_MAIL_EMAIL_PASSWORD: ${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}
+      TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
+      TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
       - name: Checkout Repository
@@ -26,21 +39,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Create .env file
+      - name: Deploy to EC2
         run: |
-          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
-          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
-          echo "GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}" >> .env
-          echo "MYSQL_DB_PASSWORD=${{ secrets.MYSQL_DB_PASSWORD }}" >> .env
-          echo "MYSQL_URL=${{ secrets.MYSQL_URL }}" >> .env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-          echo "NAVER_MAIL_USER_NAME=${{ secrets.NAVER_MAIL_USER_NAME }}" >> .env
-          echo "NAVER_MAIL_EMAIL_PASSWORD=${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}" >> .env
-          echo "TOSS_CLIENT_KEY=${{ secrets.TOSS_CLIENT_KEY }}" >> .env
-          echo "TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}" >> .env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-          echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" >> .env
-          scp -o StrictHostKeyChecking=no .env ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/.env
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
+          export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+          export GOOGLE_REDIRECT_URI="${{ secrets.GOOGLE_REDIRECT_URI }}"
+          export MYSQL_DB_PASSWORD="${{ secrets.MYSQL_DB_PASSWORD }}"
+          export MYSQL_URL="${{ secrets.MYSQL_URL }}"
+          export REDIS_HOST="${{ secrets.REDIS_HOST }}"
+          export NAVER_MAIL_USER_NAME="${{ secrets.NAVER_MAIL_USER_NAME }}"
+          export NAVER_MAIL_EMAIL_PASSWORD="${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}"
+          export TOSS_CLIENT_KEY="${{ secrets.TOSS_CLIENT_KEY }}"
+          export TOSS_SECRET_KEY="${{ secrets.TOSS_SECRET_KEY }}"
+          export JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}"
+          export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+            
+          bash /home/ubuntu/deploy.sh
+          EOF
 
       - name: Get ALB Listener ARN
         run: |
