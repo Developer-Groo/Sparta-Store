@@ -86,7 +86,7 @@ docker stop $CONTAINER_NAME || true
 docker rm $CONTAINER_NAME || true
 
 # 컨테이너 실행
-docker run -d -p $PORT:$PORT --name $CONTAINER_NAME \
+docker run -d -p 80:$PORT --name $CONTAINER_NAME \
   -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
   -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET" \
   -e GOOGLE_REDIRECT_URI="$GOOGLE_REDIRECT_URI" \
