@@ -108,7 +108,8 @@ jobs:
             STATUS=$(aws elbv2 describe-target-health \
               --target-group-arn $GREEN_TG_ARN \
               --query 'TargetHealthDescriptions[0].TargetHealth.State' \
-              --output text)
+              --output text \
+              --region ap-northeast-2)
 
             if [ "$STATUS" == "healthy" ]; then
               echo "Green instance is healthy!"
