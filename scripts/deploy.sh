@@ -95,6 +95,8 @@ docker pull $ECR_REPO_URI:latest
 docker stop $CONTAINER_NAME || true
 docker rm $CONTAINER_NAME || true
 
+echo "JWT_SECRET_KEY: " $JWT_SECRET_KEY
+
 # 컨테이너 실행
 docker run -d -p $PORT:$PORT --name $CONTAINER_NAME \
   -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
