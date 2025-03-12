@@ -15,17 +15,6 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # CI가 성공했을 때만 실행
     runs-on: ubuntu-latest
     env:
-      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
-      MYSQL_DB_PASSWORD: ${{ secrets.MYSQL_DB_PASSWORD }}
-      MYSQL_URL: ${{ secrets.MYSQL_URL }}
-      REDIS_HOST: ${{ secrets.REDIS_HOST }}
-      NAVER_MAIL_USER_NAME: ${{ secrets.NAVER_MAIL_USER_NAME }}
-      NAVER_MAIL_EMAIL_PASSWORD: ${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}
-      TOSS_CLIENT_KEY: ${{ secrets.TOSS_CLIENT_KEY }}
-      TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
-      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
@@ -53,6 +42,7 @@ jobs:
           aws ssm put-parameter --name "TOSS_CLIENT_KEY" --value "${{ secrets.TOSS_CLIENT_KEY }}" --type "SecureString" --overwrite
           aws ssm put-parameter --name "TOSS_SECRET_KEY" --value "${{ secrets.TOSS_SECRET_KEY }}" --type "SecureString" --overwrite
           aws ssm put-parameter --name "JWT_SECRET_KEY" --value "${{ secrets.JWT_SECRET_KEY }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "DB_USERNAME" --value "${{ secrets.DB_USERNAME }}" --type "SecureString" --overwrite
 
       - name: Get ALB Listener ARN
         run: |

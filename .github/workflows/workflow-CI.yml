@@ -26,6 +26,7 @@ jobs:
       TOSS_SECRET_KEY: ${{ secrets.TOSS_SECRET_KEY }}
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
 
     steps:
       - name: Checkout Repository
@@ -71,6 +72,7 @@ jobs:
             -e TOSS_CLIENT_KEY="${TOSS_CLIENT_KEY}" \
             -e TOSS_SECRET_KEY="${TOSS_SECRET_KEY}" \
             -e JWT_SECRET_KEY="${JWT_SECRET_KEY}" \
+            -e DB_USERNAME="${DB_USERNAME}" \
           "${DOCKER_USERNAME}/sparta_store-image:latest"
           sleep 5
           docker ps
