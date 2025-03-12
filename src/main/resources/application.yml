@@ -29,7 +29,7 @@ spring:
 
   datasource:
     url: ${MYSQL_URL}
-    username: admin
+    username: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: ${MYSQL_DB_PASSWORD}
 
