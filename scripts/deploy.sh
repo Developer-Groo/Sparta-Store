@@ -24,6 +24,10 @@ sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -aG docker ubuntu  # 'ubuntu' 계정을 Docker 그룹에 추가
 
+# Ruby 설치
+sudo apt update -y
+sudo apt install -y ruby-full
+
 # AWS CodeDeploy Agent 설치
 cd /home/ubuntu
 if ! wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install -O install; then
@@ -34,6 +38,10 @@ chmod +x ./install
 sudo ./install auto
 sudo systemctl enable codedeploy-agent || true
 sudo systemctl start codedeploy-agent || true
+
+# AWS 계정 ID 가져오기 (환경변수 설정)
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+export AWS_ACCOUNT_ID
 
 # 환경변수 로드
 ECR_REPO_URI="${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/sparta-store-repo"
