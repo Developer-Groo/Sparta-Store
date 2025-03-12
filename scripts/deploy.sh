@@ -22,7 +22,17 @@ fi
 sudo apt install -y docker.io
 sudo systemctl enable docker
 sudo systemctl start docker
-sudo usermod -aG docker ubuntu  # 'ubuntu' 계정을 Docker 그룹에 추가
+
+# Docker 그룹에 현재 사용자 추가 후 적용
+sudo usermod -aG docker $USER
+newgrp docker || true
+
+# Docker 소켓 권한 수정
+sudo chmod 666 /var/run/docker.sock
+
+# Docker 데몬이 실행되지 않았을 경우 재시작
+sudo systemctl restart docker
+
 
 # Ruby 설치
 sudo apt update -y
