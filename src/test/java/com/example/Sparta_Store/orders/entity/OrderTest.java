@@ -23,7 +23,7 @@ public class OrderTest {
 
     @BeforeEach
     void setUp() {
-        issuedCoupon = new IssuedCoupon(1L, "randomCoupon", "1000", 1L, false, null);
+        issuedCoupon = new IssuedCoupon(1L, "randomCoupon", 1000L, 1L, false, null);
         address = new Address("경기도", "테스트길", "12345");
         user = new Users(1L, UUID.randomUUID().toString(), "테스트유저", "email@test.com", "Pw1234!!!", address, false, null, null, UserRoleEnum.USER);
     }
@@ -32,7 +32,7 @@ public class OrderTest {
     @DisplayName("주문 생성 성공 - order_status 기본값은 BEFORE_PAYMENT")
     void createOrder_Default_Order_Status() {
         // given & when
-        Orders order = new Orders(user, 30000, user.getAddress());
+        Orders order = Orders.createOrderWithoutCoupon(user, 30000, user.getAddress());
 
         // then
         assertThat(order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT));
@@ -42,7 +42,7 @@ public class OrderTest {
     @DisplayName("쿠폰이 적용된 주문 생성 성공")
     void createOrder_issuedCoupon() {
         // given & when
-        Orders order = new Orders(user, 30000, user.getAddress(), issuedCoupon);
+        Orders order = Orders.createOrderWithCoupon(user, 30000, user.getAddress(), issuedCoupon);
 
         // then
         assertThat(order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT));
@@ -52,7 +52,7 @@ public class OrderTest {
     @DisplayName("주문상태 변경 성공")
     void updateOrderStatus() {
         // given
-        Orders order = new Orders(user, 30000, user.getAddress());
+        Orders order = Orders.createOrderWithoutCoupon(user, 30000, user.getAddress());
 
         // when
         order.updateOrderStatus(OrderStatus.CONFIRMED);

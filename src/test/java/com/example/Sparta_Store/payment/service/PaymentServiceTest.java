@@ -15,13 +15,12 @@ import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.entity.Orders;
-import com.example.Sparta_Store.orders.repository.OrdersRepository;
+import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.payment.exception.PaymentErrorCode;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
 import com.example.Sparta_Store.user.entity.Users;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,9 +44,6 @@ public class PaymentServiceTest {
     PaymentRepository paymentRepository;
 
     @Mock
-    OrdersRepository ordersRepository;
-
-    @Mock
     OrderService orderService;
 
     private Users user;
@@ -62,12 +58,12 @@ public class PaymentServiceTest {
 
     @Test
     @DisplayName("결제전, 주문상태 확인 성공 - true 케이스")
-    void checkBeforePayment_success() throws JsonProcessingException {
+    void checkBeforePayment_success() {
         // given
         String orderId = "testOrderId";
         OrderStatus orderStatus = OrderStatus.BEFORE_PAYMENT;
 
-        given(orderService.getOrder(orderId)).willReturn(order);
+        given(orderService.getRedisOrder(orderId)).willReturn(order);
 
         // when
         boolean result = paymentService.checkBeforePayment(orderId);
@@ -79,10 +75,10 @@ public class PaymentServiceTest {
 
     @Test
     @DisplayName("결제전, 주문상태 확인 성공 - false, 주문상태가 'BEFORE_PAYMENT'이 아닌 케이스")
-    void checkBeforePayment_otherStatus_success() throws JsonProcessingException {
+    void checkBeforePayment_otherStatus_success() {
         // given
         order.updateOrderStatus(OrderStatus.PAYMENT_CANCELLED);
-        given(orderService.getOrder(order.getId())).willReturn(order);
+        given(orderService.getRedisOrder(order.getId())).willReturn(order);
 
         // when
         boolean result = paymentService.checkBeforePayment("testOrderId");
@@ -94,10 +90,10 @@ public class PaymentServiceTest {
 
     @Test
     @DisplayName("결제전, 주문상태 확인 실패 - 주문 정보 없음")
-    void testGetOrder_withEmptyOptional() throws JsonProcessingException {
+    void testGetOrder_withEmptyOptional() {
         // given
         String orderId = "testOrderId";
-        given(orderService.getOrder(orderId)).willReturn(null);
+        given(orderService.getRedisOrder(orderId)).willReturn(null);
 
         // when & then
         assertThatThrownBy(() -> paymentService.checkBeforePayment(orderId))
@@ -162,8 +158,8 @@ public class PaymentServiceTest {
         response.put("paymentKey", "testPaymentKey");
         response.put("amount", order.getTotalPrice());
 
-        given(ordersRepository.findById(order.getId()))
-            .willReturn(Optional.of(order));
+        given(orderService.getOrder(order.getId()))
+            .willReturn(order);
 
         // when
         paymentService.createPayment(response);
@@ -175,7 +171,7 @@ public class PaymentServiceTest {
         Payment savedPayment = paymentCaptor.getValue();
 
         assertEquals("testPaymentKey", savedPayment.getPaymentKey());
-        assertEquals(order, savedPayment.getOrder());
+        assertEquals(order.getId(), savedPayment.getOrder().getId());
         assertEquals(10000L, (long) savedPayment.getAmount());
 
     }
@@ -191,14 +187,14 @@ public class PaymentServiceTest {
         response.put("paymentKey", "testPaymentKey");
         response.put("amount", order.getTotalPrice());
 
-        given(ordersRepository.findById(order.getId()))
-            .willReturn(Optional.empty());
+        given(orderService.getOrder((String) response.get("orderId")))
+            .willThrow(new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER));
 
         // when & then
         assertThatThrownBy(() -> paymentService.createPayment(response))
             .isInstanceOf(CustomException.class)
             .extracting("errorCode")
-            .isEqualTo(PaymentErrorCode.NOT_EXISTS_ORDER);
+            .isEqualTo(OrdersErrorCode.NOT_EXISTS_ORDER);
     }
 
     @Test
@@ -206,7 +202,7 @@ public class PaymentServiceTest {
     void updateAborted_success() {
         // given
         String paymentKey = "testPaymentKey";
-        Payment payment = spy(new Payment(paymentKey, order, order.getTotalPrice()));
+        Payment payment = spy(Payment.toEntity(paymentKey, order, order.getTotalPrice()));
 
         given(paymentRepository.findById(paymentKey))
             .willReturn(Optional.of(payment));
@@ -250,7 +246,7 @@ public class PaymentServiceTest {
         String date = response.get("approvedAt").toString();
         String method = response.get("method").toString();
 
-        Payment payment = spy(new Payment(paymentKey, order, order.getTotalPrice()));
+        Payment payment = spy(Payment.toEntity(paymentKey, order, order.getTotalPrice()));
 
         given(paymentRepository.findById(paymentKey))
             .willReturn(Optional.of(payment));
@@ -300,9 +296,6 @@ public class PaymentServiceTest {
         response.put("paymentKey", "testPaymentKey");
 
         String paymentKey = response.get("paymentKey").toString();
-
-        given(ordersRepository.findById("testOrderId"))
-            .willReturn(Optional.of(order));
 
         given(paymentRepository.findById(paymentKey))
             .willReturn(Optional.empty());
