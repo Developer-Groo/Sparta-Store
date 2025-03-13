@@ -152,6 +152,9 @@ jobs:
               aws elbv2 register-targets \
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
+
+              echo "Updating instance tag to 'blue-instance'..."
+              aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=blue-instance
             done
           else
             echo "No old instances found in Green Target Group. Skipping movement to Blue."
@@ -160,7 +163,7 @@ jobs:
       - name: Wait before checking Blue Target Group instances
         run: sleep 30
 
-      - name: Deregister Old Instance(s) from Blue Target Group
+      - name: Deregister and Terminate Old Blue Instance(s)
         run: |
           OLD_BLUE_INSTANCE_IDS=$(aws elbv2 describe-target-health \
             --target-group-arn $BLUE_TG_ARN \
@@ -168,32 +171,21 @@ jobs:
             --output text)
 
           if [[ -n "$OLD_BLUE_INSTANCE_IDS" ]]; then
-            echo "Deregistering instances from Blue Target Group: $OLD_BLUE_INSTANCE_IDS"
+            echo "Deregistering and terminating instances from Blue Target Group: $OLD_BLUE_INSTANCE_IDS"
             for INSTANCE_ID in $OLD_BLUE_INSTANCE_IDS; do
               aws elbv2 deregister-targets \
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
               echo "Deregistered instance ($INSTANCE_ID) from Blue Target Group"
-            done
-          else
-            echo "No instances found in Blue Target Group, skipping deregistration."
-          fi
 
-      - name: Terminate Old Blue Instance(s)
-        run: |
-          OLD_BLUE_INSTANCE_IDS=$(aws elbv2 describe-target-health \
-            --target-group-arn $BLUE_TG_ARN \
-            --query 'TargetHealthDescriptions[*].Target.Id' \
-            --output text)
+              echo "Waiting before termination..."
+              sleep 20
 
-          if [[ -n "$OLD_BLUE_INSTANCE_IDS" ]]; then
-            echo "Terminating instances in Blue Target Group: $OLD_BLUE_INSTANCE_IDS"
-            for INSTANCE_ID in $OLD_BLUE_INSTANCE_IDS; do
               aws ec2 terminate-instances --instance-ids $INSTANCE_ID
               echo "Terminated instance ($INSTANCE_ID) in Blue Target Group"
             done
           else
-            echo "No instances found in Blue Target Group, skipping termination."
+            echo "No instances found in Blue Target Group, skipping deregistration and termination."
           fi
 
       - name: Swap Blue and Green Target Groups
