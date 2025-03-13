@@ -162,9 +162,14 @@ jobs:
 
       - name: Deregister Old Instance(s) from Blue Target Group
         run: |
-          if [[ -n "$OLD_INSTANCE_IDS" ]]; then
-            echo "Deregistering instances from Blue Target Group: $OLD_INSTANCE_IDS"
-            for INSTANCE_ID in $OLD_INSTANCE_IDS; do
+          OLD_BLUE_INSTANCE_IDS=$(aws elbv2 describe-target-health \
+            --target-group-arn $BLUE_TG_ARN \
+            --query 'TargetHealthDescriptions[*].Target.Id' \
+            --output text)
+
+          if [[ -n "$OLD_BLUE_INSTANCE_IDS" ]]; then
+            echo "Deregistering instances from Blue Target Group: $OLD_BLUE_INSTANCE_IDS"
+            for INSTANCE_ID in $OLD_BLUE_INSTANCE_IDS; do
               aws elbv2 deregister-targets \
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
@@ -176,14 +181,19 @@ jobs:
 
       - name: Terminate Old Blue Instance(s)
         run: |
-          if [[ -n "$OLD_INSTANCE_IDS" ]]; then
-            echo "Terminating instances: $OLD_INSTANCE_IDS"
-            for INSTANCE_ID in $OLD_INSTANCE_IDS; do
+          OLD_BLUE_INSTANCE_IDS=$(aws elbv2 describe-target-health \
+            --target-group-arn $BLUE_TG_ARN \
+            --query 'TargetHealthDescriptions[*].Target.Id' \
+            --output text)
+
+          if [[ -n "$OLD_BLUE_INSTANCE_IDS" ]]; then
+            echo "Terminating instances in Blue Target Group: $OLD_BLUE_INSTANCE_IDS"
+            for INSTANCE_ID in $OLD_BLUE_INSTANCE_IDS; do
               aws ec2 terminate-instances --instance-ids $INSTANCE_ID
-              echo "Old Blue instance ($INSTANCE_ID) terminated"
+              echo "Terminated instance ($INSTANCE_ID) in Blue Target Group"
             done
           else
-            echo "No old Blue instance found, skipping termination step."
+            echo "No instances found in Blue Target Group, skipping termination."
           fi
 
       - name: Swap Blue and Green Target Groups
