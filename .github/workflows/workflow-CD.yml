@@ -122,11 +122,34 @@ jobs:
           echo "Green instance health check failed!"
           exit 1
 
+      - name: Move Old Instance(s) to Blue Target Group
+        run: |
+          OLD_INSTANCE_IDS=$(aws elbv2 describe-target-health \
+            --target-group-arn $GREEN_TG_ARN \
+            --query 'TargetHealthDescriptions[*].Target.Id' \
+            --output text)
+
+          if [[ -n "$OLD_INSTANCE_IDS" ]]; then
+            echo "Moving instances to Blue Target Group: $OLD_INSTANCE_IDS"
+            for INSTANCE_ID in $OLD_INSTANCE_IDS; do
+              aws elbv2 register-targets \
+                --target-group-arn $BLUE_TG_ARN \
+                --targets Id=$INSTANCE_ID
+
+              echo "Instance ($INSTANCE_ID) moved to Blue Target Group"
+            done
+          else
+            echo "No instances to move to Blue Target Group."
+          fi
+
+      - name: Wait before checking Blue Target Group instances
+        run: sleep 30
+
       - name: Switch Traffic to Green Target Group
         run: |
           aws elbv2 modify-listener \
-            --listener-arn $LISTENER_ARN \
-            --default-actions Type=forward,TargetGroupArn=$GREEN_TG_ARN
+           --listener-arn $LISTENER_ARN \
+           --default-actions Type=forward,TargetGroupArn=$GREEN_TG_ARN
             
           echo "ALB listener updated: Now forwarding traffic to Green Target Group"
 
@@ -138,12 +161,13 @@ jobs:
             --output text)
 
           if [[ -n "$OLD_INSTANCE_IDS" ]]; then
+            echo "Deregistering instances from Blue Target Group: $OLD_INSTANCE_IDS"
             for INSTANCE_ID in $OLD_INSTANCE_IDS; do
               aws elbv2 deregister-targets \
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
 
-              echo "Old Blue instance ($INSTANCE_ID) removed from Blue Target Group"
+              echo "Deregistered instance ($INSTANCE_ID) from Blue Target Group"
             done
           else
             echo "No instances found in Blue Target Group, skipping deregistration."
@@ -152,6 +176,7 @@ jobs:
       - name: Terminate Old Blue Instance(s)
         run: |
           if [[ -n "$OLD_INSTANCE_IDS" ]]; then
+            echo "Terminating instances: $OLD_INSTANCE_IDS"
             for INSTANCE_ID in $OLD_INSTANCE_IDS; do
               aws ec2 terminate-instances --instance-ids $INSTANCE_ID
               echo "Old Blue instance ($INSTANCE_ID) terminated"
