@@ -43,10 +43,10 @@ public class CouponService {
     private static final RedisScript<String> COUPON_SCRIPT = new DefaultRedisScript<>(
         "local count = redis.call('SCARD', KEYS[1]) " +
             "if count >= 1000 then return 'COUPON_EXHAUSTED' end " +
-            "if redis.call('SISMEMBER', KEYS[1], ARGV[1]) == 1 then return 'ALREADY_ISSUED' end " +
+            "local added = redis.call('SADD', KEYS[1], ARGV[1]) " +
+            "if added == 0 then return 'ALREADY_ISSUED' end " +
             "local coupon = redis.call('RPOP', KEYS[2]) " +
             "if not coupon then return 'COUPON_EXHAUSTED' end " +
-            "redis.call('SADD', KEYS[1], ARGV[1]) " +
             "return coupon",
         String.class
     );
