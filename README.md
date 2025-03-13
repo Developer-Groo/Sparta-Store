@@ -14,34 +14,30 @@
 <br>
 
 ## 🏁 Team
-|**우현**|**주영**|**수연**|**진홍**|**현우**|
-|-------|-------|-------|-------|-------|
-|<img src="https://github.com/Developer-Nova/Sec19-Local-Data-Persistance_ByAngela/assets/123448121/17a2ba3b-a618-4ac8-93b9-0d0e02c19c78" width="110" height="110">|||||
-|[GitHub](https://github.com/Developer-Groo)|[GitHub]()|[GitHub]()|[GitHub]()|[GitHub]()|
+|**Leader**|**Contributions**|
+|:--------:|:---------------:|
+|<img src="https://github.com/Developer-Nova/Sec19-Local-Data-Persistance_ByAngela/assets/123448121/17a2ba3b-a618-4ac8-93b9-0d0e02c19c78" width="110" height="110">| <div align="left"> • Spring Boot, JPA 기반으로 상품 및 리뷰 관리, 카테고리 기능 개발 <br> • 품절 상품 재입고 시 이메일 알림 기능 구현 <br> • 비관적 Lock 을 활용해 상품 재고 감소 동시성 이슈 해결 <br> • GitHub Actions를 활용해 자동화된 빌드, 테스트, 배포 파이프라인 구축 <br> • AWS 인프라 설계 및 구축, EC2, RDS, ElastiCache, NAT Gateway, ALB 등을 활용한 서비스 운영 <br> • 블루/그린 무중단 배포를 적용하여 배포 시 서비스 다운타임 최소화 </div>|
+|**김우현**|[GitHub Link](https://github.com/Developer-Groo)|
 
-<br>
+|**Sub Leader**|**Contributions**|
+|:------------:|:---------------:|
+|<img src="">| <div align="left"> • Spring Boot, JPA 기반으로 • 장바구니, 찜 기능 개발 </div>|
+|**윤주영**|[GitHub Link](http://github.com/ju-young0)|
 
-🔹 Leader: 김우현    
-	• Spring Boot, JPA 기반으로 상품 및 리뷰 관리, 카테고리 기능 개발    
-	• 품절 상품 재입고 시 알림 기능 구현    
-	• Redis Distributed Lock을 활용해 동시성 이슈 해결 및 데이터 정합성 유지    
-	• GitHub Actions를 활용해 자동화된 빌드, 테스트, 배포 파이프라인 구축    
-	• Docker Compose로 일관된 개발 환경 제공 및 배포 효율성 향상    
-	• Grafana & Prometheus를 사용해 서버 상태 및 응답 시간 실시간 모니터링    
-	• ELK Stack (Elasticsearch, Logstash, Kibana) 기반 로그 수집 및 시각화    
-	• Prometheus AlertManager를 통해 서버 오류 및 응답 시간 초과 시 Slack 알림 전송    
+|**Member**|**Contributions**|
+|:------------:|:---------------:|
+|<img src="">| <div align="left"> • Spring Boot, JPA 기반으로 주문 및 결제 기능 개발 </div>|
+|**고수연**|[GitHub Link](https://github.com/suyeon1717)|
 
-🔹 Sub-Leader: 주영
-	• 장바구니, 찜 기능 개발
+|**Member**|**Contributions**|
+|:------------:|:---------------:|
+|<img src="">| <div align="left"> • Spring Boot, Spring Security, JWT 기반으로 회원가입, 로그인, 권한 관리 기능 개발 </div>|
+|**이현우**|[GitHub Link](https://github.com/eagleowlee)|
 
-🔹 Member: 수연
-	• 주문 및 결제 기능 개발
-
-🔹 Member: 진홍
-	• 회원가입, 로그인, 권한 관리 기능 개발
-
-🔹 Member: 현우
-	• 사용자 관리 및 기준별 인기 상품 조회 기능 개발
+|**Member**|**Contributions**|
+|:------------:|:---------------:|
+|<img src="">| <div align="left"> • Spring Boot, JPA 기반으로 사용자 관리 및 기준별 인기 상품 조회, 포인트 기능 개발 </div>|
+|**민진홍**|[GitHub Link](https://github.com/wls313)|
 
 <br>
 
