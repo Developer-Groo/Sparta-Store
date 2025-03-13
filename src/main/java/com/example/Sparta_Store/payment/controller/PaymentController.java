@@ -1,16 +1,13 @@
 package com.example.Sparta_Store.payment.controller;
 
-import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.service.PaymentService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +29,6 @@ public class PaymentController {
     private String clientKey;
     private final PaymentService paymentService;
     private final OrderService orderService;
-    private final AdminOrderService adminOrderService;
 
     /**
      * 결제창 생성
@@ -42,7 +38,7 @@ public class PaymentController {
         HttpServletRequest request,
         @PathVariable("orderId") String orderId,
         Model model
-    ) throws JsonProcessingException {
+    ) {
         Long userId = (Long) request.getAttribute("id");
 
         // 결제 정보 불러오기
@@ -69,14 +65,10 @@ public class PaymentController {
      * 결제 승인
      */
     @PostMapping(value = { "/confirm"})
-    public ResponseEntity<JSONObject> confirmPayment(HttpServletRequest request, @RequestBody String jsonBody) throws Exception {
+    public ResponseEntity<JSONObject> confirmPayment(HttpServletRequest request, @RequestBody String jsonBody) {
 
         log.info("결제 승인 요청됨 >> {}", jsonBody);
-        JSONParser parser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) parser.parse(jsonBody);
-
         JSONObject response;
-
         Long userId = (Long) request.getAttribute("id");
 
         try{

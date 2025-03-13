@@ -41,7 +41,7 @@ public class OrderItem extends TimestampedEntity {
     @Column(name = "quantity")
     private Integer quantity;
 
-    public OrderItem(
+    private OrderItem(
         Orders order,
         Item item,
         Integer orderPrice,
@@ -51,5 +51,19 @@ public class OrderItem extends TimestampedEntity {
         this.item = item;
         this.orderPrice = orderPrice;
         this.quantity = quantity;
+    }
+
+    public static OrderItem toEntity(
+        Orders order,
+        Item item,
+        Integer orderPrice,
+        Integer quantity
+    ) {
+        return new OrderItem(
+            order,
+            item,
+            orderPrice,
+            quantity
+        );
     }
 }

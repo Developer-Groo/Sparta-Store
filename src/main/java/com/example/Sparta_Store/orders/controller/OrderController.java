@@ -40,7 +40,7 @@ public class OrderController {
         Long userId = (Long) request.getAttribute("id");
 
         String orderId = orderService.checkoutOrder(userId, requestDto);
-        return "redirect:/payments/checkout/" + orderId; // 프론트
+        return "redirect:/payments/checkout/" + orderId;
     }
 
     /**
@@ -71,14 +71,15 @@ public class OrderController {
     ) {
         Long userId = (Long) request.getAttribute("id");
 
-        return ResponseEntity.status(HttpStatus.OK)
-            .body(orderService.getOrders(
+        return ResponseEntity.status(HttpStatus.OK).body(
+            orderService.getOrders(
                 userId,
                 startDate,
                 endDate,
                 orderStatus,
                 pageQuery
-            ));
+            )
+        );
     }
 
     /**

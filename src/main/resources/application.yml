@@ -69,6 +69,6 @@ toss-payments:
     client-key: ${TOSS_CLIENT_KEY}
 
 rabbitmq:
-  queue.name: save.coupon
+  queue.name: save.issuedCoupon
   exchange.name: coupon.exchange
   routing.key: coupon.issued

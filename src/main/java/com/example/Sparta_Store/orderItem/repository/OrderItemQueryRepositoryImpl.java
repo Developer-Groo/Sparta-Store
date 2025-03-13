@@ -10,8 +10,6 @@ import com.example.Sparta_Store.util.QuerydslUtil;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
-import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
 
     private final JPAQueryFactory queryFactory;
-    private final EntityManager entityManager;
 
     @Override
     public Page<OrderItem> findByOrderId(String orderId, Pageable pageable) {
@@ -56,14 +53,6 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository{
     // orderId로 주문 상품 조회
     private BooleanExpression orderIdEquals(String orderId) {
         return orderId != null ? orderItem.orders.id.eq(orderId) : null;
-    }
-
-    // orderItem 갯수 조회
-    @Override
-    public Long findOrderItemQuantity(String orderId) {
-        return queryFactory.select(orderItem.count()).from(orderItem)
-            .where(orderItem.orders.id.eq(orderId))
-            .fetchOne();
     }
 
     @Override
