@@ -125,43 +125,54 @@ jobs:
       - name: Switch Traffic to Green Target Group
         run: |
           aws elbv2 modify-listener \
-           --listener-arn $LISTENER_ARN \
-           --default-actions Type=forward,TargetGroupArn=$GREEN_TG_ARN
+            --listener-arn $LISTENER_ARN \
+            --default-actions Type=forward,TargetGroupArn=$GREEN_TG_ARN
             
           echo "ALB listener updated: Now forwarding traffic to Green Target Group"
 
-      - name: Deregister Old Instance from Blue Target Group
+      - name: Deregister Old Instance(s) from Blue Target Group
         run: |
-          OLD_INSTANCE_ID=$(aws elbv2 describe-target-health \
+          OLD_INSTANCE_IDS=$(aws elbv2 describe-target-health \
             --target-group-arn $BLUE_TG_ARN \
-            --query 'TargetHealthDescriptions[0].Target.Id' \
+            --query 'TargetHealthDescriptions[*].Target.Id' \
             --output text)
-            
-            if [ "$OLD_INSTANCE_ID" != "None" ]; then
+
+          if [[ -n "$OLD_INSTANCE_IDS" ]]; then
+            for INSTANCE_ID in $OLD_INSTANCE_IDS; do
               aws elbv2 deregister-targets \
                 --target-group-arn $BLUE_TG_ARN \
-                --targets Id=$OLD_INSTANCE_ID
-            
-              echo "Old Blue instance ($OLD_INSTANCE_ID) removed from Blue Target Group"
-            fi
+                --targets Id=$INSTANCE_ID
 
-      - name: Terminate Old Blue Instance
+              echo "Old Blue instance ($INSTANCE_ID) removed from Blue Target Group"
+            done
+          else
+            echo "No instances found in Blue Target Group, skipping deregistration."
+          fi
+
+      - name: Terminate Old Blue Instance(s)
         run: |
-          if [[ -n "$OLD_INSTANCE_ID" && "$OLD_INSTANCE_ID" != "None" ]]; then
-            aws ec2 terminate-instances --instance-ids $OLD_INSTANCE_ID
-            echo "Old Blue instance ($OLD_INSTANCE_ID) terminated"
+          if [[ -n "$OLD_INSTANCE_IDS" ]]; then
+            for INSTANCE_ID in $OLD_INSTANCE_IDS; do
+              aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+              echo "Old Blue instance ($INSTANCE_ID) terminated"
+            done
           else
             echo "No old Blue instance found, skipping termination step."
           fi
 
       - name: Swap Blue and Green Target Groups
         run: |
-          TEMP=$GREEN_TG_ARN
-          GREEN_TG_ARN=$BLUE_TG_ARN
-          BLUE_TG_ARN=$TEMP
-            
-          echo "New Green Target Group: $GREEN_TG_ARN"
-          echo "New Blue Target Group: $BLUE_TG_ARN"
-            
-          echo "GREEN_TG_ARN=$GREEN_TG_ARN" >> $GITHUB_ENV
-          echo "BLUE_TG_ARN=$BLUE_TG_ARN" >> $GITHUB_ENV
+          if [[ -n "$GREEN_TG_ARN" && -n "$BLUE_TG_ARN" ]]; then
+            TEMP=$GREEN_TG_ARN
+            GREEN_TG_ARN=$BLUE_TG_ARN
+            BLUE_TG_ARN=$TEMP
+
+            echo "New Green Target Group: $GREEN_TG_ARN"
+            echo "New Blue Target Group: $BLUE_TG_ARN"
+
+            echo "GREEN_TG_ARN=$GREEN_TG_ARN" >> $GITHUB_ENV
+            echo "BLUE_TG_ARN=$BLUE_TG_ARN" >> $GITHUB_ENV
+          else
+            echo "ERROR: Target Group ARNs are not set correctly. Skipping swap."
+            exit 1
+          fi
