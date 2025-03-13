@@ -147,9 +147,11 @@ jobs:
 
       - name: Terminate Old Blue Instance
         run: |
-          if [ "$OLD_INSTANCE_ID" != "None" ]; then
+          if [[ -n "$OLD_INSTANCE_ID" && "$OLD_INSTANCE_ID" != "None" ]]; then
             aws ec2 terminate-instances --instance-ids $OLD_INSTANCE_ID
             echo "Old Blue instance ($OLD_INSTANCE_ID) terminated"
+          else
+            echo "No old Blue instance found, skipping termination step."
           fi
 
       - name: Swap Blue and Green Target Groups
