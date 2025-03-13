@@ -18,7 +18,6 @@ import com.example.Sparta_Store.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -39,7 +38,6 @@ public class CartRedisService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final RedisService redisService;
-    private final ZSetOperations<String, Object> zSetOperations;
 
     private String getCartKey(Long userId) {
         return "cart:" + userId;

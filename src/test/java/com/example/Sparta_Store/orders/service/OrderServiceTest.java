@@ -1,15 +1,5 @@
 package com.example.Sparta_Store.orders.service;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cart.service.CartRedisService;
@@ -27,10 +17,6 @@ import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +25,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -62,7 +60,7 @@ public class OrderServiceTest {
     private Users user;
     private Cart cart;
     private CartItem cartItem;
-    private List<CartItem> cartItemList;
+    private Map<Long, CartItem> cartItemList;
     private Address address;
     private Item item;
     private long totalPrice;
@@ -72,10 +70,10 @@ public class OrderServiceTest {
         address = new Address("경기도", "테스트길", "12345");
         user = new Users(1L, UUID.randomUUID().toString(), "테스트유저", "email@test.com", "Pw1234!!!", address, false, null, null, UserRoleEnum.USER);
         item = new Item(1L, "상품1", "img1@test.com", 10000, "상품1입니다.", 100, null, null);
-        cartItemList = new ArrayList<>();
+        cartItemList = new HashMap<>();
         cart = new Cart(1L, user, cartItemList);
         cartItem = new CartItem(1L, cart, item, 2);
-        cartItemList.add(cartItem);
+        cartItemList.put(item.getId(), cartItem);
 
     }
 
@@ -86,8 +84,8 @@ public class OrderServiceTest {
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
-            .willReturn(cartItemList);
-        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(new ArrayList<>(cartItemList.values()));
+        given(cartRedisService.getTotalPrice(new ArrayList<>(cartItemList.values())))
             .willReturn(totalPrice);
         given(ordersRepository.save(any(Orders.class)))
             .willAnswer(invocation -> invocation.getArgument(0));
@@ -110,8 +108,8 @@ public class OrderServiceTest {
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
-            .willReturn(cartItemList);
-        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(new ArrayList<>(cartItemList.values()));
+        given(cartRedisService.getTotalPrice(new ArrayList<>(cartItemList.values())))
             .willReturn(totalPrice);
         given(ordersRepository.save(any(Orders.class)))
             .willAnswer(invocation -> invocation.getArgument(0));
@@ -156,7 +154,7 @@ public class OrderServiceTest {
             .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        orderService.createOrderItem(order, cartItemList);
+        orderService.createOrderItem(order, new ArrayList<>(cartItemList.values()));
 
         // then
         // cartItemList의 각 항목에 대해 OrderItem이 하나씩 생성되어야 함

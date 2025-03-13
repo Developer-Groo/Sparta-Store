@@ -22,9 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -53,16 +51,16 @@ class CartRedisServiceTest {
     private Item item;
     private Cart cart;
     private CartItem cartItem;
-    private List<CartItem> cartItems;
+    private Map<Long, CartItem> cartItems;
 
     @BeforeEach
     void setUp() {
         user = new Users("test@test.kr", "password", "테스트", null, null);
         item = new Item(1L, "상품1", "img.jpa", 1000, null, null, null, null);
-        cartItems = new ArrayList<>();
+        cartItems = new HashMap<>();
         cart = new Cart(1L, user, cartItems);
         cartItem = new CartItem(1L, cart, item, 2);
-        cartItems.add(cartItem);
+        cartItems.put(item.getId(), cartItem);
     }
 
     @Test
@@ -76,13 +74,14 @@ class CartRedisServiceTest {
                 .willReturn(Optional.of(item));
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(cart);
-        given(redisService.getObject(anyString(), eq(CartItem.class)))
-                .willReturn(cartItem);
+        given(redisService.getList("cartItems:" + cart.getId(), CartItem.class))
+                .willReturn(new ArrayList<>(List.of(cartItem)));
         // when
         CartResponseDto response = cartRedisService.cartAddition(requestDto, 1L);
         // then
         assertThat(response).isNotNull();
         assertThat(response.cartItemList()).hasSize(1);
+        assertThat(response.cartItemList().get(0).quantity()).isEqualTo(3);
         then(redisService).should(times(1)).putObject(anyString(), any(Cart.class));
     }
 
@@ -108,6 +107,8 @@ class CartRedisServiceTest {
         // given
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(cart);
+        given(redisService.getList("cartItems:" + cart.getId(), CartItem.class))
+                .willReturn(new ArrayList<>(cart.getCartItems()));
         // when
         CartResponseDto response = cartRedisService.shoppingCartList(1L);
         // then
@@ -120,7 +121,7 @@ class CartRedisServiceTest {
     @DisplayName("장바구니 조회 실패 - 존재하지않은 장바구니")
     void shoppingCartList_Fall_NotFound() {
         // given
-        Cart emptyCart = new Cart(null, user, new ArrayList<>());
+        Cart emptyCart = new Cart(null, user, new HashMap<>());
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(emptyCart);
         // when & then
@@ -136,17 +137,20 @@ class CartRedisServiceTest {
         // given
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(cart);
+        given(redisService.getList("cartItems:" + cart.getId(), CartItem.class))
+                .willReturn(new ArrayList<>(List.of(cartItem)));
         // when
         cartRedisService.cartItemRemove(1L, 1L);
         // then
-        then(redisService).should(times(1)).delete(anyString());
+        then(redisService).should(times(1)).removeFromList(anyString(), eq(cartItem));
+        then(redisService).should(times(1)).putObject(anyString(), eq(cart));
     }
 
     @Test
     @DisplayName("장바구니 상품 삭제 실패 - 장바구니가 없음")
     void cartItemRemove_Fall_NotFound() {
         // given
-        Cart emptyCart = new Cart(null, user, new ArrayList<>());
+        Cart emptyCart = new Cart(null, user, new HashMap<>());
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(emptyCart);
         // when & then
@@ -163,13 +167,14 @@ class CartRedisServiceTest {
         CartItemUpdateRequestDto requestDto = new CartItemUpdateRequestDto(1L, 3);
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(cart);
-        given(redisService.getObject(anyString(), eq(CartItem.class)))
-                .willReturn(cartItem);
+        given(redisService.getList("cartItems:" + cart.getId(), CartItem.class))
+                .willReturn(new ArrayList<>(List.of(cartItem)));
         // when
         cartRedisService.cartItemUpdate(1L, requestDto, 1L);
         // then
-        assertThat(cartItem.getQuantity()).isEqualTo(3);
-        then(redisService).should(times(1)).putObject(anyString(), any(CartItem.class));
+        assertThat(cartItem.getQuantity()).isEqualTo(5);
+        then(redisService).should(times(1))
+                .updateListElement(anyString(), anyInt(), eq(cartItem));
     }
 
     @Test
@@ -177,11 +182,10 @@ class CartRedisServiceTest {
     void cartItemUpdate_Fall_NotFound() {
         // given
         CartItemUpdateRequestDto requestDto = new CartItemUpdateRequestDto(1L, 3);
-        CartItem emptyCartItem = new CartItem(null, cart, null, 0);
         given(redisService.getObject(anyString(), eq(Cart.class)))
                 .willReturn(cart);
-        given(redisService.getObject(anyString(), eq(CartItem.class)))
-                .willReturn(emptyCartItem);
+        given(redisService.getList("cartItems:" + cart.getId(), CartItem.class))
+                .willReturn(new ArrayList<>());
         // when & then
         assertThatThrownBy(() -> cartRedisService.cartItemUpdate(1L, requestDto, 1L))
                 .isInstanceOf(CustomException.class)
