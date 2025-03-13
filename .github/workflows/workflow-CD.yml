@@ -28,7 +28,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-
       - name: Store environment variables in AWS SSM
         run: |
           aws ssm put-parameter --name "GOOGLE_CLIENT_ID" --value "${{ secrets.GOOGLE_CLIENT_ID }}" --type "SecureString" --overwrite
@@ -119,9 +118,6 @@ jobs:
             sleep 50
           done
 
-          echo "Green instance health check failed!"
-          exit 1
-
       - name: Move Old Instance(s) to Blue Target Group
         run: |
           OLD_INSTANCE_IDS=$(aws elbv2 describe-target-health \
@@ -129,44 +125,49 @@ jobs:
             --query 'TargetHealthDescriptions[*].Target.Id' \
             --output text)
 
-          if [[ -n "$OLD_INSTANCE_IDS" ]]; then
-            echo "Moving instances to Blue Target Group: $OLD_INSTANCE_IDS"
-            for INSTANCE_ID in $OLD_INSTANCE_IDS; do
+          # 새로운 Green 인스턴스 ID 가져오기
+          NEW_INSTANCE_ID=$GREEN_INSTANCE_ID
+
+          # 기존 인스턴스에서 새로운 인스턴스를 제외하고 블루로 이동
+          FILTERED_INSTANCE_IDS=""
+          for INSTANCE_ID in $OLD_INSTANCE_IDS; do
+            if [[ "$INSTANCE_ID" != "$NEW_INSTANCE_ID" ]]; then
+              FILTERED_INSTANCE_IDS+="$INSTANCE_ID "
+            fi
+          done
+
+          if [[ -n "$FILTERED_INSTANCE_IDS" ]]; then
+            echo "Found instances in Green Target Group (excluding new instance): $FILTERED_INSTANCE_IDS"
+
+            for INSTANCE_ID in $FILTERED_INSTANCE_IDS; do
+              echo "Deregistering instance ($INSTANCE_ID) from Green Target Group..."
+              aws elbv2 deregister-targets \
+                --target-group-arn $GREEN_TG_ARN \
+                --targets Id=$INSTANCE_ID
+
+              echo "Waiting for instance to be fully deregistered..."
+              sleep 30  # Deregistering takes time
+
+              echo "Registering instance ($INSTANCE_ID) to Blue Target Group..."
               aws elbv2 register-targets \
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
-
-              echo "Instance ($INSTANCE_ID) moved to Blue Target Group"
             done
           else
-            echo "No instances to move to Blue Target Group."
+            echo "No old instances found in Green Target Group. Skipping movement to Blue."
           fi
 
       - name: Wait before checking Blue Target Group instances
         run: sleep 30
 
-      - name: Switch Traffic to Green Target Group
-        run: |
-          aws elbv2 modify-listener \
-           --listener-arn $LISTENER_ARN \
-           --default-actions Type=forward,TargetGroupArn=$GREEN_TG_ARN
-            
-          echo "ALB listener updated: Now forwarding traffic to Green Target Group"
-
       - name: Deregister Old Instance(s) from Blue Target Group
         run: |
-          OLD_INSTANCE_IDS=$(aws elbv2 describe-target-health \
-            --target-group-arn $BLUE_TG_ARN \
-            --query 'TargetHealthDescriptions[*].Target.Id' \
-            --output text)
-
           if [[ -n "$OLD_INSTANCE_IDS" ]]; then
             echo "Deregistering instances from Blue Target Group: $OLD_INSTANCE_IDS"
             for INSTANCE_ID in $OLD_INSTANCE_IDS; do
               aws elbv2 deregister-targets \
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
-
               echo "Deregistered instance ($INSTANCE_ID) from Blue Target Group"
             done
           else
