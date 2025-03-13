@@ -28,8 +28,12 @@ public class Likes extends TimestampedEntity {
     @JoinColumn(name = "item_id")
     private Item item;
 
+    private int likeCount;
+
     public Likes(Users user, Item item) {
         this.user = user;
         this.item = item;
+        this.likeCount = 1;
     }
+
 }
