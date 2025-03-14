@@ -188,7 +188,12 @@ public class CartRedisService {
             throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
         }
 
-        return cart.getCartItems().stream().toList();
+        String cartItemListKey = getCartItemListKey(cart.getId());
+
+        List<CartItem> cartItemList = redisService.getList(cartItemListKey, CartItem.class);
+
+//        return cart.getCartItems().stream().toList();
+        return cartItemList;
     }
 
     @Transactional
@@ -207,9 +212,12 @@ public class CartRedisService {
             throw new CustomException(CartErrorCode.NOT_EXISTS_USER);
         }
 
-        List<CartItem> cartItemList = getCartItemList(userId);
-        cartItemList.stream()
-                .forEach(cartItem -> redisTemplate.delete(getCartItemKey(cart.getId())));
+        String cartItemListKey = getCartItemListKey(cart.getId());
+
+//        List<CartItem> cartItemList = getCartItemList(userId);
+//        cartItemList.stream()
+//                .forEach(cartItem -> redisTemplate.delete(getCartItemKey(cart.getId())));
+        redisService.delete(cartItemListKey);
     }
 
     // get totalPrice

@@ -1,6 +1,7 @@
 package com.example.Sparta_Store.item.service;
 
 import com.example.Sparta_Store.item.dto.response.ItemResponseDto;
+import com.example.Sparta_Store.item.dto.response.SelectItemResponseDto;
 import com.example.Sparta_Store.item.entity.Item;
 import com.example.Sparta_Store.item.repository.ItemRepository;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
@@ -34,7 +35,8 @@ public class ItemService {
     public PageResult<ItemResponseDto> getSearchItems(boolean inStock, String keyword, PageQuery pageQuery) {
         Page<ItemResponseDto> itemList = itemRepository.findByNameAndStockCondition(inStock, keyword, pageQuery.toPageable())
                 .map(ItemResponseDto::toDto);
-
+        log.info("캐시 키 생성 - inStock: {}, keyword: {}, page: {}, size: {}",
+                inStock, keyword, (pageQuery != null ? pageQuery.getPage() : 0), (pageQuery != null ? pageQuery.getSize() : 20));
         return PageResult.from(itemList);
     }
 
@@ -54,5 +56,12 @@ public class ItemService {
             Item item = lockWithItems.get(orderItem.getItem().getId());
             item.decreaseStock(orderItem.getQuantity());
         });
+    }
+
+    public SelectItemResponseDto SelectItem(Long id) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(()->new RuntimeException("해당아이템이 없습니다."));
+
+        return SelectItemResponseDto.from(item);
     }
 }

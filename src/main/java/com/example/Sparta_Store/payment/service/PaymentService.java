@@ -1,14 +1,29 @@
 package com.example.Sparta_Store.payment.service;
 
-import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
+import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
+import com.example.Sparta_Store.IssuedCoupon.repository.IssuedCouponRepository;
+import com.example.Sparta_Store.email.event.OrderStatusUpdatedEvent;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.entity.Orders;
+import com.example.Sparta_Store.orders.event.OrderCancelledEvent;
 import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.entity.Payment;
+import com.example.Sparta_Store.payment.event.PaymentApprovedEvent;
 import com.example.Sparta_Store.payment.exception.PaymentErrorCode;
 import com.example.Sparta_Store.payment.repository.PaymentRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -17,16 +32,12 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 @Service
 @RequiredArgsConstructor
@@ -38,16 +49,21 @@ public class PaymentService {
     private final OrderService orderService;
     private final OrdersRepository ordersRepository;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final AdminOrderService adminOrderService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
+    private final IssuedCouponRepository issuedCouponRepository;
 
     @Value("${TOSS_SECRET_KEY}")
     private String secretKey;
 
     // 결제전, 주문상태 확인
     public boolean checkBeforePayment(String orderId) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
-        );
+        Orders order = orderService.getOrder(orderId);
+        if (order == null) {
+            throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
+        }
+
         return order.getOrderStatus().equals(OrderStatus.BEFORE_PAYMENT);
     }
 
@@ -61,30 +77,70 @@ public class PaymentService {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        // ------ 결제 승인 전처리
-        // 데이터 검증
-        checkData(userId, orderId, amount);
+        Orders order = orderService.getOrder(orderId);
+        if (order == null) {
+            throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
+        }
 
+        // 데이터 검증
+        checkData(userId, order, amount);
         if (!checkBeforePayment(orderId)) {
             throw new CustomException(PaymentErrorCode.MUST_BE_BEFORE_PAYMENT);
         }
 
-        // 상품 재고 감소 및 주문 CONFIRMED 상태 변경
-        orderService.completeOrder(orderId); //
+        // 상태 변경
+        order.updateOrderStatus(OrderStatus.ORDER_COMPLETED);
+
+        // redis 데이터도 업데이트
+        try {
+            String orderJson = objectMapper.writeValueAsString(order);
+            redisTemplate.opsForHash().put("order:" + orderId, "order", orderJson);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Order 객체 JSON 변환 실패", e);  // 또는 커스텀 예외 던지기
+        }
+
+        // MySQL 저장
+        orderService.createMysqlOrder(order);
+        orderService.createMysqlOrderItem(orderId);
+
+        // 쿠폰 사용처리
+        if (order.getIssuedCoupon() != null) {
+            IssuedCoupon coupon = order.getIssuedCoupon();
+            coupon.updateIsUsed();
+            issuedCouponRepository.save(coupon);
+        }
+
+        // 상품 재고 감소
+        orderService.completeOrder(orderId);
 
         // Payment 엔티티 생성
         createPayment(jsonObject);
 
-        // 결제 승인 API 호출
+        // ----------------- 결제 승인 API 호출 --------------------
         log.info("결제 승인 API 호출");
         JSONObject response = confirmPaymentTossAPI(secretKey, jsonBody);
 
-        if(response.containsKey("error")) { // 승인 실패 CASE
-            log.info("결제 승인 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
+        // 승인 실패 CASE
+        if(response.containsKey("error")) {
+            log.error("결제 승인 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
             updateAborted(paymentKey);
 
             throw new RuntimeException(response.get("message").toString());
         }
+
+        // 승인 성공 CASE
+        // Payment approvedAt, method 저장
+        log.info("결제 승인 완료 (orderId: {})", orderId);
+        try {
+            approvedPayment(response);
+        } catch (Exception e) {
+            log.error("Payment approvedAt, method 업데이트 중, 예외 발생 (paymentKey = {})", paymentKey, e);
+        }
+
+        // CartItem 초기화 비동기 이벤트 발행
+        eventPublisher.publishEvent(new PaymentApprovedEvent(userId));
+        // 이메일 전송 비동기 이벤트 발행
+        eventPublisher.publishEvent(OrderStatusUpdatedEvent.toEvent(order));
 
         return response;
     }
@@ -109,10 +165,7 @@ public class PaymentService {
     }
 
     // user, orderId, amount 일치 검증
-    public void checkData(Long userId, String orderId, long amount) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
-        );
+    public void checkData(Long userId, Orders order, long amount) {
         if(!order.getUser().getId().equals(userId)) {
             throw new CustomException(PaymentErrorCode.USER_MISMATCH);
         }
@@ -149,24 +202,66 @@ public class PaymentService {
             () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
         payment.approvedPayment(date, method);
-        log.info("Payment({}) approvedAt = {}", payment.getPaymentKey(), payment.getApprovedAt());
+        log.info("Payment 업데이트 완료 (paymentId: {}, approvedAt: {}, method: {}",
+            payment.getPaymentKey(), payment.getApprovedAt(), payment.getMethod());
     }
-
 
     // 결제 취소
     // Payment isCancelled = true
     // Order PAYMENT_CANCELLED 로 주문상태 변경
     @Transactional
-    public void paymentCancelled(JSONObject response) {
-        String orderId = response.get("orderId").toString();
-        String paymentKey = response.get("paymentKey").toString();
+    public void paymentCancelled(
+        String orderId,
+        String paymentKey,
+        String cancelReason,
+        long cancelAmount
+    ) throws Exception {
 
+        Orders order = ordersRepository.findById(orderId).orElseThrow(
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
+        );
         Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
             () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
         );
 
+        if (payment.isCancelled()) {
+            throw new CustomException(PaymentErrorCode.ALREADY_CANCELLED);
+        }
+
+        // ----------------- 결제 취소 API 호출 --------------------
+        log.info("결제 취소 API 호출");
+        JSONObject response = cancelPaymentTossAPI(secretKey, paymentKey, cancelReason, cancelAmount);
+
+        // 취소 실패 CASE
+        if(response.containsKey("error")) {
+            log.error("결제 취소 API 에러 발생 code: {} message{}", response.get("code"), response.get("message"));
+            throw new CustomException(PaymentErrorCode.PAYMENT_CANCELLATION_FAILED);
+        }
+
+        // 취소 성공 CASE
+        log.info("결제 취소 완료 (orderId: {})", orderId);
+
+        try {
+            payment.updateCancelled();
+        } catch (Exception e) {
+            log.error("Payment isCancelled 업데이트 중, 예외 발생 (paymentKey = {})", paymentKey, e);
+        }
+
+        // 이메일 전송 비동기 이벤트 발행
+        eventPublisher.publishEvent(OrderStatusUpdatedEvent.toEvent(order));
+
+        // 상품 재고 복구 비동기 이벤트 발행
+        eventPublisher.publishEvent(OrderCancelledEvent.toEvent(order));
+    }
+
+    // 승인 취소 완료 isCancelled = true
+    @Transactional
+    public void updateCancelled(String paymentKey) {
+        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
+        );
         payment.updateCancelled();
-        adminOrderService.orderCancelled(orderId);
+        log.info("Payment({}) isCancelled = {}", payment.getPaymentKey(), payment.isCancelled());
     }
 
     /**
@@ -185,9 +280,16 @@ public class PaymentService {
 
     // 토스페이먼츠 결제 취소 API 호출
     @Transactional
-    public JSONObject cancelPaymentTossAPI(String secretKey, String paymentKey, String cancleReason) throws Exception {
+    public JSONObject cancelPaymentTossAPI(
+        String secretKey,
+        String paymentKey,
+        String cancelReason,
+        long cancelAmount
+    ) throws Exception {
+
         JSONObject cancelRequestData = new JSONObject();
-        cancelRequestData.put("cancelReason", cancleReason);
+        cancelRequestData.put("cancelReason", cancelReason);
+        cancelRequestData.put("cancelAmount", cancelAmount);
 
         JSONObject response = sendRequest(
             cancelRequestData,
