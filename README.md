@@ -43,8 +43,8 @@
 
 ## 🤔 Team Document
 
-- Team Notion 보러가기 👉 [Team Notion](https://teamsparta.notion.site/6-1962dc3ef51480cb9e89f20d215f802c?pvs=25)
-- Team Brochure 보러가기 👉 [Team Brochure](https://www.notion.so/teamsparta/6-Sparta-Store-1b62dc3ef51480bebfc3e4fb16d38ad7?pvs=4)
+- Team Notion 보러가기 👉 [Team Notion]()
+- Team Brochure 보러가기 👉 [Team Brochure]()
 
 <br>
 
