@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.admin.orders.controller;
 
 import com.example.Sparta_Store.admin.orders.service.AdminOrderService;
-import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
+import com.example.Sparta_Store.domain.orders.dto.request.UpdateOrderStatusDto;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

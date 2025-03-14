@@ -1,0 +1,89 @@
+package com.example.Sparta_Store.domain.review.entity;
+
+import com.example.Sparta_Store.common.entity.TimestampedEntity;
+import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.domain.item.entity.Item;
+import com.example.Sparta_Store.domain.review.exception.ReviewErrorCode;
+import com.example.Sparta_Store.domain.user.entity.Users;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Review extends TimestampedEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private Users user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id", nullable = false)
+    private Item item;
+
+    @Column(nullable = false)
+    private String content;
+
+    private String imgUrl;
+
+    @Column(nullable = false)
+    private int rating;
+
+    private Review(
+            Users user,
+            Item item,
+            String content,
+            String imgUrl,
+            int rating
+    ) {
+        this.user = user;
+        this.item = item;
+        this.content = content;
+        this.imgUrl = imgUrl;
+        updateRating(rating);
+    }
+
+    public static Review toEntity(
+            Users user,
+            Item item,
+            String content,
+            String imgUrl,
+            int rating
+    ) {
+        return new Review(
+                user,
+                item,
+                content,
+                imgUrl != null && !imgUrl.isBlank() ? imgUrl : null,
+                rating
+        );
+    }
+
+    /**
+     * 권한 검증 메서드
+     */
+    public void checkOwnership(Long userId) {
+        if (!this.user.getId().equals(userId)) {
+            throw new CustomException(ReviewErrorCode.REVIEW_UPDATE_FORBIDDEN);
+        }
+    }
+
+    public void updateReview(String content, String newImageUrl, int rating) {
+        this.content = content;
+        this.imgUrl = newImageUrl;
+        updateRating(rating);
+    }
+
+    private void updateRating(int rating) {
+        if (rating < 1 || rating > 5) {
+            throw new CustomException(ReviewErrorCode.INVALID_RATING_VALUE);
+        }
+        this.rating = rating;
+    }
+}

@@ -1,17 +1,17 @@
 package com.example.Sparta_Store.admin.orders.service;
 
-import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
+import static com.example.Sparta_Store.domain.orders.OrderStatus.statusUpdatable;
 
 import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
-import com.example.Sparta_Store.orders.entity.Orders;
-import com.example.Sparta_Store.orders.event.OrderCancelledEvent;
-import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
-import com.example.Sparta_Store.orders.repository.OrdersRepository;
-import com.example.Sparta_Store.payment.entity.Payment;
-import com.example.Sparta_Store.payment.repository.PaymentRepository;
-import com.example.Sparta_Store.payment.service.PaymentService;
+import com.example.Sparta_Store.domain.orders.OrderStatus;
+import com.example.Sparta_Store.domain.orders.dto.request.UpdateOrderStatusDto;
+import com.example.Sparta_Store.domain.orders.entity.Orders;
+import com.example.Sparta_Store.domain.orders.event.OrderCancelledEvent;
+import com.example.Sparta_Store.domain.orders.exception.OrdersErrorCode;
+import com.example.Sparta_Store.domain.orders.repository.OrdersRepository;
+import com.example.Sparta_Store.domain.payment.entity.Payment;
+import com.example.Sparta_Store.domain.payment.repository.PaymentRepository;
+import com.example.Sparta_Store.domain.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

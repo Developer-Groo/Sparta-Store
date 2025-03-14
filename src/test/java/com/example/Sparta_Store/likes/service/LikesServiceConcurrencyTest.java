@@ -1,11 +1,12 @@
 package com.example.Sparta_Store.likes.service;
 
-import com.example.Sparta_Store.address.entity.Address;
-import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.item.repository.ItemRepository;
-import com.example.Sparta_Store.likes.repository.LikesRepository;
-import com.example.Sparta_Store.user.entity.Users;
-import com.example.Sparta_Store.user.repository.UserRepository;
+import com.example.Sparta_Store.domain.address.entity.Address;
+import com.example.Sparta_Store.domain.item.entity.Item;
+import com.example.Sparta_Store.domain.item.repository.ItemRepository;
+import com.example.Sparta_Store.domain.likes.repository.LikesRepository;
+import com.example.Sparta_Store.domain.likes.service.LikesService;
+import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.rabbitmq;
 
-import com.example.Sparta_Store.coupon.service.CouponService;
+import com.example.Sparta_Store.domain.coupon.service.CouponService;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

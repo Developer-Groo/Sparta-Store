@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.cache.controller;
 
 import com.example.Sparta_Store.cache.service.ItemCacheService;
-import com.example.Sparta_Store.item.dto.response.ItemResponseDto;
+import com.example.Sparta_Store.domain.item.dto.response.ItemResponseDto;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;

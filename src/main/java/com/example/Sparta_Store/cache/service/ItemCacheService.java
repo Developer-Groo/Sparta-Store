@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.cache.service;
 
-import com.example.Sparta_Store.item.dto.response.ItemResponseDto;
-import com.example.Sparta_Store.item.service.ItemService;
+import com.example.Sparta_Store.domain.item.dto.response.ItemResponseDto;
+import com.example.Sparta_Store.domain.item.service.ItemService;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import java.util.ArrayList;

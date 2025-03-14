@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.email.event;
 
-import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.domain.item.entity.Item;
 
 import java.util.List;
 

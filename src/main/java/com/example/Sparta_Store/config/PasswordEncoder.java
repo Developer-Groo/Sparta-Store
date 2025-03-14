@@ -1,17 +1,18 @@
 package com.example.Sparta_Store.config;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class PasswordEncoder {
 
+    private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
+
     public String encode(String rawPassword) {
-        return BCrypt.withDefaults().hashToString(BCrypt.MIN_COST, rawPassword.toCharArray());
+        return ENCODER.encode(rawPassword);
     }
 
     public boolean matches(String rawPassword, String encodedPassword) {
-        BCrypt.Result result = BCrypt.verifyer().verify(rawPassword.toCharArray(), encodedPassword);
-        return result.verified;
+        return ENCODER.matches(rawPassword, encodedPassword);
     }
 }

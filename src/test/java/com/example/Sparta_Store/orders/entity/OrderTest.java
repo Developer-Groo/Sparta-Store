@@ -2,11 +2,12 @@ package com.example.Sparta_Store.orders.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
-import com.example.Sparta_Store.address.entity.Address;
-import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
-import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.user.entity.Users;
+import com.example.Sparta_Store.domain.IssuedCoupon.entity.IssuedCoupon;
+import com.example.Sparta_Store.domain.address.entity.Address;
+import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.orders.OrderStatus;
+import com.example.Sparta_Store.domain.orders.entity.Orders;
+import com.example.Sparta_Store.domain.user.entity.Users;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

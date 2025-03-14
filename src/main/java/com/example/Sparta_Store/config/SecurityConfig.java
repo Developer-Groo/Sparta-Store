@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.config;
 
-import com.example.Sparta_Store.oAuth.handler.CustomOAuth2SuccessHandler;
-import com.example.Sparta_Store.oAuth.jwt.JwtFilter;
+import com.example.Sparta_Store.domain.oAuth.handler.CustomOAuth2SuccessHandler;
+import com.example.Sparta_Store.domain.oAuth.jwt.JwtFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.email.event;
 
-import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.orders.entity.Orders;
+import com.example.Sparta_Store.domain.orders.OrderStatus;
+import com.example.Sparta_Store.domain.orders.entity.Orders;
 
 public record OrderStatusUpdatedEvent(
     String orderId,
