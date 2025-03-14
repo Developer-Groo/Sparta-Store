@@ -52,8 +52,8 @@
 ## 🛠 Technology
 | **분야**        | **기술** |
 |--------------|--------|
-| **Backend** | Java 17, Spring Boot 3.x, JPA, QueryDSL |
-| **DB** | MySQL 8.0 |
+| **Backend** | Java 17, Spring Boot 3.x, Spring security 6.x, JPA, QueryDSL 등|
+| **DB** | MySQL 8.0, Redis 7.2.7 |
 | **Cache** | Spring Cache, Redis Cache |
 | **Concurrency Control** | Redis Lock |
 | **Testing** | JUnit5, MockMvc |
