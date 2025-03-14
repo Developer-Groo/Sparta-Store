@@ -54,15 +54,10 @@
 |--------------|--------|
 | **Backend** | Java 17, Spring Boot 3.x, Spring security 6.x, JPA, QueryDSL 등|
 | **DB** | MySQL 8.0, Redis 7.2.7 |
-| **Cache** | Spring Cache, Redis Cache |
-| **Concurrency Control** | Redis Lock |
+| **Cache** | Redis Cache |
+| **Concurrency Control** | Pessimistic Lock, Optimistic Lock |
 | **Testing** | JUnit5, MockMvc |
-| **DevOps** | Docker |
-
-<br>
-
-## 🎯 Features
-
+| **DevOps** | Github Actions, Docker, AWS ELB, AWS EC2, AWS RDS, AWS Code Deploy 등 |
 
 <br>
 
@@ -70,13 +65,14 @@
 
 ~~~ mermaid
 erDiagram
-    User {
+    Users {
         Long id PK
         String name
         String email
         String password
         Address address
         tinyint is_deleted
+        UserRoleEnum role
         LocalDateTime created_at
         LocalDateTime updated_at
     }
@@ -94,10 +90,12 @@ erDiagram
     }
 
     Orders {
-        Long id PK
-        User user_id FK
-        OrderStatus status
-        Integer totalPrice
+        String order_id PK
+        Users user_id FK
+        IssuedCoupon issued_coupon_id FK
+        OrderStatus order_status
+        Long total_price
+        Address address
         LocalDateTime created_at
         LocalDateTime updated_at
     }
@@ -106,7 +104,7 @@ erDiagram
         Long id PK
         Orders order_id FK 
         Item item_id FK
-        Integer orderPrice
+        Integer order_price
         Integer quantity
         LocalDateTime created_at
         LocalDateTime updated_at
@@ -128,15 +126,15 @@ erDiagram
     }
     
     Cart {
-        Long id PK
-        User user_id FK
+        Long cart_id PK
+        Users user_id FK
         LocalDateTime created_at
         LocalDateTime updated_at
     }
     
-    REVIEW {
+    Review {
         Long id PK
-        User user_id FK
+        Users user_id FK
         Item item_id FK
         String content
         String img_url
@@ -152,8 +150,8 @@ erDiagram
     }
     
     Likes {
-	    Long id PK
-	    User user_id FK
+	    Long likes_id PK
+	    Users user_id FK
 	    Item item_id FK
 	    LocalDateTime created_at
       LocalDateTime updated_at
@@ -166,22 +164,61 @@ erDiagram
 	    LocalDateTime created_at
       LocalDateTime updated_at
     }
+    
+    Payment {
+	    String payment_key PK
+	    Orders order_id FK
+	    LocalDateTime approved_at
+	    Long amount
+	    String method
+	    boolean is_cancelled
+	    boolean is_aborted
+    }
+    
+    IssuedCoupon {
+	    Long id PK
+	    String coupon_name
+	    String amount
+	    Long user_id
+	    boolean is_used
+	    LocalDateTime expiration_date
+	    LocalDateTime created_at
+      LocalDateTime updated_at
+    }
+    
+    Point {
+	    Long point_id PK
+	    Users user_id FK
+	    int point_balance
+    }
+    
+    PointSummary {
+	    Long summary_id PK
+	    Users user_id FK
+	    Long point_amount
+	    SummaryType summary_type
+	    LocalDateTime created_at
+    }
 
-    User ||--o{ Orders : "has many"
-    User ||--|| Cart : "has one"
+    Users ||--o{ Orders : "has many"
+    Users ||--|| Cart : "has one"
     Cart ||--o{ CartItem : "contains"
     Item ||--o{ CartItem : "is in"
     Orders ||--o{ OrderItem : "has many"
     Item ||--o{ OrderItem : "has many"
-    User }|..|{ Address : "embedded"
-    REVIEW }o--|| User : "has many"
-    REVIEW }o--|| Item : "has many"
+    Users }|..|{ Address : "embedded"
+    Review }o--|| Users : "has many"
+    Review }o--|| Item : "has many"
     Category ||--o| Category : "parent"
     Category ||--|{ Category : "children"
     Category ||--|{ Item : "has"
-    User ||--o{ Likes : "likes"
+    Users ||--o{ Likes : "likes"
     Item ||--o{ Likes : "liked by"
-    SalesSummary ||--|| Item : "has one" 
+    SalesSummary ||--|| Item : "has one"
+    Payment ||--|| Orders : "has one"
+    PointSummary }o--|| Users : "has many"
+    Point ||--|| Users : "has one"
+    Orders ||--|| IssuedCoupon : "has one"
 ~~~
 
 <br>
