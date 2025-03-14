@@ -192,7 +192,6 @@ public class CartRedisService {
 
         List<CartItem> cartItemList = redisService.getList(cartItemListKey, CartItem.class);
 
-//        return cart.getCartItems().stream().toList();
         return cartItemList;
     }
 
@@ -214,9 +213,6 @@ public class CartRedisService {
 
         String cartItemListKey = getCartItemListKey(cart.getId());
 
-//        List<CartItem> cartItemList = getCartItemList(userId);
-//        cartItemList.stream()
-//                .forEach(cartItem -> redisTemplate.delete(getCartItemKey(cart.getId())));
         redisService.delete(cartItemListKey);
     }
 
