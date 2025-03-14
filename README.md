@@ -6,10 +6,9 @@
 - [🤔 Team Document](#-Team-Document)
 - [📑 Commit Convention](#-Commit-Convention)
 - [🛠 Technology](#-Technology)
-- [🎯 Features](#-Features)
 - [🔗 ERD](#-ERD)
+- [🆚 Technical Decision](#-Technical-Decision)
 - [🚨 Trouble Shooting](#-Trouble-Shooting)
-- [🍰 Performance Comparison](#-Performance-Comparison)
 
 <br>
 
@@ -223,6 +222,9 @@ erDiagram
 
 <br>
 
+## 🆚 Technical Decision
+
+<br>
 
 ## 🚨 Trouble Shooting
 
