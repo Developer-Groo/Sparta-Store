@@ -22,14 +22,14 @@ public class PaymentTest {
     @BeforeEach
     void setUp() {
         user = new Users("테스트", "email@test.com");
-        order = new Orders(user, 100000L, null);
+        order = Orders.createOrderWithoutCoupon(user, 100000L, null);
     }
 
     @Test
     @DisplayName("결제 생성 성공")
     void createPayment_success() {
         // given & when
-        Payment payment = new Payment("paymentKey", order, 100000L);
+        Payment payment = Payment.toEntity("paymentKey", order, 100000L);
 
         // then
         assertThat(payment.getOrder().equals(order));
@@ -46,7 +46,7 @@ public class PaymentTest {
     @DisplayName("결제 승인 업데이트 성공")
     void approvedPayment_success() {
         // given
-        Payment payment = new Payment("paymentKey", order, 100000L);
+        Payment payment = Payment.toEntity("paymentKey", order, 100000L);
         String date = "2025-02-24T21:11:59.000000+09:00";
         String method = "카드";
 
@@ -63,7 +63,7 @@ public class PaymentTest {
     @DisplayName("결제 승인 거절 업데이트 성공")
     void updateAborted_success() {
         // given
-        Payment payment = new Payment("paymentKey", order, 100000L);
+        Payment payment = Payment.toEntity("paymentKey", order, 100000L);
 
         // when
         payment.updateAborted();
@@ -76,7 +76,7 @@ public class PaymentTest {
     @DisplayName("결제 취소 업데이트 성공")
     void updateCancelled_success() {
         // given
-        Payment payment = new Payment("paymentKey", order, 100000L);
+        Payment payment = Payment.toEntity("paymentKey", order, 100000L);
 
         // when
         payment.updateCancelled();

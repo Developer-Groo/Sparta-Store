@@ -41,7 +41,11 @@ public class Orders extends TimestampedEntity {
     @JoinColumn(name = "issued_coupon_id")
     private IssuedCoupon issuedCoupon;
 
-    public Orders(Users user, long totalPrice, Address address) {
+    private Orders(
+        Users user,
+        long totalPrice,
+        Address address
+    ) {
         this.id = UUID.randomUUID().toString();
         this.user = user;
         this.orderStatus = OrderStatus.BEFORE_PAYMENT;
@@ -49,13 +53,45 @@ public class Orders extends TimestampedEntity {
         this.address = address;
     }
 
-    public Orders(Users user, long totalPrice, Address address, IssuedCoupon issuedCoupon) {
+    private Orders(
+        Users user,
+        long totalPrice,
+        Address address,
+        IssuedCoupon issuedCoupon
+    ) {
         this.id = UUID.randomUUID().toString();
         this.user = user;
         this.orderStatus = OrderStatus.BEFORE_PAYMENT;
         this.totalPrice = totalPrice;
         this.address = address;
         this.issuedCoupon = issuedCoupon;
+    }
+
+    public static Orders createOrderWithoutCoupon(
+        Users user,
+        long totalPrice,
+        Address address
+    ) {
+        return new Orders(
+            user,
+            totalPrice,
+            address,
+            null
+        );
+    }
+
+    public static Orders createOrderWithCoupon(
+        Users user,
+        long totalPrice,
+        Address address,
+        IssuedCoupon issuedCoupon
+    ) {
+        return new Orders(
+            user,
+            totalPrice,
+            address,
+            issuedCoupon
+        );
     }
 
     public void updateOrderStatus(OrderStatus orderStatus) {

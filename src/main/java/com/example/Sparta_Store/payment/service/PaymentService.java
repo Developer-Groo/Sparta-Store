@@ -7,7 +7,6 @@ import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.orders.OrderStatus;
 import com.example.Sparta_Store.orders.entity.Orders;
 import com.example.Sparta_Store.orders.event.OrderCancelledEvent;
-import com.example.Sparta_Store.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.orders.service.OrderService;
 import com.example.Sparta_Store.payment.entity.Payment;
 import com.example.Sparta_Store.payment.event.PaymentApprovedEvent;
@@ -47,7 +46,6 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
-    private final OrdersRepository ordersRepository;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ApplicationEventPublisher eventPublisher;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -59,7 +57,7 @@ public class PaymentService {
 
     // 결제전, 주문상태 확인
     public boolean checkBeforePayment(String orderId) {
-        Orders order = orderService.getOrder(orderId);
+        Orders order = orderService.getRedisOrder(orderId);
         if (order == null) {
             throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
         }
@@ -77,7 +75,7 @@ public class PaymentService {
         String orderId = (String) jsonObject.get("orderId");
         long amount = Long.parseLong((String) jsonObject.get("amount"));
 
-        Orders order = orderService.getOrder(orderId);
+        Orders order = orderService.getRedisOrder(orderId);
         if (order == null) {
             throw new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER);
         }
@@ -150,11 +148,9 @@ public class PaymentService {
     public void createPayment(JSONObject response) {
 
         String orderId = response.get("orderId").toString();
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
-        );
+        Orders order = orderService.getOrder(orderId);
 
-        Payment savedPayment = new Payment(
+        Payment savedPayment = Payment.toEntity(
             response.get("paymentKey").toString(),
             order,
             Long.valueOf(response.get("amount").toString())
@@ -179,9 +175,7 @@ public class PaymentService {
     // 승인 실패 isAborted = true
     @Transactional
     public void updateAborted(String paymentKey) {
-        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
-        );
+        Payment payment = getPayment(paymentKey);
         payment.updateAborted();
         log.info("Payment({}) isAborted = {}", payment.getPaymentKey(), payment.isAborted());
     }
@@ -198,9 +192,7 @@ public class PaymentService {
         String date = response.get("approvedAt").toString();
         String method = response.get("method").toString();
 
-        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
-        );
+        Payment payment = getPayment(paymentKey);
         payment.approvedPayment(date, method);
         log.info("Payment 업데이트 완료 (paymentId: {}, approvedAt: {}, method: {}",
             payment.getPaymentKey(), payment.getApprovedAt(), payment.getMethod());
@@ -217,12 +209,8 @@ public class PaymentService {
         long cancelAmount
     ) throws Exception {
 
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_ORDER)
-        );
-        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
-        );
+        Orders order = orderService.getOrder(orderId);
+        Payment payment = getPayment(paymentKey);
 
         if (payment.isCancelled()) {
             throw new CustomException(PaymentErrorCode.ALREADY_CANCELLED);
@@ -257,11 +245,15 @@ public class PaymentService {
     // 승인 취소 완료 isCancelled = true
     @Transactional
     public void updateCancelled(String paymentKey) {
-        Payment payment = paymentRepository.findById(paymentKey).orElseThrow(
-            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
-        );
+        Payment payment = getPayment(paymentKey);
         payment.updateCancelled();
         log.info("Payment({}) isCancelled = {}", payment.getPaymentKey(), payment.isCancelled());
+    }
+
+    public Payment getPayment(String paymentKey) {
+        return paymentRepository.findById(paymentKey).orElseThrow(
+            () -> new CustomException(PaymentErrorCode.NOT_EXISTS_PAYMENT)
+        );
     }
 
     /**

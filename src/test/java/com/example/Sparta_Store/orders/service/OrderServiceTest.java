@@ -85,7 +85,7 @@ public class OrderServiceTest {
 
     @BeforeEach
     void setUp() {
-        issuedCoupon = new IssuedCoupon(1L, "randomCoupon", "1000", 1L, false, null);
+        issuedCoupon = new IssuedCoupon(1L, "randomCoupon", 1000L, 1L, false, null);
         address = new Address("경기도", "테스트길", "12345");
         user = new Users(1L, UUID.randomUUID().toString(), "테스트유저", "email@test.com", "Pw1234!!!", address, false, null, null, UserRoleEnum.USER);
         item = new Item(1L, "상품1", "img1@test.com", 10000, "상품1입니다.", 100, null, null);
@@ -108,8 +108,10 @@ public class OrderServiceTest {
         given(cartRedisService.getTotalPrice(new ArrayList<>(cartItemList.values())))
             .willReturn(totalPrice);
         given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
+        given(issuedCouponRepository.couponToUse(1L, 1L))
+            .willReturn(issuedCoupon);
 
-        CreateOrderRequestDto requestDto = null;
+        CreateOrderRequestDto requestDto = new CreateOrderRequestDto(null, 1L);
 
         // when
         Orders order = orderService.createRedisOrder(user.getId(), requestDto);
@@ -118,7 +120,7 @@ public class OrderServiceTest {
         assertNotNull(order);
         assertEquals(user, order.getUser());
         assertEquals(user.getAddress(), order.getAddress());
-        assertEquals(Long.valueOf(order.getTotalPrice()), Long.valueOf(totalPrice));
+        assertEquals(Long.valueOf(order.getTotalPrice()), Long.valueOf(totalPrice-issuedCoupon.getAmount()));
         assertEquals(OrderStatus.BEFORE_PAYMENT, order.getOrderStatus());
 
         verify(hashOperations, times(1)).put(anyString(), eq("order"), eq("orderJson"));
@@ -178,7 +180,7 @@ public class OrderServiceTest {
 
         // then
         assertNotNull(order);
-        assertEquals((long) order.getTotalPrice(), totalPrice-Long.parseLong(issuedCoupon.getAmount()));
+        assertEquals((long) order.getTotalPrice(), totalPrice - issuedCoupon.getAmount());
         assertEquals(OrderStatus.BEFORE_PAYMENT, order.getOrderStatus());
 
         verify(hashOperations, times(1)).put(anyString(), eq("order"), eq("orderJson"));
@@ -238,7 +240,7 @@ public class OrderServiceTest {
     @DisplayName("MySQL 결제 완료된 주문 생성 성공")
     void createMysqlOrder_success() {
         // given
-        Orders order = new Orders(user, 50000L, user.getAddress());
+        Orders order = Orders.createOrderWithoutCoupon(user, 50000L, user.getAddress());
 
         // when
         orderService.createMysqlOrder(order);
@@ -252,7 +254,7 @@ public class OrderServiceTest {
     void createRedisOrderItem_success() throws JsonProcessingException {
         // given
         given(redisTemplate.opsForList()).willReturn(listOperations);
-        Orders order = new Orders(user, 10000L, user.getAddress());
+        Orders order = Orders.createOrderWithoutCoupon(user, 10000L, user.getAddress());
 
         doAnswer(invocation -> {
             OrderItem orderItem = invocation.getArgument(0);
@@ -271,7 +273,7 @@ public class OrderServiceTest {
     @DisplayName("레디스 주문 아이템 생성 실패 - 장바구니에 담긴 상품 없음")
     void createRedisOrderItem_notExistsCartItem_fail() {
         // given
-        Orders order = new Orders(user, 50000L, user.getAddress());
+        Orders order = Orders.createOrderWithoutCoupon(user, 50000L, user.getAddress());
         List<CartItem> cartItems = new ArrayList<>();
 
         // when & then

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/likes")
@@ -20,10 +21,11 @@ public class LikesController {
     private final LikesService likesService;
 
     @PostMapping
-    public ResponseEntity<String> addLike(@RequestBody @Valid LikesRequestDto requestDto){
-        likesService.addLike(requestDto.userId(), requestDto.itemId());
+    public ResponseEntity<Map<String, String>> addLike(@RequestBody @Valid LikesRequestDto requestDto, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("id");
+        likesService.addLike(requestDto.itemId(), userId);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body("찜 추가가 되셨습니다.");
+                .body(Map.of("message", "찜 추가가 되셨습니다."));
     }
 
     @GetMapping
@@ -42,10 +44,10 @@ public class LikesController {
     }
 
     @DeleteMapping("/{itemId}")
-    public ResponseEntity<String> removeLike(@PathVariable("itemId") Long itemId, HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> removeLike(@PathVariable("itemId") Long itemId, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("id");
         likesService.removeLike(itemId, userId);
         return ResponseEntity.status(HttpStatus.OK)
-                .body("찜 취소가 되었습니다.");
+                .body(Map.of("message", "찜 취소가 되었습니다."));
     }
 }

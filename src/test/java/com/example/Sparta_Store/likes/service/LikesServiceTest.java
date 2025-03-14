@@ -49,7 +49,7 @@ class LikesServiceTest {
     void setUp() {
         user = new Users("test@test.com", "password", "테스트1", null, null);
         item = new Item(1L, "상품2", "img.jpa", 1000, null, null, null, null);
-        likes = new Likes(1L, user, item,1,1);
+        likes = new Likes(1L, user, item,1);
     }
 
     @Test

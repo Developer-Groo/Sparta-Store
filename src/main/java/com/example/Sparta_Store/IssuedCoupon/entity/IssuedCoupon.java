@@ -27,7 +27,7 @@ public class IssuedCoupon extends TimestampedEntity {
     private String name; // 쿠폰명
 
     @Column(name = "amount", nullable = false)
-    private String amount; // 쿠폰 금액
+    private Long amount; // 쿠폰 금액
 
     @Column(name = "user_id", nullable = false)
     private Long userId;
@@ -40,12 +40,12 @@ public class IssuedCoupon extends TimestampedEntity {
 
     private IssuedCoupon(
         String name,
-        String content,
+        Long amount,
         Long userId,
         LocalDateTime expirationDate
     ) {
         this.name = name;
-        this.amount = content;
+        this.amount = amount;
         this.userId = userId;
         this.isUsed = false;
         this.expirationDate = expirationDate;
@@ -53,13 +53,13 @@ public class IssuedCoupon extends TimestampedEntity {
 
     public static IssuedCoupon toEntity(
         String name,
-        String content,
+        Long amount,
         Long userId,
         LocalDateTime expirationDate
     ) {
         return new IssuedCoupon(
             name,
-            content,
+            amount,
             userId,
             expirationDate
         );

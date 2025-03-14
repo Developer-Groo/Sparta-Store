@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CouponService {
 
-    private final IssuedCouponRepository couponUserRepository;
+    private final IssuedCouponRepository issuedCouponRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final RabbitTemplate rabbitTemplate;
 
@@ -42,20 +42,12 @@ public class CouponService {
      */
     private static final RedisScript<String> COUPON_SCRIPT = new DefaultRedisScript<>(
         "local count = redis.call('SCARD', KEYS[1]) " +
-            "if count < 400 then " +
-            "    if redis.call('SADD', KEYS[1], ARGV[1]) == 1 then " +
-            "        local coupon = redis.call('RPOP', KEYS[2]) " +
-            "        if coupon then " +
-            "            return coupon " +
-            "        else " +
-            "            return nil " +  // 쿠폰 소진 시 nil 반환
-            "        end " +
-            "    else " +
-            "        return nil " +  // 이미 발급된 사용자
-            "    end " +
-            "else " +
-            "    return nil " +  // 400개 이상일 경우 쿠폰 소진
-            "end",
+            "if count >= 1000 then return 'COUPON_EXHAUSTED' end " +
+            "if redis.call('SISMEMBER', KEYS[1], ARGV[1]) == 1 then return 'ALREADY_ISSUED' end " +
+            "local coupon = redis.call('RPOP', KEYS[2]) " +
+            "if not coupon then return 'COUPON_EXHAUSTED' end " +
+            "redis.call('SADD', KEYS[1], ARGV[1]) " +
+            "return coupon",
         String.class
     );
 
@@ -70,30 +62,25 @@ public class CouponService {
         );
 
         // 결과 처리
-        if (selectedCoupon == null) {
-            // 발급 이력이 있거나 쿠폰이 소진된 경우
-            Boolean isMember = redisTemplate.opsForSet().isMember(key, String.valueOf(userId));
-            if (Boolean.TRUE.equals(isMember)) {
-                return "이미 발급받은 쿠폰입니다.";
-            } else {
-                return "쿠폰이 모두 소진되었습니다.";
-            }
+        if (selectedCoupon.equals("ALREADY_ISSUED")) {
+            return "이미 발급받은 쿠폰입니다.";
+        } else if (selectedCoupon.equals("COUPON_EXHAUSTED")) {
+            return "쿠폰이 모두 소진되었습니다.";
         }
+
         // 발급 이력 저장 - RabbitMQ 메시지 전송
         sendCouponIssuanceMessage(userId, couponName, selectedCoupon);
-
-        log.info("user: {}, 받은 쿠폰: {}", userId, selectedCoupon);
         return selectedCoupon + "원 할인 쿠폰이 발급되었습니다.";
     }
 
     // 쿠폰 발급 이력 DB 저장
     @Transactional
-    public void saveCouponUser(Long userId, String couponName, String selectedCoupon) {
+    public void saveCouponUser(Long userId, String couponName, Long selectedCoupon) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
         LocalDateTime expirationDate = now.with(LocalTime.MAX);
         IssuedCoupon issuedCoupon = IssuedCoupon.toEntity(couponName, selectedCoupon, userId, expirationDate);
 
-        couponUserRepository.save(issuedCoupon);
+        issuedCouponRepository.save(issuedCoupon);
     }
 
     // 쿠폰 발급 이력 DB 저장 메시지큐 전송
@@ -109,4 +96,5 @@ public class CouponService {
             log.error("user: {}, 쿠폰 발급 메시지 전송 실패: {}", userId, message, e);
         }
     }
+
 }

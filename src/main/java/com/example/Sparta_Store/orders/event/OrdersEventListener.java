@@ -1,7 +1,6 @@
 package com.example.Sparta_Store.orders.event;
 
 import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.item.service.ItemService;
 import com.example.Sparta_Store.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.orders.entity.Orders;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrdersEventListener {
 
     private final OrderItemRepository orderItemRepository;
-    private final ItemService itemService;
 
     // 주문아이템 삭제
     @Async

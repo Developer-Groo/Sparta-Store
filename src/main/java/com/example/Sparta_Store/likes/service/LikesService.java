@@ -27,11 +27,11 @@ public class LikesService {
     @Transactional
     public void addLike(Long itemId, Long userId) {
         Users user = userRepository.findById(userId)
-                .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+                .orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
         Item item = itemRepository.findByIdWithLock(itemId)
-                .orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
+                .orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_PRODUCT));
 
-        if(likesRepository.findByUserAndItem(user, item).isPresent()) {
+        if (likesRepository.findByUserAndItem(user, item).isPresent()) {
             throw new CustomException(LikesErrorCode.PRODUCT_ALREADY_WISHLIST);
         }
         likesRepository.save(new Likes(user, item));
@@ -41,7 +41,7 @@ public class LikesService {
     public List<LikeResponseDto> getLikeList(Long userId) {
 
         Users user = userRepository.findById(userId).
-                orElseThrow(()-> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
+                orElseThrow(() -> new CustomException(LikesErrorCode.NOT_EXISTS_USER));
 
         List<Likes> likeList = likesRepository.findAllByUser(user);
 
@@ -50,6 +50,7 @@ public class LikesService {
                 .toList();
     }
 
+    // 총 찜 갯수
     public Long getLikeCount(Long itemId) {
         return likesRepository.countByItemId(itemId);
     }

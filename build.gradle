@@ -76,7 +76,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'org.redisson:redisson-spring-boot-starter:3.17.0'
 
     // RabbitMQ
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
