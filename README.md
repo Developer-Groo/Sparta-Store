@@ -45,7 +45,7 @@
 
 - Team Notion 보러가기 👉 [Team Notion]()
 - Team Brochure 보러가기 👉 [Team Brochure]()
-- Team Convention 보러가기 👉 [Team Convention]()
+- Team Convention 보러가기 👉 [Team Convention](https://github.com/Developer-Groo/Sparta-Store/wiki/Team-Convention)
 
 <br>
 
