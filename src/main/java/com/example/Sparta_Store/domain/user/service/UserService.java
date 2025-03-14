@@ -2,8 +2,7 @@ package com.example.Sparta_Store.domain.user.service;
 
 import com.example.Sparta_Store.domain.address.entity.Address;
 import com.example.Sparta_Store.domain.address.entity.AddressDto;
-import com.example.Sparta_Store.config.PasswordEncoder;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.common.security.PasswordEncoder;
 import com.example.Sparta_Store.domain.user.dto.response.CreateUserResponseDto;
 import com.example.Sparta_Store.domain.user.dto.response.UserResponseDto;
 import com.example.Sparta_Store.domain.user.entity.Users;

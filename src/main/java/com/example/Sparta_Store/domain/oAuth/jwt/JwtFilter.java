@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.domain.oAuth.jwt;
 
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.domain.item.ranking;
+package com.example.Sparta_Store.domain.item.ranking.repository;
 
 import com.example.Sparta_Store.domain.item.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;

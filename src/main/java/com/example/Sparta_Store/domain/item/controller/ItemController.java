@@ -4,7 +4,7 @@ import com.example.Sparta_Store.domain.item.dto.request.ItemSearchRequestDto;
 import com.example.Sparta_Store.domain.item.dto.response.ItemResponseDto;
 import com.example.Sparta_Store.domain.item.dto.response.SelectItemResponseDto;
 import com.example.Sparta_Store.domain.item.service.ItemService;
-import com.example.Sparta_Store.domain.item.ranking.RedisRankingService;
+import com.example.Sparta_Store.domain.item.ranking.service.RedisRankingService;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;

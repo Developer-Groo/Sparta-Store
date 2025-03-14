@@ -7,7 +7,7 @@ import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.item.repository.ItemRepository;
 import com.example.Sparta_Store.domain.likes.dto.response.LikesDto;
 import com.example.Sparta_Store.domain.likes.repository.LikesRepository;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.popularItem.service.PopularItemService;
 import com.example.Sparta_Store.domain.salesSummary.dto.SalesSummaryResponseDto;
 import com.example.Sparta_Store.domain.salesSummary.entity.SalesSummary;

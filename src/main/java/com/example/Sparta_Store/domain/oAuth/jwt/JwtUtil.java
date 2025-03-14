@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.domain.oAuth.jwt;
 
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -37,7 +38,7 @@ public class JwtUtil {
             .getBody();
     }
 
-    public String generateToken(String email,UserRoleEnum role,Long id) {
+    public String generateToken(String email, UserRoleEnum role, Long id) {
         Date date = new Date();
 
         return BEARER_PREFIX +

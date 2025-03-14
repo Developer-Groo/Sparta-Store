@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.domain.oAuth.service;
 
 import com.example.Sparta_Store.domain.address.entity.Address;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.oAuth.model.GoogleUser;
 import com.example.Sparta_Store.domain.oAuth.model.ProviderUser;
 import com.example.Sparta_Store.domain.user.entity.Users;

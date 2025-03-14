@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.Sparta_Store.domain.IssuedCoupon.entity.IssuedCoupon;
 import com.example.Sparta_Store.domain.address.entity.Address;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
 import com.example.Sparta_Store.domain.orders.entity.Orders;
 import com.example.Sparta_Store.domain.user.entity.Users;

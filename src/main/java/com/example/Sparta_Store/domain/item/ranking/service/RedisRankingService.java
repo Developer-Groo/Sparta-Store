@@ -1,5 +1,6 @@
-package com.example.Sparta_Store.domain.item.ranking;
+package com.example.Sparta_Store.domain.item.ranking.service;
 
+import com.example.Sparta_Store.domain.item.ranking.repository.RedisRankingRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

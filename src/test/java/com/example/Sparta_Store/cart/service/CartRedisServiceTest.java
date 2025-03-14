@@ -10,7 +10,7 @@ import com.example.Sparta_Store.domain.cart.service.CartRedisService;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.item.repository.ItemRepository;
-import com.example.Sparta_Store.redis.RedisService;
+import com.example.Sparta_Store.domain.cart.service.RedisService;
 import com.example.Sparta_Store.domain.user.entity.Users;
 import com.example.Sparta_Store.domain.user.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.redis;
+package com.example.Sparta_Store.domain.cart.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -86,8 +86,6 @@ public class RedisService {
 
     public <T> void removeFromList(String key, T object) {
         try {
-            // LREM key count value : count가 0이면 전체 제거
-            // 여기서는 1개만 제거하도록 count 1 사용
             String json = objectMapper.writeValueAsString(object);
             redisTemplate.opsForList().remove(key, 1, json);
         } catch (Exception e) {

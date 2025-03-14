@@ -9,7 +9,7 @@ import com.example.Sparta_Store.domain.cartItem.entity.CartItem;
 import com.example.Sparta_Store.domain.orders.service.OrderService;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.domain.item.entity.Item;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
 import com.example.Sparta_Store.domain.orders.dto.request.CreateOrderRequestDto;

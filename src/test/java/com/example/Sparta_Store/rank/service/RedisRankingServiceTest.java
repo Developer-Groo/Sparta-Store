@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.rank.service;
 
-import com.example.Sparta_Store.domain.item.ranking.RedisRankingRepository;
-import com.example.Sparta_Store.domain.item.ranking.RedisRankingService;
+import com.example.Sparta_Store.domain.item.ranking.repository.RedisRankingRepository;
+import com.example.Sparta_Store.domain.item.ranking.service.RedisRankingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

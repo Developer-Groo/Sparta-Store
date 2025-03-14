@@ -9,7 +9,7 @@ import static org.mockito.BDDMockito.then;
 import com.example.Sparta_Store.domain.review.service.ReviewService;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.domain.item.entity.Item;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.domain.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.domain.orders.OrderStatus;

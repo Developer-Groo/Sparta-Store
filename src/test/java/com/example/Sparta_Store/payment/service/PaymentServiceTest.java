@@ -13,7 +13,7 @@ import static org.mockito.Mockito.times;
 
 import com.example.Sparta_Store.domain.payment.service.PaymentService;
 import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
 import com.example.Sparta_Store.domain.orders.entity.Orders;
 import com.example.Sparta_Store.domain.orders.exception.OrdersErrorCode;

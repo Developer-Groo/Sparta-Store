@@ -2,7 +2,7 @@ package com.example.Sparta_Store.domain.user.entity;
 
 import com.example.Sparta_Store.domain.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
-import com.example.Sparta_Store.domain.oAuth.jwt.UserRoleEnum;
+import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

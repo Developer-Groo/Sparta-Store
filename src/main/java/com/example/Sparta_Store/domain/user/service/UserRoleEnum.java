@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.domain.oAuth.jwt;
+package com.example.Sparta_Store.domain.user.service;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

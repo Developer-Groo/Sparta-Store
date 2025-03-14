@@ -12,7 +12,6 @@ import com.example.Sparta_Store.domain.cartItem.repository.CartItemRepository;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.item.repository.ItemRepository;
-import com.example.Sparta_Store.redis.RedisService;
 import com.example.Sparta_Store.domain.user.entity.Users;
 import com.example.Sparta_Store.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,9 +42,6 @@ public class CartRedisService {
         return "cart:" + userId;
     }
 
-    private String getCartItemKey(Long cartId) {
-        return "cartItem:" + cartId;
-    }
     private String getCartItemListKey(Long cartId) {
         return "cartItems:" + cartId;
     }
