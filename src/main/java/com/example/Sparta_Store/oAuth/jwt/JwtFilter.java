@@ -45,6 +45,12 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
+        // health check
+        if (requestURI.endsWith("health")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if(requestURI.contains("items") || requestURI.contains("popularItems") && request.getMethod().equals("GET")) {
             filterChain.doFilter(request,response);
             return;

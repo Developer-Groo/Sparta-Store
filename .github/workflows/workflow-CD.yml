@@ -1,4 +1,4 @@
-name: CD-Pipeline
+name: CD-Pipeline Blue/Green Deployment
 
 on:
   push:
@@ -11,9 +11,196 @@ on:
       - completed
 
 jobs:
-  depoly:
+  deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # CI가 성공했을 때만 실행
     runs-on: ubuntu-latest
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
     steps:
-      - name: Confirm Ci -> Cd Triggered
-        run: echo "CD workflow has been triggered."
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Store environment variables in AWS SSM
+        run: |
+          aws ssm put-parameter --name "GOOGLE_CLIENT_ID" --value "${{ secrets.GOOGLE_CLIENT_ID }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "GOOGLE_CLIENT_SECRET" --value "${{ secrets.GOOGLE_CLIENT_SECRET }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "GOOGLE_REDIRECT_URI" --value "${{ secrets.GOOGLE_REDIRECT_URI }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "MYSQL_DB_PASSWORD" --value "${{ secrets.MYSQL_DB_PASSWORD }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "MYSQL_URL" --value "${{ secrets.MYSQL_URL }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "REDIS_HOST" --value "${{ secrets.REDIS_HOST }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "NAVER_MAIL_USER_NAME" --value "${{ secrets.NAVER_MAIL_USER_NAME }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "NAVER_MAIL_EMAIL_PASSWORD" --value "${{ secrets.NAVER_MAIL_EMAIL_PASSWORD }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "TOSS_CLIENT_KEY" --value "${{ secrets.TOSS_CLIENT_KEY }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "TOSS_SECRET_KEY" --value "${{ secrets.TOSS_SECRET_KEY }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "JWT_SECRET_KEY" --value "${{ secrets.JWT_SECRET_KEY }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "DB_USERNAME" --value "${{ secrets.DB_USERNAME }}" --type "SecureString" --overwrite
+
+      - name: Get ALB Listener ARN
+        run: |
+          LISTENER_ARN=$(aws elbv2 describe-listeners \
+            --load-balancer-arn ${{ secrets.AWS_ALB_ARN }} \
+            --query 'Listeners[?Port==`80`].ListenerArn' --output text)
+          
+          echo "LISTENER_ARN=$LISTENER_ARN" >> $GITHUB_ENV
+
+      - name: Get Current Green Target Group ARN (Convert to Blue)
+        run: |
+          GREEN_TG_ARN=$(aws elbv2 describe-target-groups \
+            --names "green-target-group" \
+            --query 'TargetGroups[0].TargetGroupArn' --output text)
+          
+          BLUE_TG_ARN=$(aws elbv2 describe-target-groups \
+            --names "blue-target-group" \
+            --query 'TargetGroups[0].TargetGroupArn' --output text)
+          
+          echo "GREEN_TG_ARN=$GREEN_TG_ARN" >> $GITHUB_ENV
+          echo "BLUE_TG_ARN=$BLUE_TG_ARN" >> $GITHUB_ENV
+
+          echo "Current Green Target Group: $GREEN_TG_ARN"
+          echo "Current Blue Target Group: $BLUE_TG_ARN"
+
+      - name: Launch New Green Instance
+        run: |
+          GREEN_INSTANCE_ID=$(aws ec2 run-instances \
+            --image-id ${{ secrets.EC2_IMAGE_ID }} \
+            --instance-type t3.micro \
+            --key-name ${{ secrets.AWS_KEY_PAIR }} \
+            --security-group-ids ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --subnet-id ${{ secrets.AWS_SUBNET_ID }} \
+            --iam-instance-profile Name=${{ secrets.AWS_IAM_NAME }} \
+            --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=green-instance}]' \
+            --user-data file://scripts/deploy.sh \
+            --query 'Instances[0].InstanceId' \
+            --output text)
+          
+          echo "GREEN_INSTANCE_ID=$GREEN_INSTANCE_ID" >> $GITHUB_ENV
+          echo "New Green instance launched: $GREEN_INSTANCE_ID"
+
+      - name: Wait for EC2 Instance to be Running
+        run: |
+          echo "Waiting for EC2 instance to reach 'running' state..."
+          aws ec2 wait instance-running --instance-ids $GREEN_INSTANCE_ID
+          echo "EC2 instance is now running!"
+
+      - name: Register New Instance to Green Target Group
+        run: |
+          aws elbv2 register-targets \
+            --target-group-arn $GREEN_TG_ARN \
+            --targets Id=$GREEN_INSTANCE_ID
+
+          echo "New Green instance registered to Green Target Group"
+
+      - name: Wait before checking Green Instance Health Check
+        run: sleep 60
+
+      - name: Wait for Green Instance Health Check
+        run: |
+          for i in {1..10}; do
+            STATUS=$(aws elbv2 describe-target-health \
+              --target-group-arn $GREEN_TG_ARN \
+              --query 'TargetHealthDescriptions[0].TargetHealth.State' \
+              --output text \
+              --region ap-northeast-2)
+
+            if [ "$STATUS" == "healthy" ]; then
+              echo "Green instance is healthy!"
+              exit 0
+            fi
+            echo "Waiting for Green instance to become healthy... ($i/10)"
+            sleep 50
+          done
+
+      - name: Move Old Instance(s) to Blue Target Group
+        run: |
+          OLD_INSTANCE_IDS=$(aws elbv2 describe-target-health \
+            --target-group-arn $GREEN_TG_ARN \
+            --query 'TargetHealthDescriptions[*].Target.Id' \
+            --output text)
+
+          # 새로운 Green 인스턴스 ID 가져오기
+          NEW_INSTANCE_ID=$GREEN_INSTANCE_ID
+
+          # 기존 인스턴스에서 새로운 인스턴스를 제외하고 블루로 이동
+          FILTERED_INSTANCE_IDS=""
+          for INSTANCE_ID in $OLD_INSTANCE_IDS; do
+            if [[ "$INSTANCE_ID" != "$NEW_INSTANCE_ID" ]]; then
+              FILTERED_INSTANCE_IDS+="$INSTANCE_ID "
+            fi
+          done
+
+          if [[ -n "$FILTERED_INSTANCE_IDS" ]]; then
+            echo "Found instances in Green Target Group (excluding new instance): $FILTERED_INSTANCE_IDS"
+
+            for INSTANCE_ID in $FILTERED_INSTANCE_IDS; do
+              echo "Deregistering instance ($INSTANCE_ID) from Green Target Group..."
+              aws elbv2 deregister-targets \
+                --target-group-arn $GREEN_TG_ARN \
+                --targets Id=$INSTANCE_ID
+
+              echo "Waiting for instance to be fully deregistered..."
+              sleep 30  # Deregistering takes time
+
+              echo "Registering instance ($INSTANCE_ID) to Blue Target Group..."
+              aws elbv2 register-targets \
+                --target-group-arn $BLUE_TG_ARN \
+                --targets Id=$INSTANCE_ID
+
+              echo "Updating instance tag to 'blue-instance'..."
+              aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=blue-instance
+            done
+          else
+            echo "No old instances found in Green Target Group. Skipping movement to Blue."
+          fi
+
+      - name: Wait before checking Blue Target Group instances
+        run: sleep 30
+
+      - name: Deregister and Terminate Old Blue Instance(s)
+        run: |
+          OLD_BLUE_INSTANCE_IDS=$(aws elbv2 describe-target-health \
+            --target-group-arn $BLUE_TG_ARN \
+            --query 'TargetHealthDescriptions[*].Target.Id' \
+            --output text)
+
+          if [[ -n "$OLD_BLUE_INSTANCE_IDS" ]]; then
+            echo "Deregistering and terminating instances from Blue Target Group: $OLD_BLUE_INSTANCE_IDS"
+            for INSTANCE_ID in $OLD_BLUE_INSTANCE_IDS; do
+              aws elbv2 deregister-targets \
+                --target-group-arn $BLUE_TG_ARN \
+                --targets Id=$INSTANCE_ID
+              echo "Deregistered instance ($INSTANCE_ID) from Blue Target Group"
+
+              echo "Waiting before termination..."
+              sleep 20
+
+              aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+              echo "Terminated instance ($INSTANCE_ID) in Blue Target Group"
+            done
+          else
+            echo "No instances found in Blue Target Group, skipping deregistration and termination."
+          fi
+
+      - name: Swap Blue and Green Target Groups
+        run: |
+          if [[ -n "$GREEN_TG_ARN" && -n "$BLUE_TG_ARN" ]]; then
+            TEMP=$GREEN_TG_ARN
+            GREEN_TG_ARN=$BLUE_TG_ARN
+            BLUE_TG_ARN=$TEMP
+
+            echo "New Green Target Group: $GREEN_TG_ARN"
+            echo "New Blue Target Group: $BLUE_TG_ARN"
+
+            echo "GREEN_TG_ARN=$GREEN_TG_ARN" >> $GITHUB_ENV
+            echo "BLUE_TG_ARN=$BLUE_TG_ARN" >> $GITHUB_ENV
+          else
+            echo "ERROR: Target Group ARNs are not set correctly. Skipping swap."
+            exit 1
+          fi
