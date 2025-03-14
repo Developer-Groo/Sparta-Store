@@ -1,13 +1,5 @@
 package com.example.Sparta_Store.popularItem.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.times;
-
 import com.example.Sparta_Store.address.entity.Address;
 import com.example.Sparta_Store.cart.entity.Cart;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
@@ -17,15 +9,9 @@ import com.example.Sparta_Store.likes.dto.response.LikesDto;
 import com.example.Sparta_Store.likes.repository.LikesRepository;
 import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
 import com.example.Sparta_Store.salesSummary.dto.SalesSummaryResponseDto;
-
 import com.example.Sparta_Store.salesSummary.entity.SalesSummary;
 import com.example.Sparta_Store.salesSummary.repository.SalesSummaryRepository;
 import com.example.Sparta_Store.user.entity.Users;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +19,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class PopularItemServiceTest {
@@ -52,7 +49,7 @@ class PopularItemServiceTest {
     private Users user;
     private Cart cart;
     private CartItem cartItem;
-    private List<CartItem> cartItemList;
+    private Map<Long, CartItem> cartItemList;
     private Address address;
     private Item item1;
     private Item item2;
@@ -68,10 +65,10 @@ class PopularItemServiceTest {
         user = new Users(1L, UUID.randomUUID().toString(), "테스트유저", "email@test.com", "Pw1234!!!", address, false, null, null, UserRoleEnum.USER);
         item1 = new Item(1L, "상품1", "img1@test.com", 10000, "상품1입니다.", 100, null, null);
         item2 = new Item(2L, "상품2", "img2@test.com", 20000, "상품2입니다.", 200, null, null);
-        cartItemList = new ArrayList<>();
+        cartItemList = new HashMap<>();
         cart = new Cart(1L, user, cartItemList);
         cartItem = new CartItem(1L, cart, item1, 2);
-        cartItemList.add(cartItem);
+        cartItemList.put(item1.getId(), cartItem);
 
         // 최근 7일간 판매량 기록
         salesSummary1 = new SalesSummary(1L, item1, 50); // 상품1: 50개 판매

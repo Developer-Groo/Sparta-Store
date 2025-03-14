@@ -1,17 +1,5 @@
 package com.example.Sparta_Store.orders.service;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.example.Sparta_Store.IssuedCoupon.entity.IssuedCoupon;
 import com.example.Sparta_Store.IssuedCoupon.repository.IssuedCouponRepository;
 import com.example.Sparta_Store.address.entity.Address;
@@ -32,11 +20,6 @@ import com.example.Sparta_Store.user.entity.Users;
 import com.example.Sparta_Store.user.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,6 +31,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
@@ -83,7 +77,7 @@ public class OrderServiceTest {
     private Users user;
     private Cart cart;
     private CartItem cartItem;
-    private List<CartItem> cartItemList;
+    private Map<Long, CartItem> cartItemList;
     private Address address;
     private Item item;
     private long totalPrice;
@@ -95,10 +89,10 @@ public class OrderServiceTest {
         address = new Address("경기도", "테스트길", "12345");
         user = new Users(1L, UUID.randomUUID().toString(), "테스트유저", "email@test.com", "Pw1234!!!", address, false, null, null, UserRoleEnum.USER);
         item = new Item(1L, "상품1", "img1@test.com", 10000, "상품1입니다.", 100, null, null);
-        cartItemList = new ArrayList<>();
+        cartItemList = new HashMap<>();
         cart = new Cart(1L, user, cartItemList);
         cartItem = new CartItem(1L, cart, item, 2);
-        cartItemList.add(cartItem);
+        cartItemList.put(item.getId(), cartItem);
         totalPrice = 20000L;
     }
 
@@ -110,8 +104,8 @@ public class OrderServiceTest {
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
-            .willReturn(cartItemList);
-        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(new ArrayList<>(cartItemList.values()));
+        given(cartRedisService.getTotalPrice(new ArrayList<>(cartItemList.values())))
             .willReturn(totalPrice);
         given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
         given(issuedCouponRepository.couponToUse(1L, 1L))
@@ -142,8 +136,8 @@ public class OrderServiceTest {
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
-            .willReturn(cartItemList);
-        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(new ArrayList<>(cartItemList.values()));
+        given(cartRedisService.getTotalPrice(new ArrayList<>(cartItemList.values())))
             .willReturn(totalPrice);
         given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
 
@@ -172,8 +166,8 @@ public class OrderServiceTest {
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
-            .willReturn(cartItemList);
-        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(new ArrayList<>(cartItemList.values()));
+        given(cartRedisService.getTotalPrice(new ArrayList<>(cartItemList.values())))
             .willReturn(totalPrice);
         given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
         given(issuedCouponRepository.couponToUse(1L, 1L))
@@ -202,8 +196,8 @@ public class OrderServiceTest {
         given(userRepository.findById(1L))
             .willReturn(Optional.of(user));
         given(cartRedisService.getCartItemList(1L))
-            .willReturn(cartItemList);
-        given(cartRedisService.getTotalPrice(cartItemList))
+            .willReturn(new ArrayList<>(cartItemList.values()));
+        given(cartRedisService.getTotalPrice(new ArrayList<>(cartItemList.values())))
             .willReturn(totalPrice=1000L);
         given(objectMapper.writeValueAsString(any(Orders.class))).willReturn("orderJson");
         given(issuedCouponRepository.couponToUse(1L, 1L))
@@ -268,7 +262,7 @@ public class OrderServiceTest {
         }).when(objectMapper).writeValueAsString(any(OrderItem.class));
 
         // when
-        orderService.createRedisOrderItem(order, cartItemList);
+        orderService.createRedisOrderItem(order, new ArrayList<>(cartItemList.values()));
 
         // then
         verify(listOperations, times(cartItemList.size())).rightPush(anyString(), anyString());

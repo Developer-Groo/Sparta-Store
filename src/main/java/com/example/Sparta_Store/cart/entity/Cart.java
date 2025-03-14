@@ -3,15 +3,17 @@ package com.example.Sparta_Store.cart.entity;
 import com.example.Sparta_Store.cartItem.entity.CartItem;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.user.entity.Users;
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @Entity
@@ -30,13 +32,23 @@ public class Cart extends TimestampedEntity {
 
     @JsonManagedReference
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> cartItems = new ArrayList<>();
+    private Map<Long, CartItem> cartItems = new HashMap<>();
 
     public Cart(Users user) {
         this.user = user;
     }
 
-    public void addCartItem(CartItem cartItem) {
-        cartItems.add(cartItem);
+    public void addCartItem(Long userId, CartItem cartItem) {
+        cartItems.put(userId, cartItem);
+    }
+
+    @JsonIgnore
+    public Collection<CartItem> getCartItems () {
+        return this.cartItems.values();
+    }
+
+
+    public void removeCartItem(Long itemId) {
+        cartItems.remove(itemId);
     }
 }
