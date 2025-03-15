@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.email.service;
+package com.example.Sparta_Store.domain.email.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

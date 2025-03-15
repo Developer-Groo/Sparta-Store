@@ -39,9 +39,9 @@ public class ItemController {
     }
 
     @GetMapping("/select/{id}")
-    public ResponseEntity<SelectItemResponseDto> selectItem(@PathVariable Long id){
-        SelectItemResponseDto selectItemResponseDto = itemService.SelectItem(id);
+    public ResponseEntity<SelectItemResponseDto> selectItem(@PathVariable Long id) {
         redisRankingService.addToRedis(id);
-        return new ResponseEntity<>(selectItemResponseDto,HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(itemService.selectItem(id));
     }
 }

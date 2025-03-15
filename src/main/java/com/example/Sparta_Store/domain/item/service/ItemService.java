@@ -9,6 +9,7 @@ import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
 
+    @Cacheable(value = "itemSearch", key = "#inStock", unless = "#result.content.isEmpty()")
     public PageResult<ItemResponseDto> getItems(boolean inStock, PageQuery pageQuery) {
         Page<ItemResponseDto> itemList = itemRepository.findAllByStockCondition(inStock, pageQuery.toPageable())
                 .map(ItemResponseDto::toDto);
@@ -32,11 +34,13 @@ public class ItemService {
         return PageResult.from(itemList);
     }
 
+    @Cacheable(value = "itemSearch", key = "#inStock + '_' + #keyword", unless = "#result.content.isEmpty()")
     public PageResult<ItemResponseDto> getSearchItems(boolean inStock, String keyword, PageQuery pageQuery) {
         Page<ItemResponseDto> itemList = itemRepository.findByNameAndStockCondition(inStock, keyword, pageQuery.toPageable())
                 .map(ItemResponseDto::toDto);
-        log.info("캐시 키 생성 - inStock: {}, keyword: {}, page: {}, size: {}",
-                inStock, keyword, (pageQuery != null ? pageQuery.getPage() : 0), (pageQuery != null ? pageQuery.getSize() : 20));
+
+        log.info("캐시 키 생성 - inStock: {}, keyword: {}, page: {}, size: {}", inStock, keyword, pageQuery.getPage(), pageQuery.getSize());
+
         return PageResult.from(itemList);
     }
 
@@ -58,7 +62,7 @@ public class ItemService {
         });
     }
 
-    public SelectItemResponseDto SelectItem(Long id) {
+    public SelectItemResponseDto selectItem(Long id) {
         Item item = itemRepository.findById(id)
                 .orElseThrow(()->new RuntimeException("해당아이템이 없습니다."));
 

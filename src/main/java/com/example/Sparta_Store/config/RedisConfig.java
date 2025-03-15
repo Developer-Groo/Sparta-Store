@@ -31,7 +31,6 @@ public class RedisConfig {
         return new LettuceConnectionFactory(host, port);
     }
 
-    // RedisTemplate 사용을 위한 추가
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
 
@@ -53,7 +52,6 @@ public class RedisConfig {
         return redisTemplate.opsForZSet();
     }
 
-    // 캐시 매니저 추가
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
         return RedisCacheManager.builder(redisConnectionFactory)

@@ -1,7 +1,7 @@
-package com.example.Sparta_Store.email.listener;
+package com.example.Sparta_Store.domain.email.listener;
 
-import com.example.Sparta_Store.email.event.OrderStatusUpdatedEvent;
-import com.example.Sparta_Store.email.service.EmailService;
+import com.example.Sparta_Store.domain.email.event.OrderStatusUpdatedEvent;
+import com.example.Sparta_Store.domain.email.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

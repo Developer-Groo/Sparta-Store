@@ -6,7 +6,7 @@ import com.example.Sparta_Store.admin.item.dto.responseDto.ItemUpdateResponseDto
 import com.example.Sparta_Store.admin.item.respository.AdminItemRepository;
 import com.example.Sparta_Store.admin.review.service.AdminReviewService;
 import com.example.Sparta_Store.domain.category.entity.Category;
-import com.example.Sparta_Store.email.event.ItemRestockedEvent;
+import com.example.Sparta_Store.domain.email.event.ItemRestockedEvent;
 import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.likes.service.LikesService;
 import lombok.RequiredArgsConstructor;

@@ -43,7 +43,7 @@ public class Item extends TimestampedEntity {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @OneToOne(mappedBy = "item") // mappedBy 를 설정할 경우 자동 Lazy 적용
+    @OneToOne(mappedBy = "item")
     private SalesSummary salesSummary;
 
     private Item(

@@ -2,7 +2,7 @@ package com.example.Sparta_Store.domain.payment.service;
 
 import com.example.Sparta_Store.domain.IssuedCoupon.entity.IssuedCoupon;
 import com.example.Sparta_Store.domain.IssuedCoupon.repository.IssuedCouponRepository;
-import com.example.Sparta_Store.email.event.OrderStatusUpdatedEvent;
+import com.example.Sparta_Store.domain.email.event.OrderStatusUpdatedEvent;
 import com.example.Sparta_Store.exception.CustomException;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
 import com.example.Sparta_Store.domain.orders.entity.Orders;
