@@ -9,21 +9,23 @@ on:
 
 jobs:
   deploy:
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_repository == github.repository &&
-      github.event.workflow_run.head_branch == 'release_v1.0.0'
     runs-on: ubuntu-latest
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
       - name: Debug workflow_run event
         run: |
           echo "Workflow Run Head Branch: ${{ github.event.workflow_run.head_branch }}"
 
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Check if branch is release_v1.0.0
+        if: github.event.workflow_run.head_branch != 'release_v1.0.0'
+        run: |
+          echo "This workflow only runs for release_v1.0.0 branch. Exiting..."
+          exit 1
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
