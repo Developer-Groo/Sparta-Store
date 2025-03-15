@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="https://static.toss.im/icons/png/4x/icon-toss-logo.png" />
+  <link rel="stylesheet" type="text/css" href="/style.css" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스파르타스토어 토스페이먼츠 결제</title>
+  <!-- SDK 추가 -->
+  <script src="https://js.tosspayments.com/v2/standard"></script>
+</head>
+
+<body>
+<!-- 주문서 영역 -->
+<div class="wrapper">
+  <div class="box_section" style="padding: 40px 30px 50px 30px; margin-top: 30px; margin-bottom: 50px">
+    <h1>일반 결제</h1>
+    <!-- 결제 UI -->
+    <div id="payment-method" style="display: flex">
+      <button id="CARD" class="button2" onclick="selectPaymentMethod('CARD')">카드</button>
+      <button id="TRANSFER" class="button2" onclick="selectPaymentMethod('TRANSFER')">계좌이체</button>
+      <button id="VIRTUAL_ACCOUNT" class="button2" onclick="selectPaymentMethod('VIRTUAL_ACCOUNT')">가상계좌</button>
+      <button id="MOBILE_PHONE" class="button2" onclick="selectPaymentMethod('MOBILE_PHONE')">휴대폰</button>
+      <button id="CULTURE_GIFT_CERTIFICATE" class="button2" onclick="selectPaymentMethod('CULTURE_GIFT_CERTIFICATE')">문화상품권</button>
+      <button id="FOREIGN_EASY_PAY" class="button2" onclick="selectPaymentMethod('FOREIGN_EASY_PAY')">해외간편결제</button>
+    </div>
+    <!-- 결제하기 버튼 -->
+    <button class="button" style="margin-top: 30px" onclick="requestPayment()">결제하기</button>
+  </div>
+</div>
+<script th:inline="javascript">
+
+  const amount = {
+    currency: "KRW",
+    value: [[${amount}]],
+  };
+
+  let selectedPaymentMethod = null;
+
+  function selectPaymentMethod(method) {
+    if (selectedPaymentMethod != null) {
+      document.getElementById(selectedPaymentMethod).style.backgroundColor = "#ffffff";
+    }
+
+    selectedPaymentMethod = method;
+
+    document.getElementById(selectedPaymentMethod).style.backgroundColor = "rgb(229 239 255)";
+  }
+
+  // ------ 결제 성공 시 post 요청할 api ------
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // ------  SDK 초기화 ------
+  // TODO: clientKey는 개발자센터의 API 개별 연동 키 > 결제창 연동에 사용하려할 MID > 클라이언트 키로 바꾸세요.
+  // TODO: server.js 의 secretKey 또한 결제위젯 연동 키가 아닌 API 개별 연동 키의 시크릿 키로 변경해야 합니다.
+  // TODO: 구매자의 고유 아이디를 불러와서 customerKey로 설정하세요. 이메일・전화번호와 같이 유추가 가능한 값은 안전하지 않습니다.
+  // @docs https://docs.tosspayments.com/sdk/v2/js#토스페이먼츠-초기화
+  const clientKey = [[${clientKey}]];
+  const customerKey = [[${customerKey}]];
+  const tossPayments = TossPayments(clientKey);
+  const orderId = [[${orderId}]];
+  // 회원 결제
+  // @docs https://docs.tosspayments.com/sdk/v2/js#tosspaymentspayment
+  const payment = tossPayments.payment({ // 결제창 초기화
+    customerKey,
+  });
+
+  // ------ '결제하기' 버튼 누르면 결제창 띄우기 ------
+  // @docs https://docs.tosspayments.com/sdk/v2/js#paymentrequestpayment
+  async function requestPayment() {
+    // 결제를 요청하기 전에 orderId, amount를 서버에 저장하세요.
+    // 결제 과정에서 악의적으로 결제 금액이 바뀌는 것을 확인하는 용도입니다.
+
+    switch (selectedPaymentMethod) {
+      case "CARD":
+        await payment.requestPayment({
+          method: "CARD", // 카드 및 간편결제
+          amount,
+          orderId,
+          orderName: [[${orderName}]],
+          successUrl: window.location.origin + "/payment/success.html", // 결제 요청이 성공하면 리다이렉트되는 URL (-> 결제 승인 요청)
+          failUrl: window.location.origin + "/fail.html", // 결제 요청이 실패하면 리다이렉트되는 URL
+          customerEmail: [[${customerEmail}]],
+          customerName: [[${customerName}]],
+          card: {
+            useEscrow: false,
+            flowMode: "DEFAULT", // 카드/간편결제 통합결제창, DIRECT는 카드 또는 간편결제의 자체창
+            useCardPoint: false,
+            useAppCardOnly: false,
+          },
+        });
+      case "TRANSFER":
+        await payment.requestPayment({
+          method: "TRANSFER", // 계좌이체 결제
+          amount,
+          orderId,
+          orderName: [[${orderName}]],
+          successUrl: window.location.origin + "/payment/success.html", // 결제 요청이 성공하면 리다이렉트되는 URL
+          failUrl: window.location.origin + "/fail.html", // 결제 요청이 실패하면 리다이렉트되는 URL
+          customerEmail: [[${customerEmail}]],
+          customerName: [[${customerName}]],
+          transfer: {
+            cashReceipt: {
+              type: "소득공제",
+            },
+            useEscrow: false,
+          },
+        });
+      case "VIRTUAL_ACCOUNT":
+        alert("가상계좌 결제는 지원하지 않습니다.");
+        break;
+      case "MOBILE_PHONE":
+        await payment.requestPayment({
+          method: "MOBILE_PHONE", // 휴대폰 결제
+          amount,
+          orderId,
+          orderName: [[${orderName}]],
+          successUrl: window.location.origin + "/payment/success.html", // 결제 요청이 성공하면 리다이렉트되는 URL
+          failUrl: window.location.origin + "/fail.html", // 결제 요청이 실패하면 리다이렉트되는 URL
+          customerEmail: [[${customerEmail}]],
+          customerName: [[${customerName}]],
+        });
+      case "CULTURE_GIFT_CERTIFICATE":
+        alert("문화상품권 결제는 지원하지 않습니다.");
+        break;
+      case "FOREIGN_EASY_PAY":
+        alert("해외결제는 지원하지 않습니다.");
+        break;
+    }
+
+  }
+
+</script>
+</body>
+</html>

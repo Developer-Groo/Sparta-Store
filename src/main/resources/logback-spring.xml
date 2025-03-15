@@ -1,0 +1,33 @@
+<configuration>
+  <!-- 기본 로그 설정 (변경하지 않음) -->
+  <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+  <!-- 로그를 파일에 저장하는 설정 -->
+  <appender name="COUPON_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>logs/coupon.log</file>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
+    </encoder>
+  </appender>
+  <appender name="ISSUED_COUPON_LOG_FILE" class="ch.qos.logback.core.FileAppender">
+    <file>logs/issuedCoupon.log</file>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- CouponService의 INFO 레벨 이상의 로그 기록 -->
+  <logger name="CouponService" level="info">
+    <appender-ref ref="COUPON_LOG_FILE"/>
+  </logger>
+
+  <!-- RabbitMqService의 ERROR 레벨 이상의 로그 기록 -->
+  <logger name="RabbitMqService" level="error">
+    <appender-ref ref="ISSUED_COUPON_LOG_FILE"/>
+  </logger>
+
+  <!-- 최상위 로거 설정 (콘솔에 INFO 이상의 로그만 출력) -->
+  <root level="info">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>간단한 쇼핑몰</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<header class="bg-primary text-white text-center py-3">
+    <h1>나의 쇼핑몰</h1>
+    <nav>
+        <ul class="nav justify-content-center">
+            <li class="nav-item"><a class="nav-link text-white" href="#home">홈</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/users/signUp">회원가입</a></li>
+            <li class="nav-item"><a class="nav-link text-white" href="/users/login">로그인</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container mt-4">
+    <section id="home" class="text-center">
+        <h2>환영합니다!</h2>
+        <p>최고의 상품을 만나보세요.</p>
+    </section>
+
+    <section id="products" class="mt-4">
+        <h2 class="text-center">상품 목록</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">상품 1</h5>
+                        <p class="card-text">상품 설명 1</p>
+                        <p class="card-text">가격: 10,000원</p>
+                        <button class="btn btn-primary">구매하기</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">상품 2</h5>
+                        <p class="card-text">상품 설명 2</p>
+                        <p class="card-text">가격: 20,000원</p>
+                        <button class="btn btn-primary">구매하기</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">상품 3</h5>
+                        <p class="card-text">상품 설명 3</p>
+                        <p class="card-text">가격: 30,000원</p>
+                        <button class="btn btn-primary">구매하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="mt-4 text-center">
+        <h2>연락처</h2>
+        <p>문의 사항이 있으시면 이메일로 연락주세요: example@example.com</p>
+    </section>
+</main>
+
+<footer class="bg-light text-center py-3">
+    <p>&copy; 2025 나의 쇼핑몰. 모든 권리 보유.</p>
+</footer>
+
+<!-- Bootstrap JS and dependencies (optional) -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
