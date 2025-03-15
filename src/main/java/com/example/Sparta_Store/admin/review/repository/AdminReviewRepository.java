@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.admin.review.repository;
 
-import com.example.Sparta_Store.review.entity.Review;
+import com.example.Sparta_Store.domain.review.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

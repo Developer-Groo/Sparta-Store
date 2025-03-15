@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - release_v1.0.0
-      - develop
   pull_request:
     branches:
       - release_v1.0.0
-      - develop
 
 jobs:
   build:
@@ -27,6 +25,8 @@ jobs:
       JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      RABBITMQ_ID: ${{ secrets.RABBITMQ_ID }}
+      RABBITMQ_PW: ${{ secrets.RABBITMQ_PW }}
 
     steps:
       - name: Checkout Repository
@@ -73,6 +73,8 @@ jobs:
             -e TOSS_SECRET_KEY="${TOSS_SECRET_KEY}" \
             -e JWT_SECRET_KEY="${JWT_SECRET_KEY}" \
             -e DB_USERNAME="${DB_USERNAME}" \
+            -e RABBITMQ_ID=${RABBITMQ_ID} \
+            -e RABBITMQ_PW=${RABBITMQ_PW} \
           "${DOCKER_USERNAME}/sparta_store-image:latest"
           sleep 5
           docker ps

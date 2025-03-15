@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.admin.review.service;
 
 import com.example.Sparta_Store.admin.review.repository.AdminReviewRepository;
-import com.example.Sparta_Store.review.entity.Review;
+import com.example.Sparta_Store.domain.review.entity.Review;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,8 +1,9 @@
 package com.example.Sparta_Store.salesSummary.service;
 
-import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.salesSummary.entity.SalesSummary;
-import com.example.Sparta_Store.salesSummary.repository.SalesSummaryRepository;
+import com.example.Sparta_Store.domain.item.entity.Item;
+import com.example.Sparta_Store.domain.salesSummary.entity.SalesSummary;
+import com.example.Sparta_Store.domain.salesSummary.repository.SalesSummaryRepository;
+import com.example.Sparta_Store.domain.salesSummary.service.SalesSummaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

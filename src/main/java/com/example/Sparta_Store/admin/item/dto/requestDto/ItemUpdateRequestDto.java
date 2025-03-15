@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.admin.item.dto.requestDto;
 
-import com.example.Sparta_Store.category.entity.Category;
+import com.example.Sparta_Store.domain.category.entity.Category;
 
 public record ItemUpdateRequestDto(
         String name,

@@ -53,6 +53,12 @@ spring:
           starttls:
             enable: true
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBITMQ_ID}
+    password: ${RABBITMQ_PW}
+
 jwt:
   secret:
     key: ${JWT_SECRET_KEY}
@@ -61,3 +67,8 @@ toss-payments:
   api:
     secret-key: ${TOSS_SECRET_KEY}
     client-key: ${TOSS_CLIENT_KEY}
+
+rabbitmq:
+  queue.name: save.issuedCoupon
+  exchange.name: coupon.exchange
+  routing.key: coupon.issued

@@ -1,10 +1,11 @@
 package com.example.Sparta_Store.item.service;
 
-import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.item.exception.ItemErrorCode;
-import com.example.Sparta_Store.item.repository.ItemRepository;
-import com.example.Sparta_Store.orderItem.entity.OrderItem;
+import com.example.Sparta_Store.domain.item.service.ItemService;
+import com.example.Sparta_Store.exception.global.CustomException;
+import com.example.Sparta_Store.domain.item.entity.Item;
+import com.example.Sparta_Store.exception.item.ItemErrorCode;
+import com.example.Sparta_Store.domain.item.repository.ItemRepository;
+import com.example.Sparta_Store.domain.orderItem.entity.OrderItem;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

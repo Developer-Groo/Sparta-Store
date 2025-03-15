@@ -1,15 +1,20 @@
 package com.example.Sparta_Store.admin.orders.service;
 
-import static com.example.Sparta_Store.orders.OrderStatus.statusUpdatable;
+import static com.example.Sparta_Store.domain.orders.OrderStatus.statusUpdatable;
 
-import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.orders.dto.request.UpdateOrderStatusDto;
-import com.example.Sparta_Store.orders.entity.Orders;
-import com.example.Sparta_Store.orders.exception.OrdersErrorCode;
-import com.example.Sparta_Store.orders.repository.OrdersRepository;
+import com.example.Sparta_Store.exception.global.CustomException;
+import com.example.Sparta_Store.domain.orders.OrderStatus;
+import com.example.Sparta_Store.domain.orders.dto.request.UpdateOrderStatusDto;
+import com.example.Sparta_Store.domain.orders.entity.Orders;
+import com.example.Sparta_Store.domain.orders.event.OrderCancelledEvent;
+import com.example.Sparta_Store.exception.orders.OrdersErrorCode;
+import com.example.Sparta_Store.domain.orders.repository.OrdersRepository;
+import com.example.Sparta_Store.domain.payment.entity.Payment;
+import com.example.Sparta_Store.domain.payment.repository.PaymentRepository;
+import com.example.Sparta_Store.domain.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,12 +25,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminOrderService {
 
     private final OrdersRepository ordersRepository;
+    private final PaymentService paymentService;
+    private final PaymentRepository paymentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 주문 상태 변경
      */
     @Transactional
-    public void updateOrderStatus(String orderId, UpdateOrderStatusDto requestDto) {
+    public void updateOrderStatus(String orderId, UpdateOrderStatusDto requestDto)
+        throws Exception {
         Orders order = ordersRepository.findById(orderId).orElseThrow(
             () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
         );
@@ -34,9 +43,22 @@ public class AdminOrderService {
         OrderStatus requestStatus = OrderStatus.of(requestDto.orderStatus());
 
         isStatusUpdatable(originStatus, requestStatus); // 주문상태 변경 가능 여부
-
         order.updateOrderStatus(requestStatus);
-        log.info("주문상태 변경 완료 >> {}", requestDto.orderStatus());
+
+        // 주문취소로 변경 시 결제 승인 취소
+        Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow(
+            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_PAYMENT)
+        );
+
+        if (requestStatus.equals(OrderStatus.CANCELLED)) {
+            paymentService.paymentCancelled(
+                orderId, payment.getPaymentKey(), "", order.getTotalPrice()
+            );
+            // 상품 재고 복구 비동기 이벤트 발행
+            eventPublisher.publishEvent(OrderCancelledEvent.toEvent(order));
+        }
+
+        log.info("주문상태 변경 완료 >> {}: {}", orderId, requestDto.orderStatus());
     }
 
     // 주문상태 변경 가능 여부
@@ -51,16 +73,4 @@ public class AdminOrderService {
         }
     }
 
-    /**
-     * 결제 취소 상태 변경
-     */
-    @Transactional
-    public void orderCancelled(String orderId) {
-        Orders order = ordersRepository.findById(orderId).orElseThrow(
-            () -> new CustomException(OrdersErrorCode.NOT_EXISTS_ORDER)
-        );
-
-        order.updateOrderStatus(OrderStatus.PAYMENT_CANCELLED);
-        log.info("주문번호 {} 결제취소 완료 >> {}", orderId, order.getOrderStatus());
-    }
 }

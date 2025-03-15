@@ -1,17 +1,25 @@
 package com.example.Sparta_Store.review.service;
 
-import com.example.Sparta_Store.oAuth.jwt.UserRoleEnum;
-import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.orderItem.entity.OrderItem;
-import com.example.Sparta_Store.orderItem.repository.OrderItemRepository;
-import com.example.Sparta_Store.orders.OrderStatus;
-import com.example.Sparta_Store.orders.entity.Orders;
-import com.example.Sparta_Store.review.dto.response.ReviewResponseDto;
-import com.example.Sparta_Store.review.entity.Review;
-import com.example.Sparta_Store.review.exception.ReviewErrorCode;
-import com.example.Sparta_Store.review.repository.ReviewRepository;
-import com.example.Sparta_Store.user.entity.Users;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+
+import com.example.Sparta_Store.domain.review.service.ReviewService;
+import com.example.Sparta_Store.exception.global.CustomException;
+import com.example.Sparta_Store.domain.item.entity.Item;
+import com.example.Sparta_Store.domain.users.service.UserRoleEnum;
+import com.example.Sparta_Store.domain.orderItem.entity.OrderItem;
+import com.example.Sparta_Store.domain.orderItem.repository.OrderItemRepository;
+import com.example.Sparta_Store.domain.orders.OrderStatus;
+import com.example.Sparta_Store.domain.orders.entity.Orders;
+import com.example.Sparta_Store.domain.review.dto.response.ReviewResponseDto;
+import com.example.Sparta_Store.domain.review.entity.Review;
+import com.example.Sparta_Store.exception.review.ReviewErrorCode;
+import com.example.Sparta_Store.domain.review.repository.ReviewRepository;
+import com.example.Sparta_Store.domain.users.entity.Users;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,12 +27,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
@@ -47,7 +49,7 @@ class ReviewServiceTest {
         user = new Users(1L,"","", "test@example", "key", null, false, "providerId", "provider", UserRoleEnum.USER);
         item = new Item(1L, "testName", "www.example.com", 10000, "test", 100, null, null);
 
-        Orders order = new Orders("1", user, OrderStatus.CONFIRMED, 100000L, null);
+        Orders order = new Orders("1", user, OrderStatus.CONFIRMED, 100000L, null, null);
         orderItem = new OrderItem(1L, order, item, 10000, 10);
     }
 
@@ -94,7 +96,7 @@ class ReviewServiceTest {
     @DisplayName("리뷰 생성 실패 - 구매 확정되지 않은 상품")
     void createReview_Fail_NotConfirmed() {
         // given
-        Orders notConfirmedOrder = new Orders("2L", user, OrderStatus.SHIPPING, 100000L, null);
+        Orders notConfirmedOrder = new Orders("2L", user, OrderStatus.SHIPPING, 100000L, null, null);
         OrderItem notConfirmedOrderItem = new OrderItem(2L, notConfirmedOrder, item, 10000, 10);
 
         given(orderItemRepository.findOrderItemWithUserAndItem(2L, 2L))

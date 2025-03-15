@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.admin.item.dto.responseDto;
 
-import com.example.Sparta_Store.item.entity.Item;
+import com.example.Sparta_Store.domain.item.entity.Item;
 
 public record ItemUpdateResponseDto(
         String name,

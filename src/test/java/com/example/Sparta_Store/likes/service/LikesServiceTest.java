@@ -1,14 +1,15 @@
 package com.example.Sparta_Store.likes.service;
 
-import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.item.repository.ItemRepository;
-import com.example.Sparta_Store.likes.dto.response.LikeResponseDto;
-import com.example.Sparta_Store.likes.entity.Likes;
-import com.example.Sparta_Store.likes.exception.LikesErrorCode;
-import com.example.Sparta_Store.likes.repository.LikesRepository;
-import com.example.Sparta_Store.user.entity.Users;
-import com.example.Sparta_Store.user.repository.UserRepository;
+import com.example.Sparta_Store.domain.likes.service.LikesService;
+import com.example.Sparta_Store.exception.global.CustomException;
+import com.example.Sparta_Store.domain.item.entity.Item;
+import com.example.Sparta_Store.domain.item.repository.ItemRepository;
+import com.example.Sparta_Store.domain.likes.dto.response.LikeResponseDto;
+import com.example.Sparta_Store.domain.likes.entity.Likes;
+import com.example.Sparta_Store.exception.likes.LikesErrorCode;
+import com.example.Sparta_Store.domain.likes.repository.LikesRepository;
+import com.example.Sparta_Store.domain.users.entity.Users;
+import com.example.Sparta_Store.domain.users.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class LikesServiceTest {
     void setUp() {
         user = new Users("test@test.com", "password", "테스트1", null, null);
         item = new Item(1L, "상품2", "img.jpa", 1000, null, null, null, null);
-        likes = new Likes(1L, user, item);
+        likes = new Likes(1L, user, item,1);
     }
 
     @Test
@@ -58,7 +59,7 @@ class LikesServiceTest {
         // given
         given(userRepository.findById(1L))
                 .willReturn(Optional.of(user));
-        given(itemRepository.findById(1L))
+        given(itemRepository.findByIdWithLock(1L))
                 .willReturn(Optional.of(item));
         given(likesRepository.findByUserAndItem(user,item))
                 .willReturn(Optional.empty());
@@ -73,7 +74,7 @@ class LikesServiceTest {
         // given
         given(userRepository.findById(1L))
                 .willReturn(Optional.of(user));
-        given(itemRepository.findById(1L))
+        given(itemRepository.findByIdWithLock(1L))
                 .willReturn(Optional.of(item));
         given(likesRepository.findByUserAndItem(user,item))
                 .willReturn(Optional.of(likes));

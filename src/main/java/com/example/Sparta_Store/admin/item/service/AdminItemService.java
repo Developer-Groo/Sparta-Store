@@ -5,10 +5,10 @@ import com.example.Sparta_Store.admin.item.dto.responseDto.ItemRegisterResponseD
 import com.example.Sparta_Store.admin.item.dto.responseDto.ItemUpdateResponseDto;
 import com.example.Sparta_Store.admin.item.respository.AdminItemRepository;
 import com.example.Sparta_Store.admin.review.service.AdminReviewService;
-import com.example.Sparta_Store.category.entity.Category;
-import com.example.Sparta_Store.email.event.ItemRestockedEvent;
-import com.example.Sparta_Store.item.entity.Item;
-import com.example.Sparta_Store.likes.service.LikesService;
+import com.example.Sparta_Store.domain.category.entity.Category;
+import com.example.Sparta_Store.domain.email.event.ItemRestockedEvent;
+import com.example.Sparta_Store.domain.item.entity.Item;
+import com.example.Sparta_Store.domain.likes.service.LikesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
