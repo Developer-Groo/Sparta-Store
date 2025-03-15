@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.Sparta_Store.domain.IssuedCoupon.entity.IssuedCoupon;
 import com.example.Sparta_Store.domain.address.entity.Address;
-import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
+import com.example.Sparta_Store.domain.users.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
 import com.example.Sparta_Store.domain.orders.entity.Orders;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

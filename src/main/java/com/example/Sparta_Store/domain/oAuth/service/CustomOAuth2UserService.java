@@ -1,11 +1,11 @@
 package com.example.Sparta_Store.domain.oAuth.service;
 
 import com.example.Sparta_Store.domain.address.entity.Address;
-import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
+import com.example.Sparta_Store.domain.users.service.UserRoleEnum;
 import com.example.Sparta_Store.domain.oAuth.model.GoogleUser;
 import com.example.Sparta_Store.domain.oAuth.model.ProviderUser;
-import com.example.Sparta_Store.domain.user.entity.Users;
-import com.example.Sparta_Store.domain.user.repository.UserRepository;
+import com.example.Sparta_Store.domain.users.entity.Users;
+import com.example.Sparta_Store.domain.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;

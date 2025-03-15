@@ -2,7 +2,7 @@ package com.example.Sparta_Store.domain.likes.repository;
 
 import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.likes.entity.Likes;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

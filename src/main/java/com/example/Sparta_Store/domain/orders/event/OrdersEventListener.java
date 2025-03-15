@@ -1,10 +1,10 @@
 package com.example.Sparta_Store.domain.orders.event;
 
-import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.exception.global.CustomException;
 import com.example.Sparta_Store.domain.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.domain.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.domain.orders.entity.Orders;
-import com.example.Sparta_Store.domain.orders.exception.OrdersErrorCode;
+import com.example.Sparta_Store.exception.orders.OrdersErrorCode;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

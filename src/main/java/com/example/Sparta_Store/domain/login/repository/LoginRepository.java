@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.domain.login.repository;
 
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

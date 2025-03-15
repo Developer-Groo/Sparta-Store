@@ -2,7 +2,7 @@ package com.example.Sparta_Store.domain.cart.entity;
 
 import com.example.Sparta_Store.domain.cartItem.entity.CartItem;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;

@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.domain.point.repository;
 
 import com.example.Sparta_Store.domain.point.entity.PointSummary;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

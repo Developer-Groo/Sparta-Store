@@ -1,10 +1,10 @@
 package com.example.Sparta_Store.domain.review.entity;
 
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
-import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.exception.global.CustomException;
 import com.example.Sparta_Store.domain.item.entity.Item;
-import com.example.Sparta_Store.domain.review.exception.ReviewErrorCode;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.exception.review.ReviewErrorCode;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

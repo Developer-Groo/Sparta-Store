@@ -2,12 +2,12 @@ package com.example.Sparta_Store.admin.orders.service;
 
 import static com.example.Sparta_Store.domain.orders.OrderStatus.statusUpdatable;
 
-import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.exception.global.CustomException;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
 import com.example.Sparta_Store.domain.orders.dto.request.UpdateOrderStatusDto;
 import com.example.Sparta_Store.domain.orders.entity.Orders;
 import com.example.Sparta_Store.domain.orders.event.OrderCancelledEvent;
-import com.example.Sparta_Store.domain.orders.exception.OrdersErrorCode;
+import com.example.Sparta_Store.exception.orders.OrdersErrorCode;
 import com.example.Sparta_Store.domain.orders.repository.OrdersRepository;
 import com.example.Sparta_Store.domain.payment.entity.Payment;
 import com.example.Sparta_Store.domain.payment.repository.PaymentRepository;

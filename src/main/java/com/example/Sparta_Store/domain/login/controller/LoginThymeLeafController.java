@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.domain.login.controller;
 
 import com.example.Sparta_Store.domain.oAuth.jwt.JwtUtil;
-import com.example.Sparta_Store.domain.user.repository.UserRepository;
+import com.example.Sparta_Store.domain.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

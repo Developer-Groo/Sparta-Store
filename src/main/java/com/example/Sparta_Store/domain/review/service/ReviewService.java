@@ -1,15 +1,15 @@
 package com.example.Sparta_Store.domain.review.service;
 
-import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.exception.global.CustomException;
 import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.orderItem.entity.OrderItem;
 import com.example.Sparta_Store.domain.orderItem.repository.OrderItemRepository;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
 import com.example.Sparta_Store.domain.review.dto.response.ReviewResponseDto;
 import com.example.Sparta_Store.domain.review.entity.Review;
-import com.example.Sparta_Store.domain.review.exception.ReviewErrorCode;
+import com.example.Sparta_Store.exception.review.ReviewErrorCode;
 import com.example.Sparta_Store.domain.review.repository.ReviewRepository;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import lombok.RequiredArgsConstructor;

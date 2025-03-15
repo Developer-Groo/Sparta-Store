@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.domain.login.exception;
 
-import com.example.Sparta_Store.exception.ErrorCode;
+import com.example.Sparta_Store.exception.global.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

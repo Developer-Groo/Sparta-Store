@@ -3,12 +3,12 @@ package com.example.Sparta_Store.domain.salesSummary.service;
 import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.salesSummary.entity.SalesSummary;
 import com.example.Sparta_Store.domain.salesSummary.repository.SalesSummaryRepository;
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Service
@@ -32,7 +32,5 @@ public class SalesSummaryService {
                     repository.save(salesSummary);
                     return salesSummary;
                 });
-
-        // Todo: Dto 또는 반환값이 필요한 경우 생성
     }
 }

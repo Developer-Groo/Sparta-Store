@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.example.Sparta_Store.domain.orders.entity.Orders;
 import com.example.Sparta_Store.domain.payment.entity.Payment;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import org.junit.jupiter.api.BeforeEach;

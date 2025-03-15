@@ -1,8 +1,8 @@
 package com.example.Sparta_Store.user.service.entity;
 
 import com.example.Sparta_Store.domain.address.entity.Address;
-import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.service.UserRoleEnum;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

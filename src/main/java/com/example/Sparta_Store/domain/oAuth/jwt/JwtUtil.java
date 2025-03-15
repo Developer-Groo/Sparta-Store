@@ -1,6 +1,6 @@
 package com.example.Sparta_Store.domain.oAuth.jwt;
 
-import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
+import com.example.Sparta_Store.domain.users.service.UserRoleEnum;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;

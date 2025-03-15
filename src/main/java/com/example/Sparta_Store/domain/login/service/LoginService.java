@@ -4,7 +4,7 @@ import com.example.Sparta_Store.common.security.PasswordEncoder;
 import com.example.Sparta_Store.domain.login.dto.LoginRequest;
 import com.example.Sparta_Store.domain.login.repository.LoginRepository;
 import com.example.Sparta_Store.domain.oAuth.jwt.JwtUtil;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
 package com.example.Sparta_Store.domain.cart.repository;
 
 import com.example.Sparta_Store.domain.cart.entity.Cart;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

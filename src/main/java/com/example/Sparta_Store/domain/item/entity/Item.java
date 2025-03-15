@@ -2,8 +2,8 @@ package com.example.Sparta_Store.domain.item.entity;
 
 import com.example.Sparta_Store.domain.category.entity.Category;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
-import com.example.Sparta_Store.exception.CustomException;
-import com.example.Sparta_Store.domain.item.exception.ItemErrorCode;
+import com.example.Sparta_Store.exception.global.CustomException;
+import com.example.Sparta_Store.exception.item.ItemErrorCode;
 import com.example.Sparta_Store.domain.salesSummary.entity.SalesSummary;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;

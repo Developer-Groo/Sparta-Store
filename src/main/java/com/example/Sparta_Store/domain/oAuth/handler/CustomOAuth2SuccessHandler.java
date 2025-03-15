@@ -2,8 +2,8 @@ package com.example.Sparta_Store.domain.oAuth.handler;
 
 
 import com.example.Sparta_Store.domain.oAuth.jwt.JwtUtil;
-import com.example.Sparta_Store.domain.user.service.UserRoleEnum;
-import com.example.Sparta_Store.domain.user.repository.UserRepository;
+import com.example.Sparta_Store.domain.users.service.UserRoleEnum;
+import com.example.Sparta_Store.domain.users.repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

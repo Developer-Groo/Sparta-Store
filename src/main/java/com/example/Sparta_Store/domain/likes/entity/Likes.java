@@ -2,7 +2,7 @@ package com.example.Sparta_Store.domain.likes.entity;
 
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.domain.item.entity.Item;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

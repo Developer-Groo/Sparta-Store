@@ -7,17 +7,17 @@ import com.example.Sparta_Store.domain.point.entity.Point;
 import com.example.Sparta_Store.domain.point.entity.PointSummary;
 import com.example.Sparta_Store.domain.point.repository.PointRepository;
 import com.example.Sparta_Store.domain.point.repository.PointSummaryRepository;
-import com.example.Sparta_Store.domain.user.entity.Users;
-import com.example.Sparta_Store.domain.user.repository.UserRepository;
+import com.example.Sparta_Store.domain.users.entity.Users;
+import com.example.Sparta_Store.domain.users.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -49,30 +49,29 @@ public class PointService {
 
         PointSummary summary = new PointSummary(user, earnedPoints, SummaryType.EARNED); // 포인트 변동 내역 기록
         pointSummaryRepository.save(summary); // 내용 저장
-
     }
 
+    @Transactional
+    public int getOrCreatePoint(Long userId) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("유저 정보를 찾을 수 없습니다."));
 
-    // 컨트롤러와 서비스에 중복되는 포인트 정보를 조회하는 메서드
-    public Point getOrCreatePoint(Users user) {
-        return pointRepository.findByUser(user) // 해당 유저의 포인트정보 조회
-                .orElseGet(() -> {
-                    return new Point(user, 0); // 포인트 정보가 없으면 새로 생성하고 잔액은 0
-                });
+        Point point = pointRepository.findByUser(user)
+                .orElseGet(() -> new Point(user, 0));
 
+        return point.getBalance();
     }
 
-    // 포인트 적립 내역 조회 (DTO 변환 포함)
     @Transactional
     public List<PointSummaryResponseDto> getPointSummaries(Long userId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저 정보를 찾을 수 없습니다."));
 
-        List<PointSummary> summaries = pointSummaryRepository.findByUser(user); // user조회
+        List<PointSummary> summaries = pointSummaryRepository.findByUser(user);
 
         return summaries.stream()
-                .map(PointSummaryResponseDto::toEntity) // DTO 변환
-                .collect(Collectors.toList());
+                .map(PointSummaryResponseDto::toEntity)
+                .toList();
     }
 }
 

@@ -7,16 +7,16 @@ import com.example.Sparta_Store.domain.likes.repository.LikesRepository;
 import com.example.Sparta_Store.domain.salesSummary.dto.SalesSummaryResponseDto;
 import com.example.Sparta_Store.domain.salesSummary.entity.SalesSummary;
 import com.example.Sparta_Store.domain.salesSummary.repository.SalesSummaryRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -27,27 +27,23 @@ public class PopularItemService {
     private final ItemRepository itemRepository;
     private final RedisTemplate<String, String> redisTemplate;
 
-    // 판매량 기준 인기 상품 조회 (최근 N일) 디폴트 7일
     public List<SalesSummaryResponseDto> getMostPopularSoldItems() {
 
         LocalDateTime week = LocalDateTime.now().minusDays(7);
 
-        List<SalesSummary> mostPopularSoldItems = salesSummaryRepository.findByCreatedAtAfterOrderByTotalSalesDesc(
-                week);
+        List<SalesSummary> mostPopularSoldItems = salesSummaryRepository.findByCreatedAtAfterOrderByTotalSalesDesc(week);
 
         return mostPopularSoldItems.stream()
                 .map(SalesSummaryResponseDto::toEntityAddName)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Long getLikeCount(Long itemId) {
         return likesRepository.countByItemId(itemId);
     }
 
-    // 좋아요 기준 인기 상품 조회 (누적)
     public List<LikesDto> getMostPopularLikedItems() {
 
-        // 좋아요가 있는 상품 ID 목록 조회 (중복 제거됨)
         List<Long> likedItemIds = likesRepository.findDistinctItemIds();
 
         return likedItemIds.stream()
@@ -55,13 +51,10 @@ public class PopularItemService {
                     Item item = itemRepository.findById(itemId)
                             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
-                    return LikesDto.convertFromItem(
-                            item,
-                            likesRepository.countByItemId(itemId) // 현재 좋아요 수 직접 조회
-                    );
+                    return LikesDto.convertFromItem(item, likesRepository.countByItemId(itemId));
                 })
-                .sorted(Comparator.comparing(LikesDto::totalLikes).reversed()) // 좋아요 수 기준 정렬
-                .collect(Collectors.toList());
+                .sorted(Comparator.comparing(LikesDto::totalLikes).reversed())
+                .toList();
     }
 
     public List<String> getCategoryRanking(String category) {

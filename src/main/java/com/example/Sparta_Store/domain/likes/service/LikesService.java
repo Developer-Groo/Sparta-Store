@@ -1,14 +1,14 @@
 package com.example.Sparta_Store.domain.likes.service;
 
-import com.example.Sparta_Store.exception.CustomException;
+import com.example.Sparta_Store.exception.global.CustomException;
 import com.example.Sparta_Store.domain.item.entity.Item;
 import com.example.Sparta_Store.domain.item.repository.ItemRepository;
 import com.example.Sparta_Store.domain.likes.dto.response.LikeResponseDto;
 import com.example.Sparta_Store.domain.likes.entity.Likes;
-import com.example.Sparta_Store.domain.likes.exception.LikesErrorCode;
+import com.example.Sparta_Store.exception.likes.LikesErrorCode;
 import com.example.Sparta_Store.domain.likes.repository.LikesRepository;
-import com.example.Sparta_Store.domain.user.entity.Users;
-import com.example.Sparta_Store.domain.user.repository.UserRepository;
+import com.example.Sparta_Store.domain.users.entity.Users;
+import com.example.Sparta_Store.domain.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

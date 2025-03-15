@@ -4,7 +4,7 @@ import com.example.Sparta_Store.domain.IssuedCoupon.entity.IssuedCoupon;
 import com.example.Sparta_Store.domain.address.entity.Address;
 import com.example.Sparta_Store.common.entity.TimestampedEntity;
 import com.example.Sparta_Store.domain.orders.OrderStatus;
-import com.example.Sparta_Store.domain.user.entity.Users;
+import com.example.Sparta_Store.domain.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
