@@ -1,9 +1,6 @@
 name: CD-Pipeline Blue/Green Deployment
 
 on:
-  push:
-    branches:
-      - release_v1.0.0
   workflow_run:
     workflows:
       - CI-Pipeline
@@ -14,7 +11,7 @@ jobs:
   deploy:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_repository.default_branch == 'release_v1.0.0'
+      github.event.workflow_run.head_branch == 'release_v1.0.0'
     runs-on: ubuntu-latest
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
