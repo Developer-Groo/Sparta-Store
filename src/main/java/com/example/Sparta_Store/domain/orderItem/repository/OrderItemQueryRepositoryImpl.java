@@ -18,7 +18,7 @@ import java.util.Optional;
 import static com.example.Sparta_Store.domain.item.entity.QItem.item;
 import static com.example.Sparta_Store.domain.orderItem.entity.QOrderItem.orderItem;
 import static com.example.Sparta_Store.domain.orders.entity.QOrders.orders;
-import static com.example.Sparta_Store.domain.user.entity.QUsers.users;
+import static com.example.Sparta_Store.domain.users.entity.QUsers.users;
 
 @Slf4j
 @Repository
