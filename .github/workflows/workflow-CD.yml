@@ -42,6 +42,8 @@ jobs:
           aws ssm put-parameter --name "TOSS_SECRET_KEY" --value "${{ secrets.TOSS_SECRET_KEY }}" --type "SecureString" --overwrite
           aws ssm put-parameter --name "JWT_SECRET_KEY" --value "${{ secrets.JWT_SECRET_KEY }}" --type "SecureString" --overwrite
           aws ssm put-parameter --name "DB_USERNAME" --value "${{ secrets.DB_USERNAME }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "RABBITMQ_ID" --value "${{ secrets.RABBITMQ_ID }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "RABBITMQ_PW" --value "${{ secrets.RABBITMQ_PW }}" --type "SecureString" --overwrite
 
       - name: Get ALB Listener ARN
         run: |

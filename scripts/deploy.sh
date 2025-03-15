@@ -62,6 +62,8 @@ TOSS_CLIENT_KEY=$(aws ssm get-parameter --name "TOSS_CLIENT_KEY" --with-decrypti
 TOSS_SECRET_KEY=$(aws ssm get-parameter --name "TOSS_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
 JWT_SECRET_KEY=$(aws ssm get-parameter --name "JWT_SECRET_KEY" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
 DB_USERNAME=$(aws ssm get-parameter --name "DB_USERNAME" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
+RABBITMQ_ID=$(aws ssm get-parameter --name "RABBITMQ_ID" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
+RABBITMQ_PW=$(aws ssm get-parameter --name "RABBITMQ_PW" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
 
 echo "Loaded environment variables from AWS SSM Parameter Store"
 
@@ -99,4 +101,6 @@ docker run -d -p 80:$PORT --name $CONTAINER_NAME \
   -e TOSS_SECRET_KEY="$TOSS_SECRET_KEY" \
   -e JWT_SECRET_KEY="$JWT_SECRET_KEY" \
   -e DB_USERNAME="$DB_USERNAME" \
+  -e RABBITMQ_ID="$RABBITMQ_ID" \
+  -e RABBITMQ_PW="$RABBITMQ_PW" \
   $ECR_REPO_URI:latest
