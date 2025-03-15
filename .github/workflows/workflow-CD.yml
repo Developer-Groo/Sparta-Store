@@ -20,6 +20,10 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
+      - name: Debug workflow_run event
+        run: |
+          echo "Workflow Run Head Branch: ${{ github.event.workflow_run.head_branch }}"
+
       - name: Checkout Repository
         uses: actions/checkout@v3
 
