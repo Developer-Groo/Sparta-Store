@@ -25,7 +25,7 @@ public class ReviewController {
     }
 
     @PostMapping
-    public ResponseEntity<ReviewResponseDto> createReview(@PathVariable("itemId") Long itemId, ReviewRequestDto dto, HttpRequest request) {
+    public ResponseEntity<ReviewResponseDto> createReview(@PathVariable("itemId") Long itemId, @RequestBody ReviewRequestDto dto, HttpRequest request) {
         Long userId = (Long) request.getAttributes().get("id");
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
