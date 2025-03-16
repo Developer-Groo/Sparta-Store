@@ -26,9 +26,9 @@ public class CouponController {
     @PostMapping
     public ResponseEntity<String> getRandomCoupon(HttpServletRequest request, @RequestParam String couponName) {
         LocalTime now = LocalTime.now(ZoneId.of("Asia/Seoul"));
-        if (!isTimeInRange(now, now.with(LocalTime.NOON), now.with(LocalTime.MAX))) { // 12:00:00 ~ 23:59:59
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("쿠폰 발급 가능 시간이 아닙니다.");
-        }
+//        if (!isTimeInRange(now, now.with(LocalTime.NOON), now.with(LocalTime.MAX))) { // 12:00:00 ~ 23:59:59
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("쿠폰 발급 가능 시간이 아닙니다.");
+//        }
 
         Long userId = (Long) request.getAttribute("id");
 
