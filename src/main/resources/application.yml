@@ -54,10 +54,12 @@ spring:
             enable: true
 
   rabbitmq:
-    host: localhost
+    host: ${RABBITMQ_HOST}
     port: 5672
     username: ${RABBITMQ_ID}
     password: ${RABBITMQ_PW}
+    ssl:
+      enabled: true
 
 jwt:
   secret:

@@ -44,6 +44,7 @@ jobs:
           aws ssm put-parameter --name "DB_USERNAME" --value "${{ secrets.DB_USERNAME }}" --type "SecureString" --overwrite
           aws ssm put-parameter --name "RABBITMQ_ID" --value "${{ secrets.RABBITMQ_ID }}" --type "SecureString" --overwrite
           aws ssm put-parameter --name "RABBITMQ_PW" --value "${{ secrets.RABBITMQ_PW }}" --type "SecureString" --overwrite
+          aws ssm put-parameter --name "RABBITMQ_HOST" --value "${{ secrets.RABBITMQ_HOST }}" --type "SecureString" --overwrite
 
       - name: Get ALB Listener ARN
         run: |

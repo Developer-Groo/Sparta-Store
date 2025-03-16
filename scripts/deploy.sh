@@ -64,6 +64,7 @@ JWT_SECRET_KEY=$(aws ssm get-parameter --name "JWT_SECRET_KEY" --with-decryption
 DB_USERNAME=$(aws ssm get-parameter --name "DB_USERNAME" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
 RABBITMQ_ID=$(aws ssm get-parameter --name "RABBITMQ_ID" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
 RABBITMQ_PW=$(aws ssm get-parameter --name "RABBITMQ_PW" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
+RABBITMQ_HOST=$(aws ssm get-parameter --name "RABBITMQ_HOST" --with-decryption --query "Parameter.Value" --output text --region ap-northeast-2)
 
 echo "Loaded environment variables from AWS SSM Parameter Store"
 
@@ -103,4 +104,5 @@ docker run -d -p 80:$PORT --name $CONTAINER_NAME \
   -e DB_USERNAME="$DB_USERNAME" \
   -e RABBITMQ_ID="$RABBITMQ_ID" \
   -e RABBITMQ_PW="$RABBITMQ_PW" \
+  -e RABBITMQ_HOST="$RABBITMQ_HOST" \
   $ECR_REPO_URI:latest
