@@ -8,6 +8,6 @@ public record ReviewRequestDto(
         String content,
         String imgUrl,
         @Range(min = 1, max = 5)
-        int rating
+        Integer rating
 ) {
 }
