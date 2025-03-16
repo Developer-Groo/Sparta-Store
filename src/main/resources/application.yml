@@ -60,7 +60,6 @@ spring:
     password: ${RABBITMQ_PW}
     ssl:
       enabled: true
-    virtual-host: "/"
 
 jwt:
   secret:
