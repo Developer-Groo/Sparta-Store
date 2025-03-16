@@ -21,6 +21,7 @@ public class UsersInitService {
         PasswordEncoder passwordEncoder = new PasswordEncoder();
 
         if (Boolean.TRUE.equals(userRepository.existsByEmail("admin@admin.com"))) return;
+
         Users user = new Users("admin@admin.com", passwordEncoder.encode("admin"), "admin", address, UserRoleEnum.ADMIN);
 
         userRepository.save(user);
