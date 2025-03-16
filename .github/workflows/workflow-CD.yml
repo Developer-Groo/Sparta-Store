@@ -122,44 +122,50 @@ jobs:
 
       - name: Move Old Instance(s) to Blue Target Group
         run: |
+          # 기존 Green 타겟 그룹에서 모든 인스턴스 ID 가져오기
           OLD_INSTANCE_IDS=$(aws elbv2 describe-target-health \
             --target-group-arn $GREEN_TG_ARN \
             --query 'TargetHealthDescriptions[*].Target.Id' \
             --output text)
-
+            
+          if [[ -z "$OLD_INSTANCE_IDS" ]]; then
+            echo "No old instances found in Green Target Group. Skipping movement to Blue."
+            exit 0
+          fi
+            
           # 새로운 Green 인스턴스 ID 가져오기
           NEW_INSTANCE_ID=$GREEN_INSTANCE_ID
-
-          # 기존 인스턴스에서 새로운 인스턴스를 제외하고 블루로 이동
-          FILTERED_INSTANCE_IDS=""
+            
+          # 기존 인스턴스 중 새로운 인스턴스를 제외하고 블루로 이동
+          FILTERED_INSTANCE_IDS=()
           for INSTANCE_ID in $OLD_INSTANCE_IDS; do
-            if [[ "$INSTANCE_ID" != "$NEW_INSTANCE_ID" ]]; then
-              FILTERED_INSTANCE_IDS+="$INSTANCE_ID "
+            if [[ "$INSTANCE_ID" != "$NEW_INSTANCE_ID" && -n "$INSTANCE_ID" ]]; then
+              FILTERED_INSTANCE_IDS+=("$INSTANCE_ID")
             fi
           done
-
+            
           if [[ ${#FILTERED_INSTANCE_IDS[@]} -gt 0 ]]; then
-            echo "Moving instances to Blue Target Group: ${FILTERED_INSTANCE_IDS[*]}"
-
+            echo "Moving instances to Blue Target Group: ${FILTERED_INSTANCE_IDS[@]}"
+            
             for INSTANCE_ID in "${FILTERED_INSTANCE_IDS[@]}"; do
               echo "Deregistering instance ($INSTANCE_ID) from Green Target Group..."
               aws elbv2 deregister-targets \
                 --target-group-arn $GREEN_TG_ARN \
                 --targets Id=$INSTANCE_ID
-
-              echo "Waiting for instance to be fully deregistered..."
+            
+                echo "Waiting for instance to be fully deregistered..."
               sleep 30  # Deregistering takes time
-
+            
               echo "Registering instance ($INSTANCE_ID) to Blue Target Group..."
               aws elbv2 register-targets \
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
-
+            
               echo "Updating instance tag to 'blue-instance'..."
               aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=blue-instance
             done
           else
-            echo "No old instances found in Green Target Group. Skipping movement to Blue."
+            echo "No valid instances found to move to Blue Target Group."
           fi
 
       - name: Wait before checking Blue Target Group instances
