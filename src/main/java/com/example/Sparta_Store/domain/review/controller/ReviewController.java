@@ -5,6 +5,7 @@ import com.example.Sparta_Store.domain.review.dto.response.ReviewResponseDto;
 import com.example.Sparta_Store.domain.review.service.ReviewService;
 import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,12 @@ public class ReviewController {
     }
 
     @PostMapping
-    public ResponseEntity<ReviewResponseDto> createReview(@PathVariable("itemId") Long itemId, @RequestBody ReviewRequestDto dto, HttpRequest request) {
-        Long userId = (Long) request.getAttributes().get("id");
+    public ResponseEntity<ReviewResponseDto> createReview(
+            @PathVariable("itemId") Long itemId,
+            @RequestBody ReviewRequestDto dto,
+            HttpServletRequest request
+    ) {
+        Long userId = (Long) request.getAttribute("id");
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
                         reviewService.createReview(
