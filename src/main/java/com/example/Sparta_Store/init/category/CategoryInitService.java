@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.domain.category.init;
+package com.example.Sparta_Store.init.category;
 
 import com.example.Sparta_Store.domain.category.entity.Category;
 import com.example.Sparta_Store.domain.category.repository.CategoryRepository;
@@ -10,7 +10,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class CategoryInitService {
 
     private final CategoryRepository categoryRepository;
