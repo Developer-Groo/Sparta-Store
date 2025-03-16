@@ -15,12 +15,12 @@
 ## 🏁 Team
 |**👑 Leader**|**Contributions**|
 |:--------:|:---------------:|
-|<img src="https://github.com/user-attachments/assets/09c03daf-fed7-4bbd-adf6-8909ef950606" width="150" height="150">| <div align="left"> • 전체 개발 계획 수립 및 설계 <br> • 코드 리뷰를 통한 팀의 품질 및 생산성을 향상 <br> • Spring Boot, JPA 기반으로 상품 및 리뷰 관리, 카테고리 기능 개발 <br> • 품절 상품 재입고 시 이메일 알림 기능 구현 <br> • 비관적 Lock 을 활용해 상품 재고 감소 동시성 이슈 해결 <br> • GitHub Actions를 활용해 자동화된 빌드, 테스트, 배포 파이프라인 구축 <br> • AWS 인프라 설계 및 구축, EC2, RDS, ElastiCache, ELB 등을 활용한 서비스 운영 <br> • 블루/그린 무중단 배포를 적용하여 배포 시 서비스 다운타임 최소화 </div>|
+|<img src="https://github.com/user-attachments/assets/09c03daf-fed7-4bbd-adf6-8909ef950606" width="150" height="150">| <div align="left"> • 전체 개발 계획 수립 및 설계 <br> • 코드 리뷰를 통한 팀의 품질 및 생산성을 향상 <br> • Spring Boot, JPA 기반으로 상품 및 리뷰 관리, 카테고리 기능 개발 <br> • 품절 상품 재입고 시 이메일 알림 기능 구현 <br> • 비관적 Lock 을 활용해 상품 재고 감소 동시성 이슈 해결 <br> • GitHub Actions를 활용해 자동화된 빌드, 테스트, 배포 파이프라인 구축 <br> • AWS 인프라 설계 및 구축, EC2, RDS, ElastiCache, ELB 등을 활용한 서비스 운영 <br> • 블루/그린 무중단 배포를 적용하여 배포 시 서비스 다운타임 최소화 </div> |
 |**김우현**|[GitHub Link](https://github.com/Developer-Groo)|
 
 |**👑 Sub Leader**|**Contributions**|
 |:------------:|:---------------:|
-|<img src="https://github.com/user-attachments/assets/bc4b03e5-c31d-4144-b384-b1607a7f544b" width="150" height="150">| <div align="left"> • Spring Boot, JPA 기반으로 • 장바구니, 찜 기능 개발 </div>|
+|<img src="https://github.com/user-attachments/assets/bc4b03e5-c31d-4144-b384-b1607a7f544b" width="150" height="150">| <div align="left"> • Spring Boot, JPA 기반으로 • 장바구니, 찜 기능 개발 <br> • 장바구니 기능 Redis 적용 <br> • 비관적 Lock 을 활용해 상품의 총 찜 횟수 동시성 이슈 해결 </div> |
 |**윤주영**|[GitHub Link](http://github.com/ju-young0)|
 
 |**🤴🏻 Member**|**Contributions**|
