@@ -138,10 +138,10 @@ jobs:
             fi
           done
 
-          if [[ -n "$FILTERED_INSTANCE_IDS" ]]; then
-            echo "Found instances in Green Target Group (excluding new instance): $FILTERED_INSTANCE_IDS"
+          if [[ ${#FILTERED_INSTANCE_IDS[@]} -gt 0 ]]; then
+            echo "Moving instances to Blue Target Group: ${FILTERED_INSTANCE_IDS[*]}"
 
-            for INSTANCE_ID in $FILTERED_INSTANCE_IDS; do
+            for INSTANCE_ID in "${FILTERED_INSTANCE_IDS[@]}"; do
               echo "Deregistering instance ($INSTANCE_ID) from Green Target Group..."
               aws elbv2 deregister-targets \
                 --target-group-arn $GREEN_TG_ARN \
@@ -163,7 +163,7 @@ jobs:
           fi
 
       - name: Wait before checking Blue Target Group instances
-        run: sleep 30
+        run: sleep 50
 
       - name: Deregister and Terminate Old Blue Instance(s)
         run: |
@@ -171,7 +171,7 @@ jobs:
             --target-group-arn $BLUE_TG_ARN \
             --query 'TargetHealthDescriptions[*].Target.Id' \
             --output text)
-
+            
           if [[ -n "$OLD_BLUE_INSTANCE_IDS" ]]; then
             echo "Deregistering and terminating instances from Blue Target Group: $OLD_BLUE_INSTANCE_IDS"
             for INSTANCE_ID in $OLD_BLUE_INSTANCE_IDS; do
@@ -179,10 +179,10 @@ jobs:
                 --target-group-arn $BLUE_TG_ARN \
                 --targets Id=$INSTANCE_ID
               echo "Deregistered instance ($INSTANCE_ID) from Blue Target Group"
-
+            
               echo "Waiting before termination..."
-              sleep 20
-
+              sleep 30  # Deregistering takes time
+            
               aws ec2 terminate-instances --instance-ids $INSTANCE_ID
               echo "Terminated instance ($INSTANCE_ID) in Blue Target Group"
             done
