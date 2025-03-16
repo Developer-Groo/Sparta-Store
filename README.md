@@ -25,7 +25,7 @@
 
 |**🤴🏻 Member**|**Contributions**|
 |:------------:|:---------------:|
-|<img src="https://github.com/user-attachments/assets/98ad61fe-84ad-4012-8294-76d23c0f1eeb" width="150" height="150">| <div align="left"> • Spring Boot, JPA 기반으로 주문 및 결제 기능 개발 </div>|
+|<img src="https://github.com/user-attachments/assets/98ad61fe-84ad-4012-8294-76d23c0f1eeb" width="150" height="150">| <div align="left"> • Spring Boot, JPA 기반으로 주문 및 결제 기능 개발 <br> • Redis의 Lua 스크립트를 이용한 원자성 확보로 쿠폰 중복 발급 방지 <br> • 주문 상태 변경 시 실시간 이메일 알림 기능 구현 <br> • PG사 연동을 통한 결제 승인 및 취소 <br> • 결제 오류 케이스 구분 및 에러 처리 <br> • 주문 생성 성능 개선 <br> • 선착순 쿠폰 발급 구현 및 성능 개선 </div>|
 |**고수연**|[GitHub Link](https://github.com/suyeon1717)|
 
 |**🤴🏻 Member**|**Contributions**|
