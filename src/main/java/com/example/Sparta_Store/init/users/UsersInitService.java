@@ -1,5 +1,6 @@
 package com.example.Sparta_Store.init.users;
 
+import com.example.Sparta_Store.common.security.PasswordEncoder;
 import com.example.Sparta_Store.domain.address.entity.Address;
 import com.example.Sparta_Store.domain.users.entity.Users;
 import com.example.Sparta_Store.domain.users.repository.UserRepository;
@@ -17,9 +18,10 @@ public class UsersInitService {
     @Transactional
     public void initialize() {
         Address address = new Address("", "", "");
+        PasswordEncoder passwordEncoder = new PasswordEncoder();
 
-        if (userRepository.existsByEmail("admin")) return;
-        Users user = new Users("admin", "admin", "admin", address, UserRoleEnum.ADMIN);
+        if (Boolean.TRUE.equals(userRepository.existsByEmail("admin@admin.com"))) return;
+        Users user = new Users("admin@admin.com", passwordEncoder.encode("admin"), "admin", address, UserRoleEnum.ADMIN);
 
         userRepository.save(user);
     }
