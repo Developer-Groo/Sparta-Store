@@ -7,7 +7,6 @@ import com.example.Sparta_Store.util.PageQuery;
 import com.example.Sparta_Store.util.PageResult;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -45,15 +44,15 @@ public class ReviewController {
     }
 
     @PatchMapping("/{reviewId}")
-    public ResponseEntity<ReviewResponseDto> updateReview(@PathVariable("reviewId") Long reviewId, ReviewRequestDto dto, HttpRequest request) {
-        Long userId = (Long) request.getAttributes().get("id");
+    public ResponseEntity<ReviewResponseDto> updateReview(@PathVariable("reviewId") Long reviewId, ReviewRequestDto dto, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("id");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(reviewService.updateReview(userId, reviewId, dto.content(), dto.imgUrl(), dto.rating()));
     }
 
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<Void> deleteReview(@PathVariable("reviewId") Long reviewId, HttpRequest request) {
-        Long userId = (Long) request.getAttributes().get("id");
+    public ResponseEntity<Void> deleteReview(@PathVariable("reviewId") Long reviewId, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("id");
         reviewService.deleteReview(userId, reviewId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
