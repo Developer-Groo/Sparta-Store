@@ -16,15 +16,15 @@ public class AdminCouponService {
 
     public void createCoupons(String couponName) {
 
-        for (int i = 0; i < 600; i++) {
+        for (int i = 0; i < 6; i++) {
             redisTemplate.opsForList().rightPush(couponName, 1000);
         }
 
-        for (int i = 0; i < 300; i++) {
+        for (int i = 0; i < 3; i++) {
             redisTemplate.opsForList().rightPush(couponName, 5000);
         }
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             redisTemplate.opsForList().rightPush(couponName, 10000);
         }
         log.info("{} 쿠폰 생성 완료", couponName);
