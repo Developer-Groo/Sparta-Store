@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.net.ssl.SSLContext;
+
 @Configuration
 @EnableRabbit
 public class RabbitMqConfig {
@@ -63,6 +65,14 @@ public class RabbitMqConfig {
         connectionFactory.setPort(rabbitmqPort);
         connectionFactory.setUsername(rabbitmqUsername);
         connectionFactory.setPassword(rabbitmqPassword);
+        connectionFactory.setVirtualHost("/");
+
+        try {
+            SSLContext sslContext = SSLContext.getDefault();
+            connectionFactory.getRabbitConnectionFactory().useSslProtocol(sslContext);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to set up SSL for RabbitMQ");
+        }
         return connectionFactory;
     }
 
@@ -78,6 +88,4 @@ public class RabbitMqConfig {
         rabbitTemplate.setMessageConverter(jacson2JsonMessageConverter());
         return rabbitTemplate;
     }
-
-
 }
