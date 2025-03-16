@@ -1,4 +1,4 @@
-package com.example.Sparta_Store.domain.category.init;
+package com.example.Sparta_Store.init.category;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationRunner;
