@@ -222,17 +222,7 @@ erDiagram
 
 <br>
 
-## 🆚 Technical Decision
+## 🧬 Service Architecture
 
-<br>
-
-## 🚨 Trouble Shooting
-
-✅ solution 
-
-
-
-
-
-
+<img width="1410" alt="스크린샷 2025-03-17 오전 11 47 21" src="https://github.com/user-attachments/assets/8e0c0fe6-d467-409a-b2fd-92554bd25e9a" />
 
