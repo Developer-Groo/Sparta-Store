@@ -224,5 +224,4 @@ erDiagram
 
 ## 🧬 Service Architecture
 
-<img width="1410" alt="스크린샷 2025-03-17 오전 11 47 21" src="https://github.com/user-attachments/assets/8e0c0fe6-d467-409a-b2fd-92554bd25e9a" />
-
+<img width="1414" alt="스크린샷 2025-04-12 오후 6 59 50" src="https://github.com/user-attachments/assets/16301b92-5ccf-4105-8597-0762d299cee7" />
