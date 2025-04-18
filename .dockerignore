@@ -1,0 +1,23 @@
+# Gradle and build
+.gradle/
+build/
+out/
+
+# IDE config
+.idea/
+*.iml
+
+# Git
+.git/
+.gitignore
+
+# Logs and environment files
+*.log
+*.env
+
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# Test
+test/
