@@ -4,9 +4,9 @@
 ## ☑️ Index
 - [🏁 Team](#-Team)
 - [🤔 Team Document](#-Team-Document)
-- [📑 Commit Convention](#-Commit-Convention)
 - [🛠 Technology](#-Technology)
 - [🔗 ERD](#-ERD)
+- [🧬 Service Architecture](#-Service-Architecture)
 - [🆚 Technical Decision](#-Technical-Decision)
 - [🚨 Trouble Shooting](#-Trouble-Shooting)
 
@@ -227,4 +227,6 @@ erDiagram
 
 <br>
 
-## 
+## 🆚 Technical Decision
+
+## 🚨 Trouble Shooting
