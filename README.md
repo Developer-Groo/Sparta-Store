@@ -229,18 +229,18 @@ erDiagram
 
 ## 🚨 Trouble Shooting
 
-- **동시성 문제 해결 (재고 감소 처리)** 👉 [자세히 보기]()
+- **동시성 문제 해결 (재고 감소 처리)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EA%B3%A0-%EA%B0%90%EC%86%8C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-%EB%B9%84%EA%B4%80%EC%A0%81-%EB%9D%BD-%EC%A0%81%EC%9A%A9-%EC%9D%B4%EC%9C%A0%EC%99%80-%EA%B2%B0%EA%B3%BC)
 
-- **테스트 코드 트랜잭션 롤백 only 표시** 👉 [자세히 보기]()
+- **테스트 코드 트랜잭션 롤백 only 표시** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C-%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EB%A1%A4%EB%B0%B1-%EB%B0%9C%EC%83%9D-%EC%9B%90%EC%9D%B8-%EB%B6%84%EC%84%9D-%EB%B0%8F-%ED%95%B4%EA%B2%B0)
 
 <br>
 
 ## 🆚 Technical Decision
 
-- **NAT Gateway → Interface Endpoint 전환 (AWS 비용 최적화)** 👉 [자세히 보기]()
+- **NAT Gateway → Interface Endpoint 전환 (AWS 비용 최적화)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/AWS-%EB%B9%84%EC%9A%A9-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-Nat-gateway-VS-Interface-Endpoint)
 
-- **Dockerfile 빌드 최적화** 👉 [자세히 보기]()
+- **Dockerfile 빌드 최적화** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/Docker-file-%EB%B9%8C%EB%93%9C-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-%EB%B9%8C%EB%93%9C-%EC%86%8D%EB%8F%84-%EB%B0%8F-%EC%9A%A9%EB%9F%89-%EC%B5%9C%EC%A0%81%ED%99%94)
 
-- **재입고 알림 아키텍처 선택 (이벤트 리스너 vs RabbitMQ vs Kafka)** 👉 [자세히 보기]()
+- **재입고 알림 아키텍처 선택 (이벤트 리스너 vs RabbitMQ vs Kafka)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EC%9E%85%EA%B3%A0-%EC%9D%B4%EB%A9%94%EC%9D%BC-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%E2%80%90-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A6%AC%EC%8A%A4%EB%84%88-VS-MQ-VS-Kafka-%EB%B9%84%EA%B5%90)
 
 <br>
