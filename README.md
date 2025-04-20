@@ -7,8 +7,8 @@
 - [🛠 Technology](#-Technology)
 - [🔗 ERD](#-ERD)
 - [🧬 Service Architecture](#-Service-Architecture)
-- [🆚 Technical Decision](#-Technical-Decision)
 - [🚨 Trouble Shooting](#-Trouble-Shooting)
+- [🆚 Technical Decision](#-Technical-Decision)
 
 <br>
 
