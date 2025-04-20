@@ -227,6 +227,20 @@ erDiagram
 
 <br>
 
+## 🚨 Trouble Shooting
+
+- **동시성 문제 해결 (재고 감소 처리)** 👉 [자세히 보기]()
+
+- **테스트 코드 트랜잭션 롤백 only 표시** 👉 [자세히 보기]()
+
+<br>
+
 ## 🆚 Technical Decision
 
-## 🚨 Trouble Shooting
+- **NAT Gateway → Interface Endpoint 전환 (AWS 비용 최적화)** 👉 [자세히 보기]()
+
+- **Dockerfile 빌드 최적화** 👉 [자세히 보기]()
+
+- **재입고 알림 아키텍처 선택 (이벤트 리스너 vs RabbitMQ vs Kafka)** 👉 [자세히 보기]()
+
+<br>
