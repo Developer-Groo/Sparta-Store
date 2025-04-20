@@ -42,8 +42,7 @@
 
 ## 🤔 Team Document
 
-- Team Notion 보러가기 👉 [Team Notion]()
-- Team Brochure 보러가기 👉 [Team Brochure]()
+- Team Notion 보러가기 👉 [Team Notion](https://gaudy-ounce-8ec.notion.site/Sparta-Store-1c855523239d80ce81bdf35287ecd1ed)
 - Team Convention 보러가기 👉 [Team Convention](https://github.com/Developer-Groo/Sparta-Store/wiki/Team-Convention)
 
 <br>
@@ -55,7 +54,7 @@
 | **DB** | MySQL 8.0, Redis 7.2.7 |
 | **Cache** | Redis Cache |
 | **Concurrency Control** | Pessimistic Lock, Optimistic Lock |
-| **Testing** | JUnit5, MockMvc |
+| **Testing** | JUnit5, MockMvc, Locust |
 | **DevOps** | Github Actions, Docker, AWS ELB, AWS EC2, AWS RDS, AWS Code Deploy 등 |
 
 <br>
@@ -224,4 +223,8 @@ erDiagram
 
 ## 🧬 Service Architecture
 
-<img width="1414" alt="스크린샷 2025-04-12 오후 6 59 50" src="https://github.com/user-attachments/assets/16301b92-5ccf-4105-8597-0762d299cee7" />
+<img width="1400" src="https://github.com/user-attachments/assets/16301b92-5ccf-4105-8597-0762d299cee7"/>
+
+<br>
+
+## 
