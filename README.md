@@ -241,6 +241,6 @@ erDiagram
 
 - **Dockerfile 빌드 최적화** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/Docker-file-%EB%B9%8C%EB%93%9C-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-%EB%B9%8C%EB%93%9C-%EC%86%8D%EB%8F%84-%EB%B0%8F-%EC%9A%A9%EB%9F%89-%EC%B5%9C%EC%A0%81%ED%99%94)
 
-- **재입고 알림 아키텍처 선택 (이벤트 리스너 vs RabbitMQ vs Kafka)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EC%9E%85%EA%B3%A0-%EC%9D%B4%EB%A9%94%EC%9D%BC-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%E2%80%90-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A6%AC%EC%8A%A4%EB%84%88-VS-MQ-VS-Kafka-%EB%B9%84%EA%B5%90)
+- **재입고 알림 구현 기능 선택 (이벤트 리스너 vs RabbitMQ vs Kafka)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EC%9E%85%EA%B3%A0-%EC%9D%B4%EB%A9%94%EC%9D%BC-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%E2%80%90-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A6%AC%EC%8A%A4%EB%84%88-VS-MQ-VS-Kafka-%EB%B9%84%EA%B5%90)
 
 <br>
