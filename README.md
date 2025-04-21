@@ -229,18 +229,38 @@ erDiagram
 
 ## 🚨 Trouble Shooting
 
-- **동시성 문제 해결 (재고 감소 처리)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EA%B3%A0-%EA%B0%90%EC%86%8C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-%EB%B9%84%EA%B4%80%EC%A0%81-%EB%9D%BD-%EC%A0%81%EC%9A%A9-%EC%9D%B4%EC%9C%A0%EC%99%80-%EA%B2%B0%EA%B3%BC)
+### 🔧 동시성 문제 (재고 감소 처리) 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EA%B3%A0-%EA%B0%90%EC%86%8C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-%EB%B9%84%EA%B4%80%EC%A0%81-%EB%9D%BD-%EC%A0%81%EC%9A%A9-%EC%9D%B4%EC%9C%A0%EC%99%80-%EA%B2%B0%EA%B3%BC)
 
-- **테스트 코드 트랜잭션 롤백 실패 문제 해결** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-@Transactional-%EC%82%AC%EC%9A%A9-%EC%8B%9C-1%EC%B0%A8-%EC%BA%90%EC%8B%9C%EC%99%80-rollback%E2%80%90only-%EC%B2%98%EB%A6%AC)
+- **문제: 동시에 여러 주문 요청이 들어올 경우 재고가 음수가 되는 동시성 문제 발생**    
+- **해결: @Lock(PESSIMISTIC_WRITE) 적용하여 트랜잭션 단위로 락 제어**    
+- **성과: 재고 정확도 100% 확보 및 데이터 무결성 보장**
+
+### 🧪 테스트 코드 트랜잭션 롤백 실패 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-@Transactional-%EC%82%AC%EC%9A%A9-%EC%8B%9C-1%EC%B0%A8-%EC%BA%90%EC%8B%9C%EC%99%80-rollback%E2%80%90only-%EC%B2%98%EB%A6%AC)
+
+- **문제: @Transactional 이 붙은 테스트 메서드에서 rollbac k이 안되는 것처럼 보이는 현상 발생**
+- **해결: 테스트 함수 트랜잭션 제거 → 내부 트랜잭션 rollback 여부 정확히 검증 가능**
+- **성과: 트랜잭션 흐름 및 rollback-only 마킹 이해도 상승**
 
 <br>
 
 ## 🆚 Technical Decision
 
-- **NAT Gateway → Interface Endpoint 전환 (AWS 비용 최적화)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/AWS-%EB%B9%84%EC%9A%A9-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-Nat-gateway-VS-Interface-Endpoint)
+### 💰 NAT Gateway → Interface Endpoint 전환 (AWS 비용 최적화) 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/AWS-%EB%B9%84%EC%9A%A9-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-Nat-gateway-VS-Interface-Endpoint)
 
-- **Dockerfile 빌드 최적화** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/Docker-file-%EB%B9%8C%EB%93%9C-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-%EB%B9%8C%EB%93%9C-%EC%86%8D%EB%8F%84-%EB%B0%8F-%EC%9A%A9%EB%9F%89-%EC%B5%9C%EC%A0%81%ED%99%94)
+- **문제: ECR Pull 시 NAT Gateway 를 경유해 불필요한 네트워크 요금 발생**    
+- **해결: Interface Endpoint 구성 → AWS 내부망으로 통신 경로 전환**
+- **성과: 트래픽 비용 감소 및 보안성 향상**
 
-- **재입고 알림 기능 구현 기술 선택 (이벤트 리스너 vs RabbitMQ vs Kafka)** 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EC%9E%85%EA%B3%A0-%EC%9D%B4%EB%A9%94%EC%9D%BC-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%E2%80%90-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A6%AC%EC%8A%A4%EB%84%88-VS-MQ-VS-Kafka-%EB%B9%84%EA%B5%90)
+### ⚙️ Dockerfile 빌드 최적화 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/Docker-file-%EB%B9%8C%EB%93%9C-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-%EB%B9%8C%EB%93%9C-%EC%86%8D%EB%8F%84-%EB%B0%8F-%EC%9A%A9%EB%9F%89-%EC%B5%9C%EC%A0%81%ED%99%94)
+
+- **문제: 이미지 용량이 크고 빌드 시간이 길어 개발/배포 시 비효율적**
+- **해결: slim 베이스 이미지 + multi-stage build + 캐시 레이어 분리**
+- **성과: 이미지 용량 122MB 감소 및 빌드 속도 26.9s → 1.9s (93% 개선)**
+
+### 📬 재입고 알림 기능 구현 (이벤트 리스너 vs MQ vs Kafka) 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EC%9E%85%EA%B3%A0-%EC%9D%B4%EB%A9%94%EC%9D%BC-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%E2%80%90-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A6%AC%EC%8A%A4%EB%84%88-VS-MQ-VS-Kafka-%EB%B9%84%EA%B5%90)
+
+- **문제: 재입고 알림을 어떤 방식으로 처리할지 기술 선택 필요**
+- **해결: 서비스 복잡도와 트래픽 규모를 고려해 Spring 이벤트 리스너 사용**
+- **성과: 간결한 구현, 유지보수성 향상, 향후 비동기 확장 가능**
 
 <br>
