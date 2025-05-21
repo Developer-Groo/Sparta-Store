@@ -241,6 +241,12 @@ erDiagram
 - **해결: 테스트 함수 트랜잭션 제거 → 내부 트랜잭션 rollback 여부 정확히 검증 가능**
 - **성과: 트랜잭션 흐름 및 rollback-only 마킹 이해도 상승**
 
+### ⚙️ Dockerfile 빌드 최적화 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/Docker-file-%EB%B9%8C%EB%93%9C-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-%EB%B9%8C%EB%93%9C-%EC%86%8D%EB%8F%84-%EB%B0%8F-%EC%9A%A9%EB%9F%89-%EC%B5%9C%EC%A0%81%ED%99%94)
+
+- **문제: 이미지 용량이 크고 빌드 시간이 길어 개발/배포 시 비효율적**
+- **해결: slim 베이스 이미지 + multi-stage build + 캐시 레이어 분리**
+- **성과: 이미지 용량 122MB 감소 및 빌드 속도 26.9s → 1.9s (93% 개선)**
+
 <br>
 
 ## 🆚 Technical Decision
@@ -251,11 +257,6 @@ erDiagram
 - **해결: Interface Endpoint 구성 → AWS 내부망으로 통신 경로 전환**
 - **성과: 트래픽 비용 감소 및 보안성 향상**
 
-### ⚙️ Dockerfile 빌드 최적화 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/Docker-file-%EB%B9%8C%EB%93%9C-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-%EB%B9%8C%EB%93%9C-%EC%86%8D%EB%8F%84-%EB%B0%8F-%EC%9A%A9%EB%9F%89-%EC%B5%9C%EC%A0%81%ED%99%94)
-
-- **문제: 이미지 용량이 크고 빌드 시간이 길어 개발/배포 시 비효율적**
-- **해결: slim 베이스 이미지 + multi-stage build + 캐시 레이어 분리**
-- **성과: 이미지 용량 122MB 감소 및 빌드 속도 26.9s → 1.9s (93% 개선)**
 
 ### 📬 재입고 알림 기능 구현 (이벤트 리스너 vs MQ vs Kafka) 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EC%9E%85%EA%B3%A0-%EC%9D%B4%EB%A9%94%EC%9D%BC-%EC%95%8C%EB%A6%BC-%EA%B8%B0%EB%8A%A5-%E2%80%90-%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EB%A6%AC%EC%8A%A4%EB%84%88-VS-MQ-VS-Kafka-%EB%B9%84%EA%B5%90)
 
