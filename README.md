@@ -184,12 +184,6 @@ erDiagram
       LocalDateTime updated_at
     }
     
-    Point {
-	    Long point_id PK
-	    Users user_id FK
-	    int point_balance
-    }
-    
     PointSummary {
 	    Long summary_id PK
 	    Users user_id FK
@@ -215,7 +209,6 @@ erDiagram
     SalesSummary ||--|| Item : "has one"
     Payment ||--|| Orders : "has one"
     PointSummary }o--|| Users : "has many"
-    Point ||--|| Users : "has one"
     Orders ||--|| IssuedCoupon : "has one"
 ~~~
 
@@ -229,19 +222,283 @@ erDiagram
 
 ## 🚨 Trouble Shooting
 
-### 🔧 동시성 문제 (재고 감소 처리) 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%EC%9E%AC%EA%B3%A0-%EA%B0%90%EC%86%8C-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-%EB%B9%84%EA%B4%80%EC%A0%81-%EB%9D%BD-%EC%A0%81%EC%9A%A9-%EC%9D%B4%EC%9C%A0%EC%99%80-%EA%B2%B0%EA%B3%BC)
+<h3>🔧 동시성 문제 (재고 감소 처리)</h3>
+<details>
+	<summary>👉 자세히 보기</summary>
+
+## 🧠 배경 및 문제 상황
+상품 재고를 차감하는 기능에서 동시에 여러 구매 요청이 들어올 경우 재고가 음수가 되는 문제가 발생했습니다.   
+초기에는 단순한 UPDATE 쿼리로 재고 수량을 감소시키는 방식이었지만 테스트 환경에서 여러 요청이 동시에 재고를 차감할 경우 실제 재고보다 많은 주문이 처리되는 문제가 발생했습니다.   
+이는 실서비스에서 데이터 무결성을 해칠 수 있는 **심각한 동시성 이슈**로 판단되었습니다.
+
+<br>
+
+## 🔍 문제 분석 및 고민한 방향
+문제 해결을 위해 먼저 고려한 방법은 **낙관적 락**과 **비관적 락**의 비교였습니다.
+
+| **방법** | **장점** | **단점** |
+|---------|---------|---------|
+| 낙관적 락 | - 성능 우수 <br> - 락을 사용하지 않음| - 충돌 시 예외처리가 복잡함 <br> - 재시도 로직으로 인한 리소스 낭비|
+| 비관적 락 | - 충돌 자체를 방지함 <br> - 안정성이 확보됨 | - 트랜잭션이 길어지면 락 대기 발생 가능 |
+
+낙관적 락은 성능적으로는 유리했지만 재고 감소 로직은 정확성과 안정성이 우선되어야 했기 때문에 충돌 시 예외 처리가 복잡하고 재시도 로직이 리소스를 소모하는 낙관적 락은 적합하지 않다고 판단했습니다.
+
+또한 분산 환경이 아닌 단일 인스턴스 기반의 프로젝트였기 때문에 Redis 기반의 분산 락은 복잡도와 오버헤드 측면에서 적합하지 않아 비교 대상에서 제외했습니다.
+
+<br>
+
+## ⚙️ 선택한 기술 및 구현 방식
+### ✅ 비관적 락 적용
+
+JPA 의 @Lock(LockModeType.PESSIMISTIC_WRITE) 어노테이션을 사용하여 트랜잭션 단위에서 다른 트랜잭션의 접근을 차단하는 비관적 락을 적용했습니다.
+
+~~~ java
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("select i from Item i where i.id in :itemIds")
+List<Item> findAllByIdWithLock(@Param("itemIds") List<Long> itemIds);
+~~~
+
+- 트랜잭션 안에서 findAllByIdWithLock 를 사용해 재고 차감 전 락을 획득
+- 다른 트랜잭션은 해당 데이터에 대한 접근을 차단 
+- 데이터 정합성을 보장
+
+
+<br>
+
+## ✅ 적용 결과 및 개선 효과
+- 같은 상품에 여러 주문 요청이 동시에 들어와도 락을 통해 재고 차감이 순차적으로 처리됨
+- 재고 수량이 음수가 되는 현상 제거
+- 테스트 및 로컬 환경에서 안정적으로 동작 확인
+
+결과적으로 **데이터 무결성과 안정성**을 확보하며 실서비스에서도 문제없이 적용 가능한 로직으로 변경하였습니다.
+
+<br>
+
+## 📎 참고 링크
+
+- [Spring Data JPA - Lock Support](https://docs.spring.io/spring-data/jpa/reference/jpa/locking.html)
+
+<br>
+
+</details>
 
 - **문제: 동시에 여러 주문 요청이 들어올 경우 재고가 음수가 되는 동시성 문제 발생**    
 - **해결: @Lock(PESSIMISTIC_WRITE) 적용하여 트랜잭션 단위로 락 제어**    
 - **성과: 재고 정확도 100% 확보 및 데이터 무결성 보장**
 
-### 🧪 테스트 코드 트랜잭션 롤백 실패 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0-%E2%80%90-@Transactional-%EC%82%AC%EC%9A%A9-%EC%8B%9C-1%EC%B0%A8-%EC%BA%90%EC%8B%9C%EC%99%80-rollback%E2%80%90only-%EC%B2%98%EB%A6%AC)
+<br>
+
+<h3>🧪 테스트 코드 트랜잭션 롤백 실패</h3>
+<details>
+	<summary>👉 자세히 보기</summary>
+
+## 🧠 배경 및 문제 상황
+
+ItemService 의 decreaseStock() 메서드에서 재고가 부족한 경우 CustomException 을 발생시켜 트랜잭션을 롤백하도록 구현했습니다.
+이를 테스트하기 위해 아래와 같은 테스트 코드를 작성했습니다.
+
+~~~ java
+@Test
+@Transactional
+@DisplayName("재고 감소 실패 - 트랜잭션 롤백")
+void shouldRollbackTransaction_When_StockIsInsufficient() {
+        // given
+        List<OrderItem> orderItems = List.of(
+                new OrderItem(1L, null, item1, 1000, 3),
+                new OrderItem(2L, null, item2, 1000, 2),
+                new OrderItem(3L, null, item3, 1000, 20)
+        );
+
+        // when
+        assertThatThrownBy(() -> itemService.decreaseStock(orderItems))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ItemErrorCode.OUT_OF_STOCK);
+
+        // then
+        assertThat(itemRepository.findById(item1.getId()).get().getStockQuantity()).isEqualTo(110);
+        assertThat(itemRepository.findById(item2.getId()).get().getStockQuantity()).isEqualTo(10);
+        assertThat(itemRepository.findById(item3.getId()).get().getStockQuantity()).isEqualTo(10);
+}
+~~~
+
+하지만 테스트 실행 결과 재고가 롤백되어야 함에도 불구하고 **차감된 값(107)** 이 조회되면서 테스트가 실패했습니다.    
+예외도 정상적으로 발생했고 로그에서도 롤백이 수행된 것으로 보였지만 테스트에서는 여전히 차감된 상태의 데이터를 조회하는 문제가 있었습니다.
+
+<br>
+
+## 🔍 문제 분석 및 고민한 방향
+
+### ✅ 주요 의문점
+- 왜 예외가 발생했음에도 .getStockQuantity() 값이 110 이 아닌 107 로 조회될까?
+- 롤백이 정상적으로 동작하지 않은 걸까?
+
+### ✅ 로그 분석 결과
+
+~~~ text
+[    Test worker] o.s.orm.jpa.JpaTransactionManager        : Participating transaction failed - marking existing transaction as rollback-only
+[    Test worker] o.s.orm.jpa.JpaTransactionManager        : Setting JPA transaction on EntityManager [SessionImpl(413647350<open>)] rollback-only
+[    Test worker] cResourceLocalTransactionCoordinatorImpl : JDBC transaction marked for rollback-only (exception provided for stack trace)
+~~~
+
+- 내부 트랜잭션에서 발생한 예외로 인해 롤백은 실제 수행된 게 아니라 rollback-only 로 마킹된 상태
+- 테스트 메서드 자체에 @Transactional 이 붙어 있어 최상위 트랜잭션이 여전히 유효
+- 이로 인해 영속성 컨텍스트는 여전히 변경된 엔티티 상태를 유지
+- 테스트에서 조회한 값은 DB 에서 읽은 값이 아닌 1차 캐시에 있는 변경된 값이므로 예상과 다름
+
+<br>
+
+## ⚙️ 선택한 해결 방식
+
+### ❌ EntityManager.flush() + clear()
+
+~~~ java
+em.flush();
+em.clear();
+~~~
+
+- 1차 캐시를 비우면 해결될 것이라고 생각했지만 이미 rollback-only 인 트랜잭션 컨텍스트에서는 flush 도 제한적
+- rollback-only 상태에서 flush 가 실행되지 않거나 이후 rollback 이 테스트 메서드 종료 시점에 수행되므로 무의미함
+
+### ✅ 테스트 메서드에서 @Transactional 제거
+
+~~~ java
+@Test
+@DisplayName("재고 감소 실패 - 트랜잭션 롤백")
+void shouldRollbackTransaction_When_StockIsInsufficient() {
+    ...
+}
+~~~
+
+- 테스트 메서드를 트랜잭션 밖에서 실행하면 내부 트랜잭션에서 예외 발생 시 즉시 rollback 됨
+- 테스트 메서드에서는 DB 에서 최신 상태를 바로 조회할 수 있어 정확도가 확보됨
+
+<br>
+
+## ✅ 적용 결과 및 개선 효과
+
+- .getStockQuantity() 가 정상적으로 롤백된 110 으로 조회됨
+- 테스트 통과
+- 트랜잭션 흐름과 1차 캐시의 동작 원리에 대한 이해도 향상
+
+<br>
+
+</details>
 
 - **문제: @Transactional 이 붙은 테스트 메서드에서 rollbac k이 안되는 것처럼 보이는 현상 발생**
 - **해결: 테스트 함수 트랜잭션 제거 → 내부 트랜잭션 rollback 여부 정확히 검증 가능**
 - **성과: 트랜잭션 흐름 및 rollback-only 마킹 이해도 상승**
 
-### ⚙️ Dockerfile 빌드 최적화 👉 [자세히 보기](https://github.com/Developer-Groo/Sparta-Store/wiki/Docker-file-%EB%B9%8C%EB%93%9C-%EC%B5%9C%EC%A0%81%ED%99%94-%E2%80%90-%EB%B9%8C%EB%93%9C-%EC%86%8D%EB%8F%84-%EB%B0%8F-%EC%9A%A9%EB%9F%89-%EC%B5%9C%EC%A0%81%ED%99%94)
+<br>
+
+<h3>⚙️ Dockerfile 빌드 최적화</h3>
+<details>
+	<summary>👉 자세히 보기</summary>
+
+## 🧠 배경 및 문제 상황
+
+Docker 기반 CI/CD 환경에서 컨테이너 이미지 용량이 불필요하게 크고 빌드 시간이 오래 걸리는 문제를 확인했습니다.
+또한 빌드 단계에서 매번 의존성을 다시 설치하거나 불필요한 파일까지 포함되어 배포 효율성과 유지보수성에도 영향을 줄 수 있다고 판단했습니다.
+
+이를 해결하기 위해 이미지 용량을 줄이고 빌드 속도와 재사용성을 개선하는 최적화가 필요했습니다.
+
+<br>
+
+## 🔍 문제 분석 및 고민한 방향
+
+Dockerfile 최적화를 위해 아래와 같은 항목을 중심으로 검토하였습니다
+
+| **항목** | **선택지** | **비교** |
+|---------|----------|---------|
+| 베이스 이미지 | openjdk:17-jdk vs openjdk:17-jdk-slim | - 용량 차이 <br> - 기능 차이 |
+| 빌드 방식 | 단일 스테이지 vs 멀티 스테이지 | - 보안성 <br> - 빌드 범위 제어 |
+| 캐시 전략 | 전체 복사 vs .gradle 분리 복사 | - 캐시 재사용 <br> - 빌드 속도 향상 |
+
+- **베이스 이미지** - openjdk:17-jdk-slim 은 일반 JDK 이미지보다 가볍고 실행에 필요한 필수 구성만 포함하여 122MB 이상 경량화 가능
+- **멀티 스테이지 빌드** - 빌드 도구와 실행 환경을 분리하여 보안성과 유지보수성 향상
+- **캐시 분리 전략** - build.gradle, settings.gradle 을 먼저 복사해 캐시 레이어를 효율적으로 활용함으로써 빌드 시간 대폭 단축
+
+<br>
+
+## ⚙️ 선택한 기술 및 구현 방식
+
+### ✅ 베이스 이미지 최적화
+
+~~~ dockerfile
+FROM openjdk:17-jdk-slim
+VOLUME /tmp
+COPY build/libs/*SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+~~~
+
+- 기존의 openjdk:17-jdk 에서 slim 이미지로 변경
+- 약 122MB 의 이미지 크기 감소 확인
+
+### ✅ 멀티 스테이지 빌드 적용
+
+~~~ dockerfile
+FROM gradle:8.4-jdk17 AS builder
+WORKDIR /app
+COPY . .
+RUN gradle build --no-daemon -x test
+
+FROM openjdk:17-jdk-slim
+VOLUME /tmp
+COPY --from=builder /app/build/libs/*SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+~~~
+
+- 약 0.23mb 의 이미지 크기 감소 확인
+- 기존 단일 스테이지의 경우에도 .jar 만 포함되므로 큰 효과는 없었음
+- 하지만 보안성 및 유지보수성은 향상됨
+
+### ✅ 빌드 캐시 레이어 분리 전략 적용
+
+~~~ dockerfile
+FROM gradle:8.4-jdk17 AS builder
+WORKDIR /app
+
+COPY build.gradle .
+COPY settings.gradle .
+RUN gradle build --no-daemon -x test || true
+
+COPY . .
+RUN gradle build --no-daemon -x test
+
+FROM openjdk:17-jdk-slim
+VOLUME /tmp
+COPY --from=builder /app/build/libs/*SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+~~~
+
+- 캐시 레이어를 활용해 gradle 의존성 재설치 방지
+- 전체 빌드 시간 26.9초 → 1.9초로 약 93% 시간 절감
+
+<br>
+
+## ✅ 적용 결과 및 개선 효과
+
+| **항목** | **Before** | **After** | **개선 효과** |
+|---------|------------|-----------|-------------|
+| Docker 이미지 용량 | 약 900.52MB | 약 777.6MB | 약 122.92MB 감소 |
+| 빌드 시간 | 26.9 초 | 1.9 초 | 약 93% 단축 |
+| 이미지 빌드 방식 | 단일 스테이지 | 멀티 스테이지 | 보안성 & 유지보성 개선 |
+
+- CI/CD 전체 속도 향상
+- 배포 및 테스트 환경에서 더 빠른 이미지 pull 가능
+- 운영 환경에서 리소스 효율성 향상
+
+<br>
+
+## 📎 참고 이미지
+| **구분** | **스크린샷** |
+|---------|------------|
+| 베이스 이미지 변경 전 → 후 | <img width="670" src="https://github.com/user-attachments/assets/31e8f6eb-9844-4819-b930-e7e9db8439f1"/> <br> <img width="670" src="https://github.com/user-attachments/assets/2ee74e5d-dc3b-49a7-aef0-dcd03fd31184"/> |
+| 멀티 스테이지 적용 전 → 후 | <img width="670" src="https://github.com/user-attachments/assets/2ee74e5d-dc3b-49a7-aef0-dcd03fd31184"/> <br> <img width="670" src="https://github.com/user-attachments/assets/5a85b122-61c7-4850-8abb-7c9f4b8a1794"/>|
+| 캐시 전략 적용 전 → 후 | <img width="340" src="https://github.com/user-attachments/assets/8634dce2-9664-4d68-bfac-6aafcba38dee"/> <br> <img width="340" src="https://github.com/user-attachments/assets/8d9ecbf4-882c-4e87-b061-f15bce17df88"/> |
+
+<br>
+</details>
 
 - **문제: 이미지 용량이 크고 빌드 시간이 길어 개발/배포 시 비효율적**
 - **해결: slim 베이스 이미지 + multi-stage build + 캐시 레이어 분리**
