@@ -282,10 +282,20 @@ List<Item> findAllByIdWithLock(@Param("itemIds") List<Long> itemIds);
 
 </details>
 
-- **문제: 동시에 여러 주문 요청이 들어올 경우 재고가 음수가 되는 동시성 문제 발생**    
-- **해결: @Lock(PESSIMISTIC_WRITE) 적용하여 트랜잭션 단위로 락 제어**    
-- **성과: 재고 정확도 100% 확보 및 데이터 무결성 보장**
-
+	• 문제: 동시 주문 요청 시 재고가 음수가 되는 동시성 문제 발생
+ 
+	• 원인: 단순 UPDATE 쿼리 사용으로 인해 트랜잭션 간 충돌 미처리
+ 
+	• 시도: 낙관적 락 vs 비관적 락 비교
+		• 낙관적 락: 성능은 상대적으로 뛰어나지만 예외 처리 및 재시도 로직 복잡함
+		• Redis 분산 락: 단일 인스턴스 환경으로 불필요한 복잡도
+	• 해결:
+		• JPA의 @Lock(PESSIMISTIC_WRITE) 적용
+		• 트랜잭션 시작 시점에 재고 row 에 락 획득 → 충돌 차단
+	• 성과:
+		• 재고 음수 문제 제거, 재고 정확도 100% 확보
+		• 데이터 무결성 보장
+  
 <br>
 
 <h3>🧪 테스트 코드 트랜잭션 롤백 실패</h3>
@@ -385,9 +395,20 @@ void shouldRollbackTransaction_When_StockIsInsufficient() {
 
 </details>
 
-- **문제: @Transactional 이 붙은 테스트 메서드에서 rollbac k이 안되는 것처럼 보이는 현상 발생**
-- **해결: 테스트 함수 트랜잭션 제거 → 내부 트랜잭션 rollback 여부 정확히 검증 가능**
-- **성과: 트랜잭션 흐름 및 rollback-only 마킹 이해도 상승**
+	• 문제: 예외 발생 후에도 .getStockQuantity() 값이 롤백되지 않고 차감된 값으로 조회됨 → 테스트 실패
+	• 원인:
+		• 테스트 메서드에 @Transactional이 붙어 있어 내부 트랜잭션 rollback-only 상태로 마킹
+		• 영속성 컨텍스트는 여전히 변경된 엔티티 상태를 유지
+		• 조회 시 DB가 아닌 1차 캐시에서 값을 읽음 → 롤백된 상태와 불일치 발생
+	• 시도한 방법:
+		• em.flush() + em.clear() → rollback-only 상태에서 flush가 무의미하여 실패
+	• 해결 방법:
+		• 테스트 메서드에서 @Transactional 제거
+		• 예외 발생 시 내부 트랜잭션이 즉시 rollback
+		• 테스트는 DB로부터 실제 상태를 조회
+	• 성과:
+		• .getStockQuantity() 값이 정확히 롤백되어 테스트 통과
+		• 트랜잭션 흐름 및 1차 캐시 동작 원리에 대한 실전 경험 확보
 
 <br>
 
@@ -500,9 +521,19 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 <br>
 </details>
 
-- **문제: 이미지 용량이 크고 빌드 시간이 길어 개발/배포 시 비효율적**
-- **해결: slim 베이스 이미지 + multi-stage build + 캐시 레이어 분리**
-- **성과: 이미지 용량 122MB 감소 및 빌드 속도 26.9s → 1.9s (93% 개선)**
+	• 문제: Docker 이미지 용량 과다 및 CI 빌드 시간 지연 → 배포 효율성 저하
+	• 원인:
+		• 불필요한 베이스 이미지 사용 (openjdk:17-jdk)
+		• 단일 스테이지 빌드 → 보안 및 용량 측면 비효율
+		• 의존성 캐시 미활용 → 빌드 시마다 재설치 발생
+	• 해결:
+		• openjdk:17-jdk-slim 으로 베이스 이미지 변경
+		• 멀티 스테이지 빌드 도입으로 빌드/런타임 분리
+		• build.gradle, settings.gradle만 복사해 Gradle 캐시 재사용 전략 적용
+	• 성과:
+ 		• 이미지 용량: 900.5MB → 777.6MB / 약 123MB 감소
+   		• 빌드 시간: 26.9초 → 1.9초 / 약 93% 단축
+     		• 빌드 방식: 단일 스테이지 -> 멀티 스테이지 / 보안성, 유지보수성 향상
 
 <br>
 
@@ -555,9 +586,17 @@ Interface Endpoint 를 활용하면 퍼블릭 인터넷을 거치지 않고 AWS 
 <br>
  </details>
 
-- **문제: ECR Pull 시 NAT Gateway 를 경유해 불필요한 네트워크 요금 발생**    
-- **해결: Interface Endpoint 구성 → AWS 내부망으로 통신 경로 전환**
-- **성과: 트래픽 비용 감소 및 보안성 향상**
+ 	• 문제:
+		• CI/CD 환경에서 ECR 이미지 Pull 시 NAT Gateway를 통해 통신
+		• 배포 빈도 증가에 따라 NAT 트래픽 비용이 지속 상승
+	• 해결 방법:
+		• ECR용 Interface Endpoint 도입
+		• 퍼블릭 경로가 아닌 AWS 내부망 을 통해 ECR 접근
+		• VPC/Subnet 구성을 조정하여 Private Subnet 내에서만 통신 가능하도록 설정
+	• 성과:
+		• NAT 트래픽 비용 대폭 절감
+		• 보안성 강화 / ECR 접근이 외부 노출 없이 내부망에서만 수행
+		• CI/CD 배포 효율성 향상 및 운영 비용 최적화
 
 <br>
 
@@ -649,8 +688,16 @@ public void handleItemRestocked(ItemRestockedEvent event) {
 
 </details>
 
-- **문제: 재입고 알림을 어떤 방식으로 처리할지 기술 선택 필요**
-- **해결: 서비스 복잡도와 트래픽 규모를 고려해 Spring 이벤트 리스너 사용**
-- **성과: 간결한 구현, 유지보수성 향상, 향후 비동기 확장 가능**
+	• 문제:
+		• 품절 상품이 재입고될 때 찜한 사용자에게 빠른 이메일 알림 필요
+		• 서비스 간 복잡한 연동 없이 간단한 구조 유지가 요구됨
+	• 해결 방법:
+		• @EventListener + ApplicationEventPublisher 기반의 비동기 이벤트 방식 선택
+		• ItemRestockedEvent 클래스 설계 및 비즈니스 로직 분리
+		• @Async 리스너를 활용해 알림 처리 비동기처리 및 느슨한 결합 구현
+	• 성과:
+		• 서비스 로직과 알림 로직 분리 → 유지보수 및 확장성 향상
+		• 외부 메시지 브로커 없이도 요구사항 충족
+		• 테스트 시에도 이벤트만 발행하면 기능 검증 가능 → 테스트 용이성 확보
 
 <br>
